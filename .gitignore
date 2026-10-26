@@ -5,6 +5,12 @@ node_modules/
 dist/
 coverage/
 
+# Local API runtime data (SQLite database and WAL side files)
+apps/api/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
 # Test artifacts
 test-results/
 playwright-report/

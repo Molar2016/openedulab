@@ -16,5 +16,6 @@
     "noEmit": true,
     "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["apps", "experiments", "tests", "vite.config.ts", "playwright.config.ts"]
+  "include": ["apps", "experiments", "tests", "vite.config.ts", "playwright.config.ts"],
+  "exclude": ["apps/api"]
 }
