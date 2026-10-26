@@ -1,0 +1,30 @@
+--- 1. dry run ---
+retention dry-run on C:\Users\Administrator\AppData\Local\hermes\cache\scratch\retention-drill-224739.sqlite
+  generatedAt: 2026-10-26T14:47:40.210Z
+  event           would delete       1 rows (older than 90d, cutoff 2026-07-28T14:47:40.210Z)
+  feedback        would delete       1 rows (older than 180d, cutoff 2026-04-29T14:47:40.210Z)
+  internal_audit  would delete       0 rows (older than 365d, cutoff 2025-10-26T14:47:40.210Z)
+  session         would delete       0 rows (older than 30d, cutoff 2026-09-26T14:47:40.210Z)
+  total: would delete 2 rows
+(node:21060) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+--- 2. apply ---
+retention apply on C:\Users\Administrator\AppData\Local\hermes\cache\scratch\retention-drill-224739.sqlite
+  generatedAt: 2026-10-26T14:47:40.349Z
+  event           deleted       1 rows (older than 90d, cutoff 2026-07-28T14:47:40.349Z)
+  feedback        deleted       1 rows (older than 180d, cutoff 2026-04-29T14:47:40.349Z)
+  internal_audit  deleted       0 rows (older than 365d, cutoff 2025-10-26T14:47:40.349Z)
+  session         deleted       0 rows (older than 30d, cutoff 2026-09-26T14:47:40.349Z)
+  total: deleted 2 rows
+(node:23592) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+--- 3. apply again (idempotency) ---
+retention apply on C:\Users\Administrator\AppData\Local\hermes\cache\scratch\retention-drill-224739.sqlite
+  generatedAt: 2026-10-26T14:47:40.481Z
+  event           deleted       0 rows (older than 90d, cutoff 2026-07-28T14:47:40.481Z)
+  feedback        deleted       0 rows (older than 180d, cutoff 2026-04-29T14:47:40.481Z)
+  internal_audit  deleted       0 rows (older than 365d, cutoff 2025-10-26T14:47:40.481Z)
+  session         deleted       0 rows (older than 30d, cutoff 2026-09-26T14:47:40.481Z)
+  total: deleted 0 rows
+(node:21572) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

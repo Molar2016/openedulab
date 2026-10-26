@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-10-26T14:47:22.372Z",
+  "step": "done",
+  "source": {
+    "kind": "live",
+    "path": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite"
+  },
+  "restoredBytes": 176128,
+  "integrity": "ok",
+  "counts": {
+    "account": 4,
+    "session": 15,
+    "favorite": 0,
+    "recent_use": 1,
+    "event": 61,
+    "feedback": 5,
+    "internal_audit": 3
+  },
+  "migrations": [
+    "0001"
+  ],
+  "canary": {
+    "readBack": "ok",
+    "remaining": 0
+  },
+  "server": {
+    "required": true,
+    "started": true,
+    "healthz": {
+      "status": "ok",
+      "appVersion": "0.1.0-m1",
+      "migrations": {
+        "applied": 1,
+        "latest": "0001",
+        "pending": 0
+      }
+    },
+    "writeProbe": 201,
+    "detail": null
+  },
+  "ok": true,
+  "issues": []
+}

@@ -1,0 +1,126 @@
+
+> openedulab@0.1.0-m1 smoke:api
+> node apps/api/scripts/smoke.mjs
+
+(node:22036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+# B1+B2 smoke — real process, node v22.23.0
+# repo=G:\hermes\projects\openedulab\
+# db=C:\Users\ADMINI~1\AppData\Local\Temp\oel-smoke-T9r8Oo\db\app.sqlite
+# port=7502
+
+## 1. configuration is fail-closed
+PASS missing config exits non-zero — exit=1
+PASS missing config names every absent variable —   - OEL_PORT: is required and has no default |   - OEL_DATABASE_PATH: is required and has no default
+PASS missing config never starts listening
+
+## 2. start on an empty database
+PASS GET /api/healthz is 200 — {"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":0,"timestamp":"2026-10-26T14:44:02.257Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
+PASS healthz reports the package version — 0.1.0-m1 vs 0.1.0-m1
+PASS healthz reports migration state — {"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}
+
+## 3. same-origin hosting and the anonymous deep-link gate
+PASS anonymous deep link is a 302 to the login page — status=302 location=/login?next=%2Fexperiments%2Fmath.functions
+PASS the redirect does not serve the app shell
+PASS the public login page is 200 — status=200
+PASS the login page serves the built index.html — bytes=1244
+PASS html is not cached — no-cache
+PASS built asset is served — /assets/index-Bt2Gfxrc.js application/javascript; charset=utf-8
+PASS built asset is larger than 10 kB — 197617 bytes
+
+## 4. private API refuses anonymous callers (B3 gate)
+PASS GET /api/catalog -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/experiments/math.functions -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/me/favorites -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/me/recent -> 401 unauthenticated — status=401 code=unauthenticated
+PASS forged cookie is still 401 — status=401
+PASS an API call that accepts HTML is not redirected to the login page — status=401
+PASS POST /api/events -> 401 unauthenticated — status=401 code=unauthenticated
+PASS POST /api/feedback -> 401 unauthenticated — status=401 code=unauthenticated
+PASS /api/me/saved-state is honestly absent (404; B7 optional feature) — status=404
+PASS unknown API route -> JSON 404 — 404 application/json; charset=utf-8
+PASS missing asset -> 404 (not the SPA shell) — status=404
+
+## 5. database on disk
+PASS schema_migrations has exactly one row — [{"version":"0001","checksum":"289c27d35781287668532ee6c32a03db25aa8472346d9ac51c94146e908a3ce3","applied_at":1793025842097}]
+PASS the row carries a sha256 checksum — 289c27d35781…
+
+## 6. authentication over a real socket (B2)
+PASS register returns 201 — status=201
+PASS register issues an HttpOnly, SameSite=Lax, Path=/ cookie — oel_sid=9VD1…
+PASS register returns only a masked hint — {"account":{"displayHint":"s***@example.com"}}
+PASS anonymous session is authenticated:false — {"authenticated":false}
+PASS registered session is authenticated:true without leaking identifiers — {"authenticated":true,"account":{"displayHint":"s***@example.com","createdAt":1793025842473}}
+PASS duplicate identifier is 409 identifier_taken after normalization — status=409 code=identifier_taken
+PASS wrong password is 401 invalid_credentials — status=401
+PASS unknown identifier is byte-identical to a wrong password — status=401
+PASS failed logins never set a cookie
+PASS CSRF: missing Origin is rejected — status=403
+PASS CSRF: foreign Origin is rejected — status=403
+PASS CSRF: urlencoded form login is rejected — status=403
+PASS forged cookie is authenticated:false
+PASS logout returns 204 — status=204
+PASS logout clears the cookie
+PASS replaying the logged-out cookie is unauthenticated
+PASS second logout is 401 — status=401
+PASS login with the right password is 200
+PASS login issues a new token — oel_sid=IdFT…
+PASS the new session is authenticated
+
+## 6b. authenticated access to protected resources (B3)
+PASS catalog is 200 with a live session — status=200
+PASS catalog lists the shipped experiment with a content version — ["math.functions@1.0.0"]
+PASS catalog response is not cached — no-store
+PASS experiment detail is 200 — status=200
+PASS experiment detail carries localized title, contentVersion and sdk range — 一次函数与二次函数 1.0.0 ^1.0.0
+PASS experiment detail exposes no filesystem path
+PASS unknown experiment id is 404 — status=404
+PASS an authenticated deep link serves the app shell — status=200
+
+## 6c. personal data: favorites and recent use (B4)
+PASS PUT favorite -> 201 — status=201
+PASS PUT the same favorite again -> 200 with the original timestamp — 200 1793025844190
+PASS PUT an unpublished experiment -> 404 — status=404
+PASS GET favorites -> only id + timestamp, no parameters — [{"experimentId":"math.functions","createdAt":1793025844190}]
+PASS POST recent -> 204
+PASS POST recent again -> 204 (deduplicated)
+PASS GET recent -> one row per resource, no slider values — [{"experimentId":"math.functions","lastOpenedAt":1793025844255}]
+PASS another account sees an empty favorites list — {"items":[]}
+PASS another account deleting "the same" favorite is a no-op 204
+PASS the first account still has its favorite after that — [{"experimentId":"math.functions","createdAt":1793025844190}]
+PASS DELETE favorite -> 204 — status=204
+PASS DELETE again -> 204 (idempotent)
+PASS favorites list is empty afterwards
+
+## 6d. diagnostics: events, feedback and the operator channel (B5)
+PASS a valid event batch is accepted (202) — {"accepted":4,"dropped":0}
+PASS unknown experiment and removed event type are dropped, not stored — {"accepted":0,"dropped":2}
+PASS replaying the same batch is de-duplicated — {"accepted":0,"dropped":4}
+PASS feedback is stored (201) — status=201
+PASS operator overview is 200 and reports the events — [{"experimentId":"math.functions","contentVersions":["1.0.0"],"openAccounts":1,"openVisits":1,"interactedVisits":1,"firstInteractionRate":1,"opens":1,"resets":1,"resetRatio":1,"fullscreens":0,"fullscreenRatio":0,"errors":0,"errorRate":0}]
+PASS overview reports the interaction conversion and control usage — {"experimentId":"math.functions","contentVersions":["1.0.0"],"openAccounts":1,"openVisits":1,"interactedVisits":1,"firstInteractionRate":1,"opens":1,"resets":1,"resetRatio":1,"fullscreens":0,"fullscreenRatio":0,"errors":0,"errorRate":0}
+PASS an export without a purpose is refused (400) — status=400
+PASS the events export is CSV with a header and no received_at/UA — occurred_at_min,experiment_id,content_version,app_version,locale,event_type,control_group,interaction_bucket,error_code,device_class,account_id
+PASS the feedback export carries the reported text and the account id
+PASS operator exports left audit rows — rows=2
+PASS the operator channel is 404 without a token — status=404
+PASS a normal session cannot reach the operator channel — status=404
+PASS database stores a scrypt hash, never the password — scrypt$32768$8$3$AXX0vsV…
+PASS database stores sha256(token), not the token
+
+## 7. registration rate limit over a real socket
+PASS repeated registrations from one IP hit 429 — allowed=2 status=429
+PASS 429 carries a numeric Retry-After — 3598
+
+## 8. restart against the same database
+PASS healthz is 200 after restart
+PASS restart is idempotent (still one row) — ["0001"]
+PASS restart keeps applied_at unchanged — before=1793025842097 after=1793025842097
+PASS a live session survives a restart (server-side, DB-backed) — {"authenticated":true,"account":{"displayHint":"s***@example.com","createdAt":1793025842473}}
+PASS a revoked session stays revoked after a restart
+
+## 9. a tampered migration refuses to start
+PASS tampered migration exits non-zero — exit=1
+PASS tampered migration reports checksum mismatch — (Use `node --trace-warnings ...` to show where the warning was created) | [openedulab-api] failed to start: Migration 0001 (init) was modified after it was applied: recorded 289c27d35781…, file 4ddecbcb6881…
+
+# 90/90 checks passed

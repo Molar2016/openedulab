@@ -1,0 +1,605 @@
+
+> openedulab@0.1.0-m1 ci:local
+> npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run build:api && npm run test:api && npm run validate:content && npm run build && npm run smoke:api && npm run test:e2e && npm run check:backup && npm run check:restore && npm run retention:dry-run -- --db test-results/e2e/app.sqlite
+
+
+> openedulab@0.1.0-m1 typecheck
+> tsc --noEmit
+
+
+> openedulab@0.1.0-m1 typecheck:api
+> tsc -p apps/api/tsconfig.test.json
+
+
+> openedulab@0.1.0-m1 lint
+> eslint .
+
+
+> openedulab@0.1.0-m1 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab[39m
+
+ [32m✓[39m tests/router.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+ [32m✓[39m tests/api-client.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/analytics.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+ [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 326[2mms[22m[39m
+   [33m[2m✓[22m[39m manifest discovery[2m > [22mexposes a lazy view loader that resolves to a component [33m321[2mms[22m[39m
+ [32m✓[39m tests/host.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[33m 481[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m90 passed[39m[22m[90m (90)[39m
+[2m   Start at [22m 22:50:31
+[2m   Duration [22m 3.30s[2m (transform 843ms, setup 1.52s, collect 1.34s, tests 905ms, environment 9.06s, prepare 1.55s)[22m
+
+
+> openedulab@0.1.0-m1 build:api
+> tsc -p apps/api/tsconfig.json
+
+
+> openedulab@0.1.0-m1 test:api
+> vitest run --config apps/api/vitest.config.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:21572) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5992) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:24172) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22304) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23296) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19156) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22796) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:14144) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17884) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23488) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 485[2mms[22m[39m
+(node:12768) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/retention.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 4986[2mms[22m[39m
+   [33m[2m✓[22m[39m retention plan[2m > [22mcounts only rows strictly past each window and changes nothing [33m1233[2mms[22m[39m
+   [33m[2m✓[22m[39m retention purge[2m > [22mdeletes exactly the planned rows and keeps everything inside the window [33m739[2mms[22m[39m
+   [33m[2m✓[22m[39m retention purge[2m > [22mis idempotent: a second run deletes nothing [33m655[2mms[22m[39m
+   [33m[2m✓[22m[39m retention authorization boundary[2m > [22mhas no HTTP endpoint for deletion [33m588[2mms[22m[39m
+   [33m[2m✓[22m[39m retention authorization boundary[2m > [22mrefuses --apply without naming the same database twice [33m965[2mms[22m[39m
+   [33m[2m✓[22m[39m retention authorization boundary[2m > [22mruns a dry run when no mode is given [33m804[2mms[22m[39m
+(node:3024) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/recent.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 5634[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use requires a session[2m > [22m'GET' '/api/me/recent' denies anonymous callers [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mkeeps one row per experiment and moves it to the top [33m666[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mreturns only the resource id and the timestamp [33m642[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mhonours limit and rejects an invalid one [33m613[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrejects an experiment that is not in the index, and a malformed id [33m566[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrejects a body that tries to name an account [33m636[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrequires the CSRF guard on the write [33m618[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mkeeps two accounts separate [33m1131[2mms[22m[39m
+(node:21996) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 7110[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session [33m654[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mreports only a masked identity for a live session [33m627[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation [33m647[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mrevokes only the session that logged out [33m1113[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry [33m597[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity [33m533[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled [33m632[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http [33m626[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22muses the __Host- prefix with Secure in production [33m623[2mms[22m[39m
+ [32m✓[39m test/authorization.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 7122[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 unauthenticated without a cookie [33m646[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/catalog ignores caller-supplied identity fields [33m626[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/experiments/math.functions ignores caller-supplied identity fields [33m623[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mserves the catalog to the account that just registered [33m598[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mserves experiment metadata without leaking identity or filesystem paths [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mkeeps the session working across requests and processes no account id in the body [33m561[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects the cookie after logout [33m625[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects an absolutely expired session [33m666[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects an idle-expired session even inside the absolute window [33m629[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects a session whose account was disabled [33m626[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects a session row deleted from the database [33m634[2mms[22m[39m
+ [32m✓[39m test/private-routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 963[2mms[22m[39m
+   [33m[2m✓[22m[39m API route inventory[2m > [22mregisters only classified API routes [33m526[2mms[22m[39m
+(node:24268) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18612) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20568) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/auth.security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 8207[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext [33m1211[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mverifies a stored hash with timingSafeEqual semantics and rejects corrupted input [33m2135[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mupgrades the work factor on the next successful login [33m1350[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database [33m556[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses [33m1146[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string [33m657[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in [33m1149[2mms[22m[39m
+ [32m✓[39m test/favorites.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 8203[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites require a session[2m > [22m'GET' '/api/me/favorites' denies anonymous callers [33m670[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22madds a favorite once and reports the same timestamp on repeat [33m614[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrejects an experiment that is not in the content index [33m629[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrejects a malformed experiment id [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrequires the CSRF guard on writes [33m547[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mlists newest first [33m609[2mms[22m[39m
+   [33m[2m✓[22m[39m favorite writes are rate limited[2m > [22manswers 429 with Retry-After once the per-account budget is spent [33m647[2mms[22m[39m
+   [33m[2m✓[22m[39m removing a favorite[2m > [22mis idempotent and removes the row [33m739[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mis visible in a second session of the same account [33m1118[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mis invisible to another account, and its writes do not leak in [33m1230[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mreturns no parameter or identity fields [33m627[2mms[22m[39m
+ [32m✓[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 8637[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier [33m1192[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits [33m630[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19) [33m596[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces [33m1137[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators [33m1102[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent [33m1136[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation [33m614[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account [33m636[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session [33m624[2mms[22m[39m
+ [32m✓[39m test/internal.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 8764[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22m/api/internal/overview is a 404 without a token [33m654[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22mrejects a wrong token, a scheme confusion and a normal account session [33m597[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to a normal account with an invalid window [33m624[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is gated before input validation[2m > [22mnever throttles an ordinary account probing the path repeatedly [33m568[2mms[22m[39m
+   [33m[2m✓[22m[39m overview answers the product questions[2m > [22mreports distinct accounts, visits, interaction conversion and error counts [33m1127[2mms[22m[39m
+   [33m[2m✓[22m[39m funnel and control distribution[2m > [22mcounts each step and the controls that were actually used [33m1108[2mms[22m[39m
+   [33m[2m✓[22m[39m single-account timeline is scoped and audited[2m > [22mreturns only that account's events and records the access [33m1123[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports events without user agents or receive timestamps, and audits it [33m1163[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports feedback with the account id and the reported text [33m632[2mms[22m[39m
+(node:13368) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/config.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 481[2mms[22m[39m
+ [32m✓[39m test/catalog.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 9516[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mlists every indexed experiment sorted by id [33m1190[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mreturns localized title and description, plus the content version [33m670[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mdefaults to Chinese when no locale is requested [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mexposes exactly the catalog fields and no internal detail [33m621[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22mfilters by subject, grade and concept [33m616[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22mcaps the result set with limit [33m596[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=0 [33m568[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=51 [33m587[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=abc [33m651[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?locale=fr [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?subject=math&unknown=1 [33m645[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa [33m621[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22mrequires a session before any query is evaluated [33m719[2mms[22m[39m
+(node:24188) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23368) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 740[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m537[2mms[22m[39m
+ [32m✓[39m test/spa-gate.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2843[2mms[22m[39m
+   [33m[2m✓[22m[39m anonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next [33m545[2mms[22m[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mserves the catalog root and the experiment deep link [33m691[2mms[22m[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked [33m577[2mms[22m[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 1846[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mredirects an anonymous navigation to the root instead of serving the shell [33m690[2mms[22m[39m
+ [32m✓[39m test/events.test.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 11118[2mms[22m[39m
+   [33m[2m✓[22m[39m events require a session[2m > [22mdenies anonymous callers [33m663[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mstores a whitelisted open event with a server timestamp and account [33m613[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mderives the device class from the user agent instead of storing it [33m637[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mtreats reset and fullscreen as repeatable and the rest as once per visit [33m583[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mdrops a repeated client event id instead of failing [33m594[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops free text, slider values, URLs and unknown fields without storing them [33m575[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a unknown type event [33m582[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a unknown experiment event [33m640[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a version mismatch event [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad control group event [33m587[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad interaction bucket event [33m621[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad error code event [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a missing error code event [33m643[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad locale event [33m588[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mrejects a malformed envelope outright [33m677[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mrefuses a batch larger than the body limit [33m653[2mms[22m[39m
+   [33m[2m✓[22m[39m event ingestion controls[2m > [22mrate limits per account and keeps what it already accepted [33m662[2mms[22m[39m
+   [33m[2m✓[22m[39m event ingestion controls[2m > [22maccepts the batch but stores nothing when events are disabled [33m562[2mms[22m[39m
+ [32m✓[39m test/feedback.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 6405[2mms[22m[39m
+   [33m[2m✓[22m[39m feedback requires a session[2m > [22mdenies anonymous callers [33m500[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mstores the message in feedback only and records a category event [33m648[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22maccepts a category-only report with no message [33m674[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mstrips control characters and collapses an over-long message instead of failing [33m627[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unknown category [33m658[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a malformed experiment [33m705[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unpublished experiment [33m625[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unknown field [33m574[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a non-integer version [33m540[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrequires the CSRF guard [33m405[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mlimits submissions per account [33m445[2mms[22m[39m
+ [32m✓[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 3136[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline) [33m1044[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint [33m462[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything [33m485[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type) [33m407[2mms[22m[39m
+ [32m✓[39m test/auth.login.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 13829[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token [33m1644[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too [33m1107[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body [33m1797[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit) [33m1707[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password [33m1742[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account [33m772[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented [33m631[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak [33m4427[2mms[22m[39m
+ [32m✓[39m test/experiments.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 7453[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mreturns the indexed manifest, content version and localized text [33m1153[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 404 for an experiment that is not in the index [33m750[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id Math.Functions, never a filesystem lookup [33m589[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math, never a filesystem lookup [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math..functions, never a filesystem lookup [33m469[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math.functions%2F..%2Fetc, never a filesystem lookup [33m435[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mrequires a session [33m502[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=fr instead of failing inside the handler [33m383[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=__proto__ instead of failing inside the handler [33m395[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=constructor instead of failing inside the handler [33m369[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=en-US instead of failing inside the handler [33m369[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale= instead of failing inside the handler [33m364[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for an unknown query parameter instead of ignoring it [33m357[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22mnever exposes a filesystem path or the manifest file name [33m361[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22mserves the English title for locale=en and the Chinese title by default [33m362[2mms[22m[39m
+ [32m✓[39m test/rate-limit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 13120[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After [33m3555[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget [33m1444[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password [33m3774[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mreleases the lock after the window passes [33m3577[2mms[22m[39m
+   [33m[2m✓[22m[39m rate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open [33m640[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m21 passed[39m[22m[90m (21)[39m
+[2m      Tests [22m [1m[32m274 passed[39m[22m[90m (274)[39m
+[2m   Start at [22m 22:50:38
+[2m   Duration [22m 22.88s[2m (transform 1.29s, setup 0ms, collect 11.23s, tests 130.60s, environment 7ms, prepare 3.51s)[22m
+
+
+> openedulab@0.1.0-m1 validate:content
+> node scripts/validate-content.mjs
+
+Content validation OK
+ - experiments: math.functions (slug: math-functions, locales: zh-CN, en)
+ - UI dictionaries: zh-CN, en with 125 keys each
+ - host SDK: 1.0.0
+
+> openedulab@0.1.0-m1 build
+> tsc --noEmit && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 53 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.24 kB[22m[1m[22m[2m │ gzip:  0.75 kB[22m
+[2mdist/[22m[35massets/index-B0DsNRDj.css  [39m[1m[2m 11.63 kB[22m[1m[22m[2m │ gzip:  3.11 kB[22m
+[2mdist/[22m[36massets/view-CKycLhYo.js    [39m[1m[2m 10.66 kB[22m[1m[22m[2m │ gzip:  3.88 kB[22m
+[2mdist/[22m[36massets/index-Bt2Gfxrc.js   [39m[1m[2m197.62 kB[22m[1m[22m[2m │ gzip: 64.35 kB[22m
+[32m✓ built in 824ms[39m
+
+> openedulab@0.1.0-m1 smoke:api
+> node apps/api/scripts/smoke.mjs
+
+(node:23084) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+# B1+B2 smoke — real process, node v22.23.0
+# repo=G:\hermes\projects\openedulab\
+# db=C:\Users\ADMINI~1\AppData\Local\Temp\oel-smoke-14LV7z\db\app.sqlite
+# port=8457
+
+## 1. configuration is fail-closed
+PASS missing config exits non-zero — exit=1
+PASS missing config names every absent variable —   - OEL_PORT: is required and has no default |   - OEL_DATABASE_PATH: is required and has no default
+PASS missing config never starts listening
+
+## 2. start on an empty database
+PASS GET /api/healthz is 200 — {"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":0,"timestamp":"2026-10-26T14:51:07.461Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
+PASS healthz reports the package version — 0.1.0-m1 vs 0.1.0-m1
+PASS healthz reports migration state — {"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}
+
+## 3. same-origin hosting and the anonymous deep-link gate
+PASS anonymous deep link is a 302 to the login page — status=302 location=/login?next=%2Fexperiments%2Fmath.functions
+PASS the redirect does not serve the app shell
+PASS the public login page is 200 — status=200
+PASS the login page serves the built index.html — bytes=1244
+PASS html is not cached — no-cache
+PASS built asset is served — /assets/index-Bt2Gfxrc.js application/javascript; charset=utf-8
+PASS built asset is larger than 10 kB — 197617 bytes
+
+## 4. private API refuses anonymous callers (B3 gate)
+PASS GET /api/catalog -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/experiments/math.functions -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/me/favorites -> 401 unauthenticated — status=401 code=unauthenticated
+PASS GET /api/me/recent -> 401 unauthenticated — status=401 code=unauthenticated
+PASS forged cookie is still 401 — status=401
+PASS an API call that accepts HTML is not redirected to the login page — status=401
+PASS POST /api/events -> 401 unauthenticated — status=401 code=unauthenticated
+PASS POST /api/feedback -> 401 unauthenticated — status=401 code=unauthenticated
+PASS /api/me/saved-state is honestly absent (404; B7 optional feature) — status=404
+PASS unknown API route -> JSON 404 — 404 application/json; charset=utf-8
+PASS missing asset -> 404 (not the SPA shell) — status=404
+
+## 5. database on disk
+PASS schema_migrations has exactly one row — [{"version":"0001","checksum":"289c27d35781287668532ee6c32a03db25aa8472346d9ac51c94146e908a3ce3","applied_at":1793026267274}]
+PASS the row carries a sha256 checksum — 289c27d35781…
+
+## 6. authentication over a real socket (B2)
+PASS register returns 201 — status=201
+PASS register issues an HttpOnly, SameSite=Lax, Path=/ cookie — oel_sid=4ZFe…
+PASS register returns only a masked hint — {"account":{"displayHint":"s***@example.com"}}
+PASS anonymous session is authenticated:false — {"authenticated":false}
+PASS registered session is authenticated:true without leaking identifiers — {"authenticated":true,"account":{"displayHint":"s***@example.com","createdAt":1793026267631}}
+PASS duplicate identifier is 409 identifier_taken after normalization — status=409 code=identifier_taken
+PASS wrong password is 401 invalid_credentials — status=401
+PASS unknown identifier is byte-identical to a wrong password — status=401
+PASS failed logins never set a cookie
+PASS CSRF: missing Origin is rejected — status=403
+PASS CSRF: foreign Origin is rejected — status=403
+PASS CSRF: urlencoded form login is rejected — status=403
+PASS forged cookie is authenticated:false
+PASS logout returns 204 — status=204
+PASS logout clears the cookie
+PASS replaying the logged-out cookie is unauthenticated
+PASS second logout is 401 — status=401
+PASS login with the right password is 200
+PASS login issues a new token — oel_sid=qw6W…
+PASS the new session is authenticated
+
+## 6b. authenticated access to protected resources (B3)
+PASS catalog is 200 with a live session — status=200
+PASS catalog lists the shipped experiment with a content version — ["math.functions@1.0.0"]
+PASS catalog response is not cached — no-store
+PASS experiment detail is 200 — status=200
+PASS experiment detail carries localized title, contentVersion and sdk range — 一次函数与二次函数 1.0.0 ^1.0.0
+PASS experiment detail exposes no filesystem path
+PASS unknown experiment id is 404 — status=404
+PASS an authenticated deep link serves the app shell — status=200
+
+## 6c. personal data: favorites and recent use (B4)
+PASS PUT favorite -> 201 — status=201
+PASS PUT the same favorite again -> 200 with the original timestamp — 200 1793026269332
+PASS PUT an unpublished experiment -> 404 — status=404
+PASS GET favorites -> only id + timestamp, no parameters — [{"experimentId":"math.functions","createdAt":1793026269332}]
+PASS POST recent -> 204
+PASS POST recent again -> 204 (deduplicated)
+PASS GET recent -> one row per resource, no slider values — [{"experimentId":"math.functions","lastOpenedAt":1793026269395}]
+PASS another account sees an empty favorites list — {"items":[]}
+PASS another account deleting "the same" favorite is a no-op 204
+PASS the first account still has its favorite after that — [{"experimentId":"math.functions","createdAt":1793026269332}]
+PASS DELETE favorite -> 204 — status=204
+PASS DELETE again -> 204 (idempotent)
+PASS favorites list is empty afterwards
+
+## 6d. diagnostics: events, feedback and the operator channel (B5)
+PASS a valid event batch is accepted (202) — {"accepted":4,"dropped":0}
+PASS unknown experiment and removed event type are dropped, not stored — {"accepted":0,"dropped":2}
+PASS replaying the same batch is de-duplicated — {"accepted":0,"dropped":4}
+PASS feedback is stored (201) — status=201
+PASS operator overview is 200 and reports the events — [{"experimentId":"math.functions","contentVersions":["1.0.0"],"openAccounts":1,"openVisits":1,"interactedVisits":1,"firstInteractionRate":1,"opens":1,"resets":1,"resetRatio":1,"fullscreens":0,"fullscreenRatio":0,"errors":0,"errorRate":0}]
+PASS overview reports the interaction conversion and control usage — {"experimentId":"math.functions","contentVersions":["1.0.0"],"openAccounts":1,"openVisits":1,"interactedVisits":1,"firstInteractionRate":1,"opens":1,"resets":1,"resetRatio":1,"fullscreens":0,"fullscreenRatio":0,"errors":0,"errorRate":0}
+PASS an export without a purpose is refused (400) — status=400
+PASS the events export is CSV with a header and no received_at/UA — occurred_at_min,experiment_id,content_version,app_version,locale,event_type,control_group,interaction_bucket,error_code,device_class,account_id
+PASS the feedback export carries the reported text and the account id
+PASS operator exports left audit rows — rows=2
+PASS the operator channel is 404 without a token — status=404
+PASS a normal session cannot reach the operator channel — status=404
+PASS database stores a scrypt hash, never the password — scrypt$32768$8$3$opMfkxS…
+PASS database stores sha256(token), not the token
+
+## 7. registration rate limit over a real socket
+PASS repeated registrations from one IP hit 429 — allowed=2 status=429
+PASS 429 carries a numeric Retry-After — 3598
+
+## 8. restart against the same database
+PASS healthz is 200 after restart
+PASS restart is idempotent (still one row) — ["0001"]
+PASS restart keeps applied_at unchanged — before=1793026267274 after=1793026267274
+PASS a live session survives a restart (server-side, DB-backed) — {"authenticated":true,"account":{"displayHint":"s***@example.com","createdAt":1793026267631}}
+PASS a revoked session stays revoked after a restart
+
+## 9. a tampered migration refuses to start
+PASS tampered migration exits non-zero — exit=1
+PASS tampered migration reports checksum mismatch — (Use `node --trace-warnings ...` to show where the warning was created) | [openedulab-api] failed to start: Migration 0001 (init) was modified after it was applied: recorded 289c27d35781…, file 4ddecbcb6881…
+
+# 90/90 checks passed
+
+> openedulab@0.1.0-m1 test:e2e
+> playwright test
+
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build
+[WebServer] > tsc --noEmit && vite build
+[WebServer] 
+[WebServer] vite v5.4.21 building for production...
+[WebServer] transforming...
+[WebServer] ✓ 53 modules transformed.
+[WebServer] rendering chunks...
+[WebServer] computing gzip size...
+[WebServer] dist/index.html                   1.24 kB │ gzip:  0.75 kB
+[WebServer] dist/assets/index-B0DsNRDj.css   11.63 kB │ gzip:  3.11 kB
+[WebServer] dist/assets/view-CKycLhYo.js     10.66 kB │ gzip:  3.88 kB
+[WebServer] dist/assets/index-Bt2Gfxrc.js   197.62 kB │ gzip: 64.35 kB
+[WebServer] ✓ built in 831ms
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build:api
+[WebServer] > tsc -p apps/api/tsconfig.json
+[WebServer] 
+[WebServer] (node:5872) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [openedulab-api] listening on http://127.0.0.1:3220
+[WebServer] [openedulab-api] version 0.1.0-m1 config {"env":"test","host":"127.0.0.1","port":3220,"publicOrigin":"http://127.0.0.1:3220","databasePath":"G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite","migrationsDir":"G:\\hermes\\projects\\openedulab\\apps\\api\\migrations","staticDir":"G:\\hermes\\projects\\openedulab\\dist","contentDir":"G:\\hermes\\projects\\openedulab\\experiments","operatorChannel":"enabled","eventsEnabled":"true"}
+
+Running 114 tests using 1 worker
+
+  ok   1 [setup] › tests\e2e\auth.setup.ts:15:1 › register the shared teacher account (787ms)
+  ok   2 [setup] › tests\e2e\auth.setup.ts:30:1 › register a second account for isolation checks (679ms)
+  ok   3 [desktop-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (669ms)
+  ok   4 [desktop-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (517ms)
+  ok   5 [desktop-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (752ms)
+  ok   6 [desktop-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (479ms)
+  ok   7 [desktop-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (732ms)
+  ok   8 [desktop-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (600ms)
+  ok   9 [desktop-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (510ms)
+  ok  10 [desktop-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (692ms)
+  ok  11 [desktop-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (880ms)
+  ok  12 [desktop-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (688ms)
+  ok  13 [desktop-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (421ms)
+  -   14 [desktop-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  ok  15 [desktop-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in) (5.6s)
+  -   16 [desktop-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out
+  ok  17 [desktop-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page (315ms)
+  ok  18 [desktop-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.7s)
+  ok  19 [desktop-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (227ms)
+  ok  20 [desktop-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages (246ms)
+  ok  21 [desktop-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (849ms)
+  ok  22 [desktop-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (694ms)
+  ok  23 [desktop-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced (2.2s)
+  ok  24 [desktop-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (312ms)
+  ok  25 [desktop-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why (277ms)
+  ok  26 [desktop-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV (617ms)
+  ok  27 [desktop-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history (991ms)
+  ok  28 [desktop-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers (452ms)
+  ok  29 [desktop-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation (604ms)
+  ok  30 [desktop-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone (601ms)
+  ok  31 [mobile-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (670ms)
+  ok  32 [mobile-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (505ms)
+  ok  33 [mobile-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (779ms)
+  ok  34 [mobile-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (400ms)
+  ok  35 [mobile-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (690ms)
+  ok  36 [mobile-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (558ms)
+  ok  37 [mobile-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (437ms)
+  ok  38 [mobile-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (640ms)
+  ok  39 [mobile-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (897ms)
+  ok  40 [mobile-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (809ms)
+  ok  41 [mobile-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (372ms)
+  ok  42 [mobile-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling (641ms)
+  -   43 [mobile-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok  44 [mobile-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (2.7s)
+  ok  45 [mobile-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page (320ms)
+  ok  46 [mobile-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.2s)
+  ok  47 [mobile-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (104ms)
+  ok  48 [mobile-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages (183ms)
+  ok  49 [mobile-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (832ms)
+  ok  50 [mobile-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (589ms)
+  -   51 [mobile-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok  52 [mobile-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (276ms)
+  -   53 [mobile-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -   54 [mobile-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -   55 [mobile-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -   56 [mobile-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -   57 [mobile-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -   58 [mobile-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+  ok  59 [projector-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (618ms)
+  ok  60 [projector-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (433ms)
+  ok  61 [projector-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (655ms)
+  ok  62 [projector-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (651ms)
+  ok  63 [projector-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (639ms)
+  ok  64 [projector-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (563ms)
+  ok  65 [projector-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (418ms)
+  ok  66 [projector-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (621ms)
+  ok  67 [projector-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (831ms)
+  ok  68 [projector-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (617ms)
+  ok  69 [projector-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (382ms)
+  -   70 [projector-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  -   71 [projector-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok  72 [projector-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (1.9s)
+  -   73 [projector-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page
+  -   74 [projector-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment
+  -   75 [projector-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header
+  -   76 [projector-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages
+  -   77 [projector-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed
+  -   78 [projector-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts
+  -   79 [projector-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok  80 [projector-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (295ms)
+  -   81 [projector-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -   82 [projector-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -   83 [projector-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -   84 [projector-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -   85 [projector-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -   86 [projector-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+  ok  87 [tablet-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (610ms)
+  ok  88 [tablet-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (432ms)
+  ok  89 [tablet-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (664ms)
+  ok  90 [tablet-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (383ms)
+  ok  91 [tablet-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (626ms)
+  ok  92 [tablet-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (552ms)
+  ok  93 [tablet-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (424ms)
+  ok  94 [tablet-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (599ms)
+  ok  95 [tablet-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (836ms)
+  ok  96 [tablet-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (619ms)
+  ok  97 [tablet-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (364ms)
+  -   98 [tablet-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  -   99 [tablet-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok 100 [tablet-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (1.9s)
+  -  101 [tablet-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page
+  -  102 [tablet-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment
+  -  103 [tablet-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header
+  -  104 [tablet-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages
+  -  105 [tablet-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed
+  -  106 [tablet-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts
+  -  107 [tablet-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok 108 [tablet-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (286ms)
+  -  109 [tablet-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -  110 [tablet-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -  111 [tablet-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -  112 [tablet-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -  113 [tablet-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -  114 [tablet-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+
+  40 skipped
+  74 passed (1.2m)
+
+> openedulab@0.1.0-m1 check:backup
+> node scripts/backup-check.mjs
+
+(node:24136) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS backup/restore check
+  source:    G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  snapshot:  176128 bytes
+  integrity: ok
+  counts:    {"account":4,"session":15,"favorite":0,"recent_use":1,"event":60,"feedback":5,"internal_audit":3}
+  migrations:["0001"]
+  canary:    {"readBack":"ok","remaining":0}
+  report:    G:\hermes\projects\openedulab\docs\evidence\backup\backup.json
+
+> openedulab@0.1.0-m1 check:restore
+> node scripts/restore-check.mjs
+
+(node:19384) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS restore drill (done)
+  source:     live G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  restored:   176128 bytes
+  integrity:  ok
+  counts:     {"account":4,"session":15,"favorite":0,"recent_use":1,"event":60,"feedback":5,"internal_audit":3}
+  migrations: ["0001"]
+  canary:     {"readBack":"ok","remaining":0}
+  healthz:    {"status":"ok","appVersion":"0.1.0-m1","migrations":{"applied":1,"latest":"0001","pending":0}}
+  writeProbe: 201
+  report:     G:\hermes\projects\openedulab\docs\evidence\backup\restore.json
+
+> openedulab@0.1.0-m1 retention:dry-run
+> node scripts/retention-purge.mjs --db test-results/e2e/app.sqlite
+
+retention dry-run on G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  generatedAt: 2026-10-26T14:52:27.807Z
+  event           would delete       0 rows (older than 90d, cutoff 2026-07-28T14:52:27.807Z)
+  feedback        would delete       0 rows (older than 180d, cutoff 2026-04-29T14:52:27.807Z)
+  internal_audit  would delete       0 rows (older than 365d, cutoff 2025-10-26T14:52:27.807Z)
+  session         would delete       0 rows (older than 30d, cutoff 2026-09-26T14:52:27.807Z)
+  total: would delete 0 rows
+(node:20824) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

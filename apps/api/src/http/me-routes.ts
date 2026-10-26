@@ -175,7 +175,7 @@ function limited(
     .send(apiError('rate_limited', message));
 }
 
-/** The four personal-data paths this module owns (checked by the route inventory test). */
+/** The three personal-data paths this module owns (five method+path pairs, all in the route inventory). */
 export const ME_ROUTE_PATHS: readonly string[] = Object.freeze([
   '/api/me/favorites',
   '/api/me/favorites/:experimentId',

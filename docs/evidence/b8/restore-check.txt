@@ -1,0 +1,12 @@
+(node:19532) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS restore drill (done)
+  source:     live G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  restored:   176128 bytes
+  integrity:  ok
+  counts:     {"account":4,"session":15,"favorite":0,"recent_use":1,"event":61,"feedback":5,"internal_audit":3}
+  migrations: ["0001"]
+  canary:     {"readBack":"ok","remaining":0}
+  healthz:    {"status":"ok","appVersion":"0.1.0-m1","migrations":{"applied":1,"latest":"0001","pending":0}}
+  writeProbe: 201
+  report:     G:\hermes\projects\openedulab\docs\evidence\b8\restore.json

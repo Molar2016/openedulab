@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-26T14:47:18.831Z",
+  "source": "sqlite",
+  "databasePath": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite",
+  "ok": true,
+  "integrity": "ok",
+  "backupBytes": 176128,
+  "counts": {
+    "account": 4,
+    "session": 15,
+    "favorite": 0,
+    "recent_use": 1,
+    "event": 61,
+    "feedback": 5,
+    "internal_audit": 3
+  },
+  "canary": {
+    "readBack": "ok",
+    "remaining": 0
+  },
+  "issues": [],
+  "migrations": [
+    "0001"
+  ]
+}

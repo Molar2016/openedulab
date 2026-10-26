@@ -1,0 +1,95 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:19156) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/experiments.test.ts [2m([22m[2m15 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 5726[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mreturns the indexed manifest, content version and localized text [33m662[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 404 for an experiment that is not in the index [33m365[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id Math.Functions, never a filesystem lookup [33m362[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math, never a filesystem lookup [33m369[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math..functions, never a filesystem lookup [33m363[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math.functions%2F..%2Fetc, never a filesystem lookup [33m362[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mrequires a session [33m361[2mms[22m[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=fr instead of failing inside the handler[33m 368[2mms[22m[31m[39m
+[31m     → expected 500 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=__proto__ instead of failing inside the handler[33m 361[2mms[22m[31m[39m
+[31m     → expected 200 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=constructor instead of failing inside the handler[33m 340[2mms[22m[31m[39m
+[31m     → expected 200 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=en-US instead of failing inside the handler[33m 371[2mms[22m[31m[39m
+[31m     → expected 500 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale= instead of failing inside the handler[33m 363[2mms[22m[31m[39m
+[31m     → expected 500 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for an unknown query parameter instead of ignoring it[33m 358[2mms[22m[31m[39m
+[31m     → expected 200 to be 400 // Object.is equality[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22mnever exposes a filesystem path or the manifest file name [33m360[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata rejects caller-controlled locale values[2m > [22mserves the English title for locale=en and the Chinese title by default [33m359[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=fr instead of failing inside the handler
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=en-US instead of failing inside the handler
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale= instead of failing inside the handler
+[31m[1mAssertionError[22m: expected 500 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m111:31[22m[39m
+    [90m109| [39m      })[33m;[39m
+    [90m110| [39m
+    [90m111| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m112| [39m      [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m113| [39m    }[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=__proto__ instead of failing inside the handler
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for locale=constructor instead of failing inside the handler
+[31m[1mAssertionError[22m: expected 200 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m111:31[22m[39m
+    [90m109| [39m      })[33m;[39m
+    [90m110| [39m
+    [90m111| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m112| [39m      [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m113| [39m    }[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata rejects caller-controlled locale values[2m > [22manswers 400 for an unknown query parameter instead of ignoring it
+[31m[1mAssertionError[22m: expected 200 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m125:29[22m[39m
+    [90m123| [39m    })[33m;[39m
+    [90m124| [39m
+    [90m125| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m126| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m127| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m9 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 22:47:47
+[2m   Duration [22m 6.92s[2m (transform 196ms, setup 0ms, collect 431ms, tests 5.73s, environment 0ms, prepare 93ms)[22m
+

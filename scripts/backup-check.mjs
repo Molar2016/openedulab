@@ -25,7 +25,7 @@ function argValue(flag, fallback) {
 }
 
 const dbPath = path.resolve(argValue('--db', path.join(repoRoot, 'test-results', 'e2e', 'app.sqlite')));
-const outPath = path.resolve(argValue('--out', path.join(repoRoot, 'docs', 'evidence', 'b6', 'backup.json')));
+const outPath = path.resolve(argValue('--out', path.join(repoRoot, 'docs', 'evidence', 'backup', 'backup.json')));
 
 const TABLES = ['account', 'session', 'favorite', 'recent_use', 'event', 'feedback', 'internal_audit'];
 

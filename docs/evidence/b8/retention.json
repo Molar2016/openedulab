@@ -1,0 +1,49 @@
+{
+  "generatedAt": 1793026043593,
+  "mode": "dry-run",
+  "rules": [
+    {
+      "id": "event",
+      "table": "event",
+      "columns": "occurred_at_min",
+      "maxAgeDays": 90,
+      "cutoff": 1785250043593,
+      "plannedRows": 0,
+      "deletedRows": 0,
+      "note": "Diagnostic events older than 90 days; no rollup exists, so they are unrecoverable."
+    },
+    {
+      "id": "feedback",
+      "table": "feedback",
+      "columns": "created_at",
+      "maxAgeDays": 180,
+      "cutoff": 1777474043593,
+      "plannedRows": 0,
+      "deletedRows": 0,
+      "note": "Feedback older than 180 days, including its free text."
+    },
+    {
+      "id": "internal_audit",
+      "table": "internal_audit",
+      "columns": "created_at",
+      "maxAgeDays": 365,
+      "cutoff": 1761490043593,
+      "plannedRows": 0,
+      "deletedRows": 0,
+      "note": "Operator audit trail older than 365 days."
+    },
+    {
+      "id": "session",
+      "table": "session",
+      "columns": "revoked_at, expires_at",
+      "maxAgeDays": 30,
+      "cutoff": 1790434043593,
+      "plannedRows": 0,
+      "deletedRows": 0,
+      "note": "Sessions that ended more than 30 days ago (revoked or expired). Live sessions are never touched."
+    }
+  ],
+  "totalPlanned": 0,
+  "totalDeleted": 0,
+  "databasePath": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite"
+}

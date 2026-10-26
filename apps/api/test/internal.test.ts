@@ -137,6 +137,101 @@ describe('the operator channel is closed to everyone else', () => {
   });
 });
 
+/**
+ * Regression (B8 review): authorization used to run *inside* each handler, i.e. after
+ * Fastify validated the query. A caller without a token therefore got `400` for a
+ * malformed window and `404` for a good one — an existence oracle for the operator
+ * channel, which contradicts "closed to everyone else". The gate is now a `preValidation`
+ * hook, so input is never inspected before the token is.
+ *
+ * Failed tokens also used to be free: only successful calls consumed the rate budget, so
+ * guessing was unlimited. Failures are now budgeted per peer, and a correct token is never
+ * locked out by someone else's failures.
+ */
+describe('the operator channel is gated before input validation', () => {
+  it.each([
+    '/api/internal/overview?from=abc&to=def',
+    '/api/internal/overview?from=10&to=5',
+    '/api/internal/accounts/any/timeline?reason=short',
+    '/api/internal/export/events.csv?from=abc',
+  ])('answers 404 rather than 400 to an anonymous caller at %s', async (url) => {
+    const server = await start();
+
+    const response = await api(server.app, { method: 'GET', url });
+
+    expect(response.status).toBe(404);
+    expect(errorCode(response)).toBe('not_found');
+  });
+
+  it('answers 404 rather than 400 to a normal account with an invalid window', async () => {
+    const server = await start();
+    const created = await register(server.app, { identifier: 'curious@example.com' });
+
+    const response = await api(server.app, {
+      method: 'GET',
+      url: '/api/internal/overview?from=abc',
+      headers: cookieHeader(created.cookie()),
+    });
+
+    expect(response.status).toBe(404);
+    expect(errorCode(response)).toBe('not_found');
+  });
+
+  it('never throttles an ordinary account probing the path repeatedly', async () => {
+    const server = await start();
+    const created = await register(server.app, { identifier: 'prober@example.com' });
+    const cookie = cookieHeader(created.cookie());
+
+    // No authorization header at all: this is not a guess, so it must stay a plain 404 no
+    // matter how often it happens (a browser tab refresh loop must not turn into 429s).
+    for (let attempt = 0; attempt < 15; attempt += 1) {
+      const response = await api(server.app, {
+        method: 'GET',
+        url: `/api/internal/overview?${window_(server)}`,
+        headers: cookie,
+      });
+      expect(response.status, `attempt ${String(attempt + 1)}`).toBe(404);
+    }
+
+    const anonymous = await api(server.app, { method: 'GET', url: `/api/internal/overview?${window_(server)}` });
+    expect(anonymous.status).toBe(404);
+  });
+
+  it('budgets failed token attempts and does not lock out the real token', async () => {
+    const server = await start();
+    // One character changed: a wrong token, without restating the header format.
+    const wrong = { authorization: `${operatorHeaders().authorization}x` };
+
+    const statuses: number[] = [];
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const response = await api(server.app, {
+        method: 'GET',
+        url: `/api/internal/overview?${window_(server)}`,
+        headers: wrong,
+      });
+      statuses.push(response.status);
+    }
+
+    // Ten free guesses, then a 429 that still says nothing about the channel.
+    expect(statuses.slice(0, 10)).toEqual(Array(10).fill(404));
+    expect(statuses.slice(10)).toEqual([429, 429]);
+
+    const throttled = await api(server.app, {
+      method: 'GET',
+      url: `/api/internal/overview?${window_(server)}`,
+      headers: wrong,
+    });
+    expect(throttled.headers['retry-after']).toBeDefined();
+
+    const real = await api(server.app, {
+      method: 'GET',
+      url: `/api/internal/overview?${window_(server)}`,
+      headers: operatorHeaders(),
+    });
+    expect(real.status).toBe(200);
+  });
+});
+
 describe('overview answers the product questions', () => {
   it('reports distinct accounts, visits, interaction conversion and error counts', async () => {
     const server = await start();

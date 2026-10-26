@@ -440,7 +440,7 @@ scripts/                  # backup / restore-check / retention-purge
 | `GET /api/internal/accounts/:id/timeline?from&to&reason=` | 单账号事件序列（定位问题） | `reason` ≥8 字符，写 `internal_audit`，返回 ≤500 行 |
 | `GET /api/internal/export/events.csv?from&to&experimentId&reason=` | CSV 导出（无 `received_at`、无 UA、无文本） | 行数上限 50000，超限 413 并提示缩窗 |
 | `GET /api/internal/export/feedback.csv?from&to&reason=` | 反馈导出（含正文与账号 ID） | 同上；必须审计 |
-| `POST /api/internal/retention/purge?dryRun=1` | 仅供演练，实际删除走 CLI | 需 `dryRun=0` + 显式确认头 |
+| ~~`POST /api/internal/retention/purge`~~ | **不存在**：留存清理只由 CLI 执行（B8 定稿），删除不由网络调用触发 | `scripts/retention-purge.mjs`，默认 dry-run，`--apply` 须 `--confirm-database` 重复同一路径；见 `docs/ops/runbook.md` §7 |
 
 响应统一附 `{"window":{"from":…,"to":…},"generatedAt":…,"dataGaps":[{"from","to","reason":"events_disabled"|"ingest_error"}]}`——数据缺失必须显式呈现“未知”，不得补造（章程 §8）。
 
@@ -546,26 +546,26 @@ scripts/                  # backup / restore-check / retention-purge
 | R-01 | 手机**或**邮箱 + 口令可注册 | `register phone/email 成功并建会话` | API 集成 | `apps/api/test/auth.register.test.ts` |
 | R-02 | 重复标识拒绝 | `重复 email/phone → 409 identifier_taken；大小写/空格规范化后仍判重` | API 集成 | 同上 |
 | R-03 | 错误口令拒绝 | `错口令 → 401 invalid_credentials；不存在标识同文案同状态` | API 集成 | `apps/api/test/auth.login.test.ts` |
-| R-04 | 退出后不能访问实验 | `logout 后 /api/me/* 与 /api/catalog 均 401；旧 Cookie 重放 401` | API + E2E | `apps/api/test/session.test.ts`、`tests/e2e/auth.spec.ts` |
+| R-04 | 退出后不能访问实验 | `logout 后 /api/me/* 与 /api/catalog 均 401；旧 Cookie 重放 401` | API + E2E | `apps/api/test/session.test.ts`、`tests/e2e/gate.spec.ts`、`tests/e2e/full-flow.spec.ts` |
 | R-05 | 未登录直达资源 URL/API 被拒绝 | `GET /experiments/x 302→/login；/api/experiments/x 401` | E2E + API | `tests/e2e/gate.spec.ts` |
 | R-06 | 过期会话重登 | `expires_at 过去 → 401；空闲超时同上` | API 集成（注入时钟） | `apps/api/test/session.test.ts` |
-| R-07 | 按学科/学段/知识点查找 | `筛选与搜索返回子集；非法参数 400` | API + E2E | `apps/api/test/catalog.test.ts`、`tests/e2e/catalog.spec.ts` |
-| R-08 | 中英双语可操作 | `zh-CN/en 切换后标题与控件文案一致；缺键报告` | 单元 + E2E | `tests/i18n.test.ts`、`tests/e2e/locale.spec.ts` |
+| R-07 | 按学科/学段/知识点查找 | `筛选与搜索返回子集；非法参数 400` | API + E2E | `apps/api/test/catalog.test.ts`、`tests/e2e/app.spec.ts` |
+| R-08 | 中英双语可操作 | `zh-CN/en 切换后标题与控件文案一致；缺键报告` | 单元 + E2E | `tests/i18n.test.ts`、`tests/e2e/app.spec.ts`（语言切换） |
 | R-09 | 首实验公式/范围/边界/说明可核查 | 模型黄金用例（含退化、临界、非法输入） | 单元 | `experiments/math-functions/tests/model.test.ts` |
-| R-10 | 手机与投影可用；重置/全屏 | 3 视口（390×844、1280×720、1024×768）截图 + 重置/全屏断言 | E2E | `tests/e2e/mobile-projection.spec.ts` |
+| R-10 | 手机与投影可用；重置/全屏 | 3 视口（390×844、1280×720、1024×768）截图 + 重置/全屏断言 | E2E | `tests/e2e/full-flow.spec.ts`（390×844 / 1280×720 / 1024×768 截图与断言）+ `tests/e2e/app.spec.ts` |
 | R-11 | 收藏跨会话可见 | `会话 A 收藏 → 新 Cookie 会话 B 可见` | API + E2E | `apps/api/test/favorites.test.ts` |
 | R-12 | 取消收藏生效 | `DELETE 幂等；列表消失；重复删除 204` | API 集成 | 同上 |
 | R-13 | 最近使用按资源去重、无参数流水 | `打开 A、B、A → 2 条且 A 时间最新；响应无任何参数键` | API + 契约 | `apps/api/test/recent.test.ts` |
 | R-14 | 事件按账号可导出/查询 | `overview 计数正确；CSV 行数=插入数-去重；缺 GAP 标记正确` | API 集成 | `apps/api/test/internal.test.ts` |
-| R-15 | 跨账号隔离 | `账号 B 读不到 A 的收藏/历史/事件；internal 无 token 404` | API 集成 | `apps/api/test/authorization.test.ts` |
-| R-16 | 分析通道故障不影响实验与收藏历史 | `事件端点 503/断网 → 收藏/最近使用仍成功；UI 无阻断` | E2E | `tests/e2e/analytics-off.spec.ts` |
-| R-17 | 快照保存/恢复/版本不兼容回退 | `保存→刷新恢复；contentVersion 变更→回默认+提示` | API + E2E | `apps/api/test/saved-state.test.ts`（条件） |
-| R-18 | 无显式保存则不持久化参数 | `拖动后无快照行；localStorage 无参数项` | API + E2E | `tests/e2e/no-autosave.spec.ts` |
-| R-19 | 口令存储/会话/最小化测试与证据 | `哈希串非明文、含参数；事件白名单拒绝自由字段；证据目录齐全` | 单元 + 集成 | `apps/api/test/security.test.ts`、`docs/evidence/b2/` |
-| R-20 | 维护者权限独立 | `普通账号带 Cookie 访问 internal → 404；仅 Bearer 通过` | API 集成 | `apps/api/test/internal-auth.test.ts` |
-| R-21 | 未验证标识不宣称真实身份 | `UI 文案与隐私页无“已验证/实名”；API 只回掩码` | 文案检查 + E2E | `tests/e2e/copy.spec.ts` |
-| R-22 | 诊断数据不含文本/滑块/查询串 | `注入恶意 payload（name、?token=、slider=0.37）→ 全部被丢弃` | 单元 + 集成 | `apps/api/test/events-sanitize.test.ts` |
-| R-23 | 事件缺失显示“未知”不补造 | `关闭事件 24h → overview dataGaps 非空；UI/CSV 标 unknown` | API 集成 | `apps/api/test/internal-gaps.test.ts` |
+| R-15 | 跨账号隔离 | `账号 B 读不到 A 的收藏/历史/事件；internal 无 token 404` | API 集成 + E2E | `apps/api/test/authorization.test.ts`、`tests/e2e/isolation.spec.ts` |
+| R-16 | 分析通道故障不影响实验与收藏历史 | `事件端点 503/断网 → 收藏/最近使用仍成功；UI 无阻断` | E2E | `tests/e2e/resilience.spec.ts`（`/api/events` 503 注入） |
+| R-17 | 快照保存/恢复/版本不兼容回退 | `保存→刷新恢复；contentVersion 变更→回默认+提示` | API + E2E | 未实现（B7 可选，未做）：`saved_state` 表为空，`/api/me/saved-state/*` 返回 404 |
+| R-18 | 无显式保存则不持久化参数 | `拖动后无快照行；localStorage 无参数项` | API + E2E | 未实现（B7 未做）；当前没有任何参数持久化路径，`recent_use` 响应键集由 `recent.test.ts` 断言 |
+| R-19 | 口令存储/会话/最小化测试与证据 | `哈希串非明文、含参数；事件白名单拒绝自由字段；证据目录齐全` | 单元 + 集成 | `apps/api/test/auth.security.test.ts`、`docs/evidence/b2/` |
+| R-20 | 维护者权限独立 | `普通账号带 Cookie 访问 internal → 404；仅 Bearer 通过` | API 集成 | `apps/api/test/internal.test.ts`（`the operator channel is closed to everyone else`） |
+| R-21 | 未验证标识不宣称真实身份 | `UI 文案与隐私页无“已验证/实名”；API 只回掩码` | 文案检查 + E2E | `tests/e2e/app.spec.ts`（页面文案与可访问名）+ `tests/i18n.test.ts`（键集一致） |
+| R-22 | 诊断数据不含文本/滑块/查询串 | `注入恶意 payload（name、?token=、slider=0.37）→ 全部被丢弃` | 单元 + 集成 | `apps/api/test/events.test.ts`（未知字段/非法枚举/文本字段被丢弃） |
+| R-23 | 事件缺失显示“未知”不补造 | `关闭事件 24h → overview dataGaps 非空；UI/CSV 标 unknown` | API 集成 | `apps/api/test/internal.test.ts`（`dataGaps` 在事件关闭时非空） |
 
 每条测试都必须能给出“真实运行输出”，无截图/日志不算通过（章程 §12.6）。R-09/R-10 需要真实手机尺寸截图，不接受仅 DOM 断言。
 

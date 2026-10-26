@@ -1,0 +1,67 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:22972) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/internal.test.ts [2m([22m[2m24 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 5212[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22m/api/internal/overview is a 404 without a token [33m376[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22mrejects a wrong token, a scheme confusion and a normal account session [33m378[2mms[22m[39m
+[31m   [31m×[31m the operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to an anonymous caller at /api/internal/overview?from=abc&to=def[90m 59[2mms[22m[31m[39m
+[31m     → expected 400 to be 404 // Object.is equality[39m
+[31m   [31m×[31m the operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to an anonymous caller at /api/internal/export/events.csv?from=abc[90m 52[2mms[22m[31m[39m
+[31m     → expected 400 to be 404 // Object.is equality[39m
+[31m   [31m×[31m the operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to a normal account with an invalid window[33m 365[2mms[22m[31m[39m
+[31m     → expected 400 to be 404 // Object.is equality[39m
+   [33m[2m✓[22m[39m the operator channel is gated before input validation[2m > [22mnever throttles an ordinary account probing the path repeatedly [33m355[2mms[22m[39m
+   [33m[2m✓[22m[39m overview answers the product questions[2m > [22mreports distinct accounts, visits, interaction conversion and error counts [33m647[2mms[22m[39m
+   [33m[2m✓[22m[39m funnel and control distribution[2m > [22mcounts each step and the controls that were actually used [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m single-account timeline is scoped and audited[2m > [22mreturns only that account's events and records the access [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports events without user agents or receive timestamps, and audits it [33m624[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports feedback with the account id and the reported text [33m363[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/internal.test.ts[2m > [22mthe operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to an anonymous caller at /api/internal/overview?from=abc&to=def
+[31m[1m[7m FAIL [27m[22m[39m test/internal.test.ts[2m > [22mthe operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to an anonymous caller at /api/internal/export/events.csv?from=abc
+[31m[1mAssertionError[22m: expected 400 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 400[39m
+
+[36m [2m❯[22m test/internal.test.ts:[2m162:29[22m[39m
+    [90m160| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url })[33m;[39m
+    [90m161| [39m
+    [90m162| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m163| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'not_found'[39m)[33m;[39m
+    [90m164| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/internal.test.ts[2m > [22mthe operator channel is gated before input validation[2m > [22manswers 404 rather than 400 to a normal account with an invalid window
+[31m[1mAssertionError[22m: expected 400 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 400[39m
+
+[36m [2m❯[22m test/internal.test.ts:[2m176:29[22m[39m
+    [90m174| [39m    })[33m;[39m
+    [90m175| [39m
+    [90m176| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m177| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'not_found'[39m)[33m;[39m
+    [90m178| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m21 passed[39m[22m[90m (24)[39m
+[2m   Start at [22m 22:47:59
+[2m   Duration [22m 6.43s[2m (transform 205ms, setup 0ms, collect 453ms, tests 5.21s, environment 0ms, prepare 96ms)[22m
+

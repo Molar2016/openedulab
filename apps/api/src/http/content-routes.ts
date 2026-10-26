@@ -47,6 +47,20 @@ const EXPERIMENT_PARAMS_SCHEMA: object = {
   },
 };
 
+/**
+ * `locale` is validated here, not read leniently in the handler: without this schema any
+ * string reached `entry.texts[value]`, so `?locale=fr` threw (500) and `?locale=__proto__`
+ * answered 200 with missing text. A caller-controlled string must not decide which object
+ * property is read.
+ */
+const EXPERIMENT_QUERY_SCHEMA: object = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    locale: { type: 'string', enum: [...CONTENT_LOCALES] },
+  },
+};
+
 interface CatalogQueryString {
   readonly subject?: string;
   readonly grade?: string;
@@ -105,7 +119,10 @@ export function registerContentRoutes(app: FastifyInstance, options: CatalogRout
 
   app.get(
     '/api/experiments/:experimentId',
-    { onRequest: gate.requireSession, schema: { params: EXPERIMENT_PARAMS_SCHEMA } },
+    {
+      onRequest: gate.requireSession,
+      schema: { params: EXPERIMENT_PARAMS_SCHEMA, querystring: EXPERIMENT_QUERY_SCHEMA },
+    },
     async (request, reply) => {
       accountOf(request);
       const { experimentId } = request.params as { experimentId: string };

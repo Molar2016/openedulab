@@ -24,8 +24,12 @@
     "prestart:api": "npm run build:api",
     "start:api": "node apps/api/dist/index.js",
     "smoke:api": "node apps/api/scripts/smoke.mjs",
-    "check": "npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run test:api && npm run validate:content && npm run build && npm run build:api",
-    "check:backup": "node scripts/backup-check.mjs"
+    "check": "npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run build:api && npm run test:api && npm run validate:content && npm run build",
+    "check:backup": "node scripts/backup-check.mjs",
+    "check:restore": "node scripts/restore-check.mjs",
+    "retention:dry-run": "node scripts/retention-purge.mjs",
+    "retention:purge": "node scripts/retention-purge.mjs --apply",
+    "ci:local": "npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run build:api && npm run test:api && npm run validate:content && npm run build && npm run smoke:api && npm run test:e2e && npm run check:backup && npm run check:restore && npm run retention:dry-run -- --db test-results/e2e/app.sqlite"
   },
   "dependencies": {
     "@fastify/static": "^10.1.7",

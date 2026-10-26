@@ -12,7 +12,7 @@ import {
 } from '../db/event-repository.js';
 import { exportFeedback, insertAudit, type AuditRecord } from '../db/feedback-repository.js';
 import type { ContentIndex } from '../domain/content-index.js';
-import { InMemoryRateLimiter, type RateLimitRule } from '../security/rate-limit.js';
+import { InMemoryRateLimiter, type RateLimitRule, type RateLimitStatus } from '../security/rate-limit.js';
 import { apiError } from './errors.js';
 
 /**
@@ -39,6 +39,7 @@ const MIN_REASON_LENGTH = 8;
 
 const RULES = {
   internal: { limit: 60, windowMs: MINUTE_MS },
+  failedAttempts: { limit: 10, windowMs: MINUTE_MS },
 } as const satisfies Record<string, RateLimitRule>;
 
 const WINDOW_SCHEMA: object = {
@@ -85,32 +86,48 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   const expected = hashToken(config.operatorToken);
   const limiter = new InMemoryRateLimiter(now);
+  const failures = new InMemoryRateLimiter(now);
 
   /**
-   * Returns null when the caller may proceed, or the reply that was already sent. A wrong
-   * token, a missing header and a user session all produce the same 404 (design §4.5).
+   * Returns nothing when the caller may proceed, or the reply that was already sent (404
+   * for a missing or wrong token, 429 once a peer has spent its guessing budget).
+   *
+   * This runs as `preValidation`, before Fastify validates the query and params. That
+   * ordering is the point: authorization must not depend on — or leak through — the shape
+   * of caller input. Previously the check ran inside each handler, so an unauthenticated
+   * caller could tell these paths apart from an unknown one by sending a malformed window
+   * and reading 400 instead of 404.
    */
-  const authorize = (request: FastifyRequest, reply: FastifyReply): FastifyReply | null => {
+  const authorize = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const header = request.headers.authorization;
     const match = typeof header === 'string' ? /^Bearer (.+)$/.exec(header) : null;
     const presented = match?.[1];
+
+    // No token presented at all (an anonymous visitor, or a signed-in account whose browser
+    // has no reason to send one): the plain 404, and no budget spent. Ordinary users must
+    // never be throttled on a path that is supposed to look like it does not exist.
     if (presented === undefined) {
-      return notFound(reply);
+      notFound(reply);
+      return;
     }
+
     const candidate = hashToken(presented);
-    if (candidate.length !== expected.length || !timingSafeEqual(candidate, expected)) {
-      return notFound(reply);
+    if (candidate.length === expected.length && timingSafeEqual(candidate, expected)) {
+      const budget = limiter.consume('internal', RULES.internal);
+      if (budget.blocked) {
+        throttled(reply, budget);
+      }
+      return;
     }
-    const budget = limiter.consume('internal', RULES.internal);
-    if (budget.blocked) {
-      return reply
-        .code(429)
-        .header('cache-control', 'no-store')
-        .header('retry-after', String(budget.retryAfterSeconds))
-        .type(JSON_TYPE)
-        .send(apiError('rate_limited', 'Too many operator requests. Try again later.'));
+
+    // A wrong *token* is a guess, and guesses are budgeted per peer. A correct token never
+    // consumes this budget, so an attacker cannot lock the operator out of their own channel.
+    const attempt = failures.consume(`internal-fail:${request.ip}`, RULES.failedAttempts);
+    if (attempt.blocked) {
+      throttled(reply, attempt);
+      return;
     }
-    return null;
+    notFound(reply);
   };
 
   const windowFor = (request: FastifyRequest): ResolvedWindow | null => {
@@ -147,10 +164,8 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   app.get(
     '/api/internal/overview',
-    { schema: { querystring: WINDOW_SCHEMA } },
+    { preValidation: authorize, schema: { querystring: WINDOW_SCHEMA } },
     async (request, reply) => {
-      const denied = authorize(request, reply);
-      if (denied !== null) return denied;
       const window = windowFor(request);
       if (window === null) return badRequest(reply, 'from/to must be integers with 0 < to-from <= 180 days.');
 
@@ -186,10 +201,8 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   app.get(
     '/api/internal/experiments/:experimentId/funnel',
-    { schema: { querystring: WINDOW_SCHEMA } },
+    { preValidation: authorize, schema: { querystring: WINDOW_SCHEMA } },
     async (request, reply) => {
-      const denied = authorize(request, reply);
-      if (denied !== null) return denied;
       const window = windowFor(request);
       if (window === null) return badRequest(reply, 'from/to must be integers with 0 < to-from <= 180 days.');
 
@@ -218,10 +231,8 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   app.get(
     '/api/internal/accounts/:accountId/timeline',
-    { schema: { querystring: WINDOW_SCHEMA } },
+    { preValidation: authorize, schema: { querystring: WINDOW_SCHEMA } },
     async (request, reply) => {
-      const denied = authorize(request, reply);
-      if (denied !== null) return denied;
       const window = windowFor(request);
       if (window === null) return badRequest(reply, 'from/to must be integers with 0 < to-from <= 180 days.');
       const reason = reasonOf(request);
@@ -265,10 +276,8 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   app.get(
     '/api/internal/export/events.csv',
-    { schema: { querystring: WINDOW_SCHEMA } },
+    { preValidation: authorize, schema: { querystring: WINDOW_SCHEMA } },
     async (request, reply) => {
-      const denied = authorize(request, reply);
-      if (denied !== null) return denied;
       const window = windowFor(request);
       if (window === null) return badRequest(reply, 'from/to must be integers with 0 < to-from <= 180 days.');
       const reason = reasonOf(request);
@@ -332,10 +341,8 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
 
   app.get(
     '/api/internal/export/feedback.csv',
-    { schema: { querystring: WINDOW_SCHEMA } },
+    { preValidation: authorize, schema: { querystring: WINDOW_SCHEMA } },
     async (request, reply) => {
-      const denied = authorize(request, reply);
-      if (denied !== null) return denied;
       const window = windowFor(request);
       if (window === null) return badRequest(reply, 'from/to must be integers with 0 < to-from <= 180 days.');
       const reason = reasonOf(request);
@@ -390,6 +397,18 @@ export function registerInternalRoutes(app: FastifyInstance, options: InternalRo
         .send([header, ...lines].join('\n') + '\n');
     },
   );
+}
+
+function throttled(
+  reply: FastifyReply,
+  decision: Extract<RateLimitStatus, { blocked: true }>,
+): FastifyReply {
+  return reply
+    .code(429)
+    .header('cache-control', 'no-store')
+    .header('retry-after', String(decision.retryAfterSeconds))
+    .type(JSON_TYPE)
+    .send(apiError('rate_limited', 'Too many operator requests. Try again later.'));
 }
 
 function notFound(reply: FastifyReply): FastifyReply {
