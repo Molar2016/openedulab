@@ -1,9 +1,9 @@
-(node:19996) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(node:21260) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 # B1 smoke — real process, node v22.23.0
 # repo=G:\hermes\projects\openedulab\
-# db=C:\Users\ADMINI~1\AppData\Local\Temp\oel-smoke-uV7GKJ\db\app.sqlite
-# port=7687
+# db=C:\Users\ADMINI~1\AppData\Local\Temp\oel-smoke-GpSpih\db\app.sqlite
+# port=8446
 
 ## 1. configuration is fail-closed
 PASS missing config exits non-zero — exit=1
@@ -11,7 +11,7 @@ PASS missing config names every absent variable —   - OEL_PORT: is required an
 PASS missing config never starts listening
 
 ## 2. start on an empty database
-PASS GET /api/healthz is 200 — {"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":0,"timestamp":"2026-10-26T11:30:47.246Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
+PASS GET /api/healthz is 200 — {"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":0,"timestamp":"2026-10-26T11:36:45.231Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
 PASS healthz reports the package version — 0.1.0-m1 vs 0.1.0-m1
 PASS healthz reports migration state — {"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}
 
@@ -32,13 +32,13 @@ PASS unknown API route -> JSON 404 — 404 application/json; charset=utf-8
 PASS missing asset -> 404 (not the SPA shell) — status=404
 
 ## 5. database on disk
-PASS schema_migrations has exactly one row — [{"version":"0001","checksum":"289c27d35781287668532ee6c32a03db25aa8472346d9ac51c94146e908a3ce3","applied_at":1793014247203}]
+PASS schema_migrations has exactly one row — [{"version":"0001","checksum":"289c27d35781287668532ee6c32a03db25aa8472346d9ac51c94146e908a3ce3","applied_at":1793014605167}]
 PASS the row carries a sha256 checksum — 289c27d35781…
 
 ## 6. restart against the same database
 PASS healthz is 200 after restart
 PASS restart is idempotent (still one row) — ["0001"]
-PASS restart keeps applied_at unchanged — before=1793014247203 after=1793014247203
+PASS restart keeps applied_at unchanged — before=1793014605167 after=1793014605167
 
 ## 7. a tampered migration refuses to start
 PASS tampered migration exits non-zero — exit=1

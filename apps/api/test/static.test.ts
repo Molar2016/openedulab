@@ -89,19 +89,39 @@ describe('same-origin SPA hosting', () => {
     expect(response.body).not.toContain(SPA_MARKER);
   });
 
-  it.each(['/..%2f..%2fpackage.json', '/%2e%2e/%2e%2e/package.json', '/assets/..%2f..%2f..%2fpackage.json'])(
-    'refuses path traversal %j',
-    async (url) => {
-      const server = await start();
+  it.each([
+    '/..%2f..%2fpackage.json',
+    '/%2e%2e/%2e%2e/package.json',
+    '/%2e%2e%2f%2e%2e%2fpackage.json',
+    '/..%5c..%5cpackage.json',
+    '/%252e%252e%252fpackage.json',
+    '/assets/..%2f..%2f..%2fpackage.json',
+    '/assets/..%5c..%5c..%5cpackage.json',
+    '/%00index.html',
+  ])('refuses path traversal %j', async (url) => {
+    const server = await start();
 
-      const response = await server.inject({ method: 'GET', url, headers: HTML_ACCEPT });
+    const response = await server.inject({ method: 'GET', url, headers: HTML_ACCEPT });
 
-      // @fastify/static answers traversal attempts with 403, the fallback with 404;
-      // either way the file outside the build output must not be served.
-      expect([403, 404]).toContain(response.statusCode);
-      expect(response.body).not.toContain('"name": "openedulab"');
-    },
-  );
+    // The static plugin rejects traversal with 400/403 and the fallback with 404;
+    // whatever the code, a file outside the build output must not be served.
+    expect([400, 403, 404]).toContain(response.statusCode);
+    expect(response.body).not.toContain('"name": "openedulab"');
+    expect(response.body).not.toContain('"devDependencies"');
+  });
+
+  it('never serves the repository package.json (root is the build output, not the repo)', async () => {
+    const server = await start();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/package.json',
+      headers: { accept: 'application/json' },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).not.toContain('"name": "openedulab"');
+  });
 
   it('does not answer non-GET deep links with the SPA shell', async () => {
     const server = await start();

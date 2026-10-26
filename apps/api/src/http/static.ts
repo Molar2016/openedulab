@@ -13,11 +13,12 @@ export async function registerSpaHosting(app: FastifyInstance, staticDir: string
     prefix: '/',
     index: ['index.html'],
     cacheControl: false,
-    setHeaders(res, filePath) {
+    // @fastify/static >=10 passes the Fastify reply (not the raw response).
+    setHeaders(reply, filePath) {
       if (filePath.endsWith('.html')) {
-        res.setHeader('cache-control', 'no-cache');
+        reply.header('cache-control', 'no-cache');
       } else {
-        res.setHeader('cache-control', 'public, max-age=0');
+        reply.header('cache-control', 'public, max-age=0');
       }
     },
   });

@@ -21,17 +21,17 @@
 
 [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab[39m
 
- [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 17[2mms[22m[39m
- [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
- [32m✓[39m tests/analytics.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
- [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 12[2mms[22m[39m
- [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 255[2mms[22m[39m
- [32m✓[39m tests/host.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 411[2mms[22m[39m
+ [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m tests/analytics.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 258[2mms[22m[39m
+ [32m✓[39m tests/host.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 361[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
 [2m      Tests [22m [1m[32m46 passed[39m[22m[90m (46)[39m
-[2m   Start at [22m 19:31:23
-[2m   Duration [22m 2.82s[2m (transform 543ms, setup 911ms, collect 1.02s, tests 711ms, environment 5.69s, prepare 966ms)[22m
+[2m   Start at [22m 19:36:32
+[2m   Duration [22m 2.74s[2m (transform 443ms, setup 1.01s, collect 988ms, tests 668ms, environment 5.56s, prepare 1.03s)[22m
 
 
 > openedulab@0.1.0-m1 test:api
@@ -40,27 +40,27 @@
 
 [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
 
-(node:20976) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(node:22524) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:20760) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(node:20036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:11252) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(node:18944) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:20600) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(node:23120) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
- [32m✓[39m test/config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 185[2mms[22m[39m
- [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 391[2mms[22m[39m
- [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 451[2mms[22m[39m
-   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m335[2mms[22m[39m
- [32m✓[39m test/static.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 668[2mms[22m[39m
-   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mserves the built index.html at the root [33m339[2mms[22m[39m
- [32m✓[39m test/private-routes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 838[2mms[22m[39m
-   [33m[2m✓[22m[39m private API placeholders[2m > [22m'GET' '/api/catalog' is denied with 401 unauthenticated [33m336[2mms[22m[39m
+ [32m✓[39m test/config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 182[2mms[22m[39m
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 388[2mms[22m[39m
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 456[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m336[2mms[22m[39m
+ [32m✓[39m test/private-routes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 828[2mms[22m[39m
+   [33m[2m✓[22m[39m private API placeholders[2m > [22m'GET' '/api/catalog' is denied with 401 unauthenticated [33m332[2mms[22m[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 842[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mserves the built index.html at the root [33m336[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
-[2m      Tests [22m [1m[32m62 passed[39m[22m[90m (62)[39m
-[2m   Start at [22m 19:31:26
-[2m   Duration [22m 1.99s[2m (transform 302ms, setup 0ms, collect 1.31s, tests 2.53s, environment 1ms, prepare 713ms)[22m
+[2m      Tests [22m [1m[32m68 passed[39m[22m[90m (68)[39m
+[2m   Start at [22m 19:36:35
+[2m   Duration [22m 1.99s[2m (transform 274ms, setup 0ms, collect 1.10s, tests 2.70s, environment 1ms, prepare 694ms)[22m
 
 
 > openedulab@0.1.0-m1 validate:content
@@ -83,7 +83,7 @@ computing gzip size...
 [2mdist/[22m[35massets/index-DXPyi1m6.css  [39m[1m[2m 10.67 kB[22m[1m[22m[2m │ gzip:  2.97 kB[22m
 [2mdist/[22m[36massets/view-BCHndfrb.js    [39m[1m[2m 11.05 kB[22m[1m[22m[2m │ gzip:  3.97 kB[22m
 [2mdist/[22m[36massets/index-DrcVA2Q_.js   [39m[1m[2m175.02 kB[22m[1m[22m[2m │ gzip: 57.70 kB[22m
-[32m✓ built in 799ms[39m
+[32m✓ built in 776ms[39m
 
 > openedulab@0.1.0-m1 build:api
 > tsc -p apps/api/tsconfig.json
