@@ -53,6 +53,24 @@ document §8.2.
   assumptions (in-process rate limiting, sessions in the database) are recorded as risk R6.
 - No CSS framework: `styles.css` is hand-written.
 
+## Project licence: **not chosen** (owner decision pending)
+
+There is no `LICENSE` file in this repository and none may be added by anyone but the project
+owner. On 2026-10-27 the owner narrowed the candidates to **MIT** or **Apache-2.0** but did
+not pick one, so the decision is recorded as open:
+
+| Aspect | MIT | Apache-2.0 |
+|---|---|---|
+| Text length | ~170 words | ~11 kB |
+| Patent grant | none (silent on patents) | explicit grant + termination on patent litigation |
+| Trademark clause | none | explicit (§6) |
+| Notice/attribution | one copyright line | NOTICE file conventions, change notices |
+| Fit here | simplest, common for small teaching tools | safer if schools/companies ever embed it |
+
+Until one is chosen and committed **with** the owner's name and year, the correct statements
+are: "source is public to read", "no licence has been granted", and "do not redistribute".
+README and the in-app `about.licensePending` string already say the licence is not final.
+
 ## Updating a dependency
 
 1. `npm install <pkg>@<version>` (updates `package-lock.json`).

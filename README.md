@@ -10,8 +10,11 @@ session.
 - **Source:** public on GitHub — <https://github.com/Molar2016/openedulab> (branch `main`).
 - **State:** runs locally, verified end to end; CI runs on GitHub Actions. **No deployment,
   no domain, no public application URL**: this repository is source code only, nothing is
-  hosted, so there is no site to open. There is also no licence file yet (the project owner
-  has not chosen one), which means the code is *not* offered under an open-source licence.
+  hosted, so there is no site to open. There is also no licence file yet: on 2026-10-27 the
+  owner narrowed the choice to MIT or Apache-2.0 but has not decided, so the code is *not*
+  offered under an open-source licence. GitHub Pages is deliberately not enabled — it hosts
+  static files only and cannot serve this login-gated server (see
+  `docs/ops/deployment-plan.md` §2.1).
 
 Read `docs/PROJECT_STATE.md` first when picking the work up: it records what is done, what
 is deliberately absent, the evidence paths and the exact commit for each stage.
@@ -29,7 +32,8 @@ is deliberately absent, the evidence paths and the exact commit for each stage.
 | Three-viewport end-to-end (phone / projector / tablet) | working | `tests/e2e/full-flow.spec.ts`, `docs/evidence/b6/` |
 | Backup snapshot + restore drill + retention purge | working (local SQLite) | `scripts/backup-check.mjs`, `scripts/restore-check.mjs`, `scripts/retention-purge.mjs` |
 | Saved parameter snapshots (B7) | working: explicit save / restore / delete, one snapshot per account+experiment, version mismatch falls back to the documented defaults | `apps/api/test/saved-state.test.ts`, `tests/host-saved-state.test.tsx`, `tests/e2e/saved-state.spec.ts` |
-| Password reset, account deletion, identifier verification | **not implemented** | — |
+| Password reset, identifier verification | **not implemented** | — |
+| Account deletion, personal-data export | **out of scope for v1** (owner decision, 2026-10-27) — not just unimplemented: nothing may claim them | `docs/privacy/launch-readiness.md` §2 |
 | CI running on GitHub | **running** (both jobs green on `main`) | run [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703) |
 
 Not-yet-possible claims, stated plainly: there is no production deployment, no domain and

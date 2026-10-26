@@ -111,13 +111,17 @@ granted to a normal user, and when it is unset those routes are not mounted at a
 | `feedback` | 180 days | same |
 | `internal_audit` | 365 days | same |
 | ended `session` rows | 30 days after revoke/expiry | same |
-| `account`, `favorite`, `recent_use`, `saved_state` | until the user deletes it, or account deletion exists | the snapshot has its own delete button; everything else waits for account deletion |
+| `account`, `favorite`, `recent_use`, `saved_state` | no expiry in v1 | the snapshot has its own delete button; the rest persist, because account deletion is out of scope for v1 |
 
-There is **no self-service account deletion** and no data export for the individual yet
-(design Q4). That is a blocker for public launch, not for local verification. When it is
-built, `ON DELETE CASCADE` from `account` already removes sessions, favorites, recent use,
-events, feedback and saved state; the audit trail intentionally has no foreign key, so the
-record of who accessed data survives the account.
+There is **no self-service account deletion** and no data export for the individual: the
+project owner decided on 2026-10-27 that both are **out of scope for the first release**
+(`docs/requirements-v2.1.md` §6, `docs/privacy/launch-readiness.md` §2). They are absent by
+decision, not pending work — and for that reason no screen, listing or document may claim
+them. `ON DELETE CASCADE` from `account` already removes sessions, favourites, recent use,
+events, feedback and saved state if an account row is ever deleted; the audit trail
+intentionally has no foreign key, so the record of who accessed data survives the account.
+The only available way to stop an account today is the maintainer disabling it at the
+database level (no HTTP endpoint), which is a maintenance act, not a user-facing right.
 
 Diagnostic events are not used to reconstruct "recent use" and vice versa; the two are kept
 apart on purpose (`docs/architecture/A-stage-design.md` §6.3).
@@ -128,7 +132,10 @@ apart on purpose (`docs/architecture/A-stage-design.md` §6.3).
 - "Anonymous usage statistics" — events are account-linked by design.
 - "We never store your email" — the full identifier is stored to allow sign-in; only the
   displayed form is masked.
-- "Data is deleted on request" — there is no deletion flow yet.
+- "Data is deleted on request" — there is no deletion flow, and by the 2026-10-27 decision
+  there will not be one in the first release; nothing may imply otherwise.
+- "Adults only" / "safe for children" — no age model exists either way (see
+  `docs/privacy/launch-readiness.md` §3).
 
 The in-app privacy text (`about.privacyBody` in both locales) is aligned with this map as of
 B7 (`saved_state` is mentioned as "one set of parameters per experiment, only when you press

@@ -143,6 +143,8 @@ over time:
 ## Follow-ups that are *not* part of B8
 
 - B7 saved-state (optional, unimplemented — `saved_state` stays empty).
-- Self-service account deletion / data export (design Q4) — blocking for public launch.
+- Self-service account deletion / data export (design Q4) — **later decided out of scope for
+  v1** (owner decision 2026-10-27); see `docs/privacy/launch-readiness.md` §2. Not a B8 gap to
+  close, and nothing may claim it exists.
 - Identifier ownership verification and password recovery (design Q5).
 - A rollup table before retention destroys trend data, if trends matter.

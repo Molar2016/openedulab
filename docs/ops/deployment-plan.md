@@ -36,10 +36,46 @@ Concretely, all five are needed before a test deployment can start:
    production mode — see §4.
 4. **Database decision**: single-instance SQLite on the host (what is verified today) or
    PostgreSQL (design candidate, never exercised by this codebase).
-5. **Data-protection decisions** (retention window, minors policy, deletion/export scope) —
-   tracked in `docs/privacy/launch-readiness.md`. A test instance that only the owner uses
-   with invented accounts can proceed without them; anything reachable by other people
-   cannot.
+5. **Data-protection decisions** — retention window still open; **minors and deletion/export
+   were decided on 2026-10-27** (no age gate; deletion and export out of scope for v1) and are
+   recorded in `docs/privacy/launch-readiness.md` §2–§3. What remains fact-finding rather than
+   a code change is the service region and the actual personal-data inventory (§5 row 2–3
+   there). A test instance that only the owner uses with invented accounts can proceed
+   without them; anything reachable by other people cannot.
+
+## 2.1 GitHub Pages: static hosting only — deliberately **not enabled**
+
+The owner asked whether GitHub Pages could serve as the test site. It cannot serve *this*
+application, and the honest answer is a scope statement rather than a workaround:
+
+| What Pages provides | What this app needs |
+|---|---|
+| static files from a repository over HTTPS, no server-side code | a Fastify process: `/api/*` routes, server-side sessions in SQLite, CSRF origin checks, per-IP rate limiting |
+| no `Set-Cookie` control, no request-time logic | `__Host-oel_sid` HttpOnly cookie issued by the server on login |
+| no database, no writes | SQLite file on the host (`node:sqlite`), migrations, `VACUUM INTO` backups |
+| a public URL for the whole world by default | a login gate whose every API response is scoped by the session's account id |
+
+So on Pages the built SPA would load and then fail every request: the catalogue, the
+experiment metadata, favourites, recent use, saved parameters and the operator channel all
+come from `/api/*` behind `requireSession()`. There is no configuration of Pages that changes
+that, because the missing piece is the server, not the routing.
+
+**Decision (2026-10-27): Pages stays disabled.** Three reasons, in order:
+
+1. An empty shell at a public URL is worse than no URL — a visitor cannot sign in, cannot see
+   an experiment, and would reasonably conclude the product is broken (or, worse, that the
+   repository is a finished public site).
+2. Making it look complete would require a fake backend or invented data, which is exactly
+   what the project's ground rules forbid (no fake endpoints, no fabricated results).
+3. The only useful Pages artefact would be a small static introduction page ("what this is,
+   what it is not, where the source lives"), and that is a separate, honestly-labelled
+   decision — not a stand-in for the application, and not requested yet.
+
+If a static introduction page is ever wanted, it must say plainly: no live demo, no public
+instance, sign-in requires the server, and the repository is source only. It must not embed
+the SPA build, mock the API, or link to a URL that does not exist yet.
+
+The actual deployment path stays as described in §5, and remains blocked on the inputs in §2.
 
 ## 3. What is already proven locally (so deployment is configuration, not development)
 
@@ -133,8 +169,9 @@ Steps (each with the check that proves it):
 | 9 | Is retention scheduled, with the window decided? | cron/systemd timer + dry-run log |
 | 10 | Is there a monitoring alert on healthz? | alert config + one fired test |
 | 11 | Is the previous artifact kept for rollback? | `ls` + tested swap |
-| 12 | Are deletion/export and minors decisions recorded? | `docs/privacy/launch-readiness.md` |
+| 12 | Are the deletion/export, minors and region decisions recorded? | `docs/privacy/launch-readiness.md` §2, §3, §5 |
 | 13 | Does anything claim a public URL that does not resolve yet? | `git grep` the URL in docs |
+| 14 | Is a licence committed (MIT or Apache-2.0, owner's choice)? | `ls LICENSE`, `docs/third-party.md` |
 
 ## 7. What this document is not
 

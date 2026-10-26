@@ -6,6 +6,12 @@ it does not change any behaviour: nothing here was implemented, and no policy wa
 
 Facts below are taken from the code, with the test that pins each one.
 
+**Status 2026-10-27 (R5)**: §2 and §3 were rewritten after the project owner's decisions —
+account deletion and personal-data export are **out of scope for the first release**, and
+there is **no minors age gate** (with a factual pre-launch check kept). §1 (open sign-up) is
+unchanged and still owner-pending. §5 is the gate that remains before anything is publicly
+reachable.
+
 ## 1. Open self-registration without ownership verification
 
 ### What the system actually does
@@ -65,72 +71,114 @@ Until at least one of (2) or (3) is in place, opening registration to the public
 means accepting account squatting and scripted sign-ups. That is a product decision, not
 something this task may decide.
 
-## 2. Account deletion and personal-data export
+## 2. Account deletion and personal-data export — **out of scope for v1** (owner decision, 2026-10-27)
 
-### What exists
+### The decision, and what it does *not* mean
+
+The project owner decided on 2026-10-27 that the first release ships **without** account
+deletion and **without** personal-data export. This is a scope decision, recorded here and in
+`docs/requirements-v2.1.md` §6. It replaces the earlier "hard blocker" framing, and it does
+**not** mean the gap is invisible:
+
+- The product must never claim a self-service delete or export it does not have. The list of
+  forbidden statements is `docs/privacy/data-map.md` §5 ("Data is deleted on request" is on
+  it), and the in-app privacy text says what *is* stored, not what can be erased.
+- Someone who wants out has exactly one real route today: the operator disables the account
+  at the database level (`account.status = 'disabled'`, no HTTP endpoint). That is a
+  maintenance act by the maintainer, not a user right, and no screen may present it as one.
+- The residual risk this accepts — an individual has no self-service way to obtain or erase
+  their own data — is named here as an accepted, owner-acknowledged risk of the first
+  release, not as compliance.
+
+### What is true in the code
 
 - `ON DELETE CASCADE` from `account` covers `session`, `favorite`, `recent_use`,
   `saved_state`, `event`, `feedback` (`apps/api/migrations/0001_init.sql`).
 - `internal_audit` deliberately has **no** foreign key: the record of "an operator read
-  account X for reason Y" survives deletion. It stores the operator label, the action, the
-  target id, the reason and a row count — never the content read.
-- There is **no** self-service deletion and **no** export. `docs/privacy/data-map.md` lists
-  this as a blocker, and the product must not claim "data is deleted on request".
+  account X for reason Y" survives account deletion. It stores the operator label, the action,
+  the target id, the reason and a row count — never the content read.
+- There is **no** `DELETE /api/me` and **no** `GET /api/me/export`; no test pretends
+  otherwise, and no route inventory entry exists for them.
+- The cascade is therefore currently unreachable: nothing deletes an `account` row. If that
+  ever changes (an admin CLI, or a later release implementing deletion), the cascade is what
+  makes one transaction enough — which is why the schema was designed this way from B1.
 
-### Why it blocks a public launch
-
-- PIPL (China) art. 45/47 give the individual a right to copy and to delete; GDPR art. 15/17/20
-  apply if EU residents are in scope. "We have no deletion flow yet" is not a lawful answer
-  once real people sign up.
-- The data is small but personal: identifier, password hash, favourites, recent opens, saved
-  parameters, events, feedback text.
-
-### What implementing it would take (scope estimate, not a commitment)
+### If it is ever pulled back into scope (sketch, not a commitment)
 
 - `DELETE /api/me` — session-gated, requires the current password again, one transaction,
-  returns 204; tests must prove the cascade removed every table row and that the session
-  cookie is dead afterwards, and that `internal_audit` rows survive with a dangling target id.
+  204; tests must prove the cascade removed every table row, that the session cookie is dead
+  afterwards, and that `internal_audit` rows survive with a dangling target id.
 - `GET /api/me/export` — JSON download of account (masked identifier + timestamps),
-  favourites, recent use, saved parameters, feedback the user wrote, and event *counts*
-  (not the operator's analytic view). Same gate, `Content-Disposition: attachment`, and a
-  test that the payload contains no other account's data and no operator-only fields.
+  favourites, recent use, saved parameters, the user's own feedback, and event *counts* (not
+  the operator's analytic view). Same gate, `Content-Disposition: attachment`, plus a test
+  that the payload contains no other account's data and no operator-only fields.
 - Both belong to the same "personal data" family as `saved_state` and should follow the same
   pattern: route inventory entry, CSRF, rate limit, cross-account tests.
 
-Recommendation: implement both **before** any sign-up that a non-owner can reach; they are
-hours of work against an established pattern, and their absence is the single clearest
-compliance hole.
+## 3. Minors — no age gate, and no assumption that children's data is out of scope
 
-## 3. Minors
+Decision (owner, 2026-10-27): the product does **not** impose a "minors not allowed" age gate.
+It is a teaching tool; classrooms contain minors, and a gate that pushes them out would defeat
+the purpose. What follows from that decision, stated carefully:
 
-The product is aimed at classrooms, which includes middle- and high-school students.
+- **Not** "therefore no children's personal data is processed". Whether the service processes
+  a child's personal data depends on who actually signs up and where the service is offered,
+  not on our intention. An identifier plus a password hash of a 13-year-old is still personal
+  information about a child.
+- **No invented legal threshold.** This document does not declare a statutory age, does not
+  claim a jurisdiction applies, and does not claim compliance with any of them. The earlier
+  draft's "under 14 ⇒ sensitive personal information" was a specific legal regime applied to
+  a service region nobody has chosen yet; it is demoted here to "a question to answer with
+  facts", not a rule this repo enforces.
+- **What is kept: a minimal, factual compliance check before public launch** — two questions,
+  both answerable with documents rather than code:
+  1. **Where will the service actually be offered?** (region of the operator, of the hosting
+     provider, and of the intended users). No region has been chosen, so no regime is
+     asserted.
+  2. **What personal data does the service actually touch?** From the code: a normalised
+     email or phone, a scrypt password hash, favourites, coarse recent-use rows, explicitly
+     saved parameters, whitelisted diagnostic events, and free-text feedback. No real name,
+     no age, no school, no class, no roster, no grades, no IP addresses
+     (`docs/privacy/data-map.md`). That is the honest inventory a review would start from.
+- **No hard block in code.** Nothing in the app asks for an age, infers one, or terminates an
+  account because of one. Adding such a mechanism is not part of v1.
+- **Copy stays honest.** The in-app text makes no claim about children, about appropriateness
+  for a given age, or about consent. That must remain true: do not describe the service as
+  child-appropriate, and do not describe it as adults-only either.
+- **Accountability stays with the owner**: if the service is later offered in a region whose
+  rules require guardian consent or a dedicated children's-data process, that is a decision
+  and a code change for that moment — the launch-readiness gate below exists so it is asked
+  before launch, not after.
 
-- Under PIPL, personal information of children **under 14** is sensitive personal information:
-  it needs guardian consent and dedicated processing rules. The trigger is the data subject's
-  age, not which fields are collected — an email address of a 13-year-old is still covered.
-- Today the system collects an identifier (email/phone) and a password hash, and nothing else
-  that identifies a person. There is no age field, no real name, no school, no class, no
-  roster.
-- There is therefore no way for the service to know whether a user is a child, and no
-  guardian-consent mechanism. The current copy makes no claim about children — which is
-  correct, and must stay that way until a model is chosen.
+## 4. What was deliberately not done in R3, and what R5 changed
 
-Options (owner's decision):
+R3 did none of the following: no server, DNS, firewall or certificate action; no port scan;
+no `ssh`/`scp` to any host; no change to registration, verification, deletion or export
+behaviour; no licence choice, no terms of service, no privacy policy text beyond the in-app
+summary; and no claim that any of this is compliant.
 
-1. **Institution-controlled use**: the school/teacher is the controller, accounts are created
-   for a class, the platform is a processor. Requires a written agreement, not code.
-2. **18+ / adult self-sign-up** with an age affirmation and no school-facing features.
-3. **Guardian-consent flow** for under-14: an age gate, a consent record, a way to withdraw.
-   This is the heaviest option and none of it exists.
+R5 (2026-10-27) changed **decisions and documentation only**: deletion/export moved from
+"blocker" to "out of scope for v1" by owner decision (§2), the minors model moved from
+"pick one of three" to "no age gate, keep a factual pre-launch check" (§3), and the licence
+question is still open, awaiting MIT vs Apache-2.0. No code, no migration and no route
+changed as part of this. The pre-launch gate that remains is in §5.
 
-Recommendation: pick (1) or (2) before any public launch; do not launch with open sign-up and
-no age model, and do not describe the service as child-appropriate.
+## 5. The gate that remains before anything is publicly reachable
 
-## 4. What was deliberately not done in R3
+Nothing in this document authorises a launch. "The owner agreed to keep working on
+pre-release items" is not "the owner approved putting a site on the public internet". Before
+any deployment, the owner must give explicit, separate approval, and these must be answered
+with facts:
 
-- No server, DNS, firewall or certificate action; no port scan; no `ssh`/`scp` to any host.
-- No change to registration, verification, deletion or export behaviour — those are decisions
-  above, and two of them (verification, minors model) carry cost or legal weight.
-- No licence choice, no terms of service, no privacy policy text beyond the in-app summary.
-- No claim that any of this is compliant. The point of the document is to name what is
-  missing, with the code paths that show it.
+| # | Question | Where the answer comes from |
+|---|---|---|
+| 1 | Explicit owner approval for this deployment (host, DNS, credentials, public reachability) | owner, in writing, per deployment |
+| 2 | Which region will the service be offered in, and to whom? | owner; feeds §3 |
+| 3 | What personal data does the service actually process? | `docs/privacy/data-map.md` (code-derived inventory) |
+| 4 | Is sign-up open to anyone, and is that acceptable without ownership verification? | §1 decisions 1–4 |
+| 5 | Does any screen, doc or store listing claim deletion/export/verification that does not exist? | `git grep` before release; `docs/privacy/data-map.md` §5 |
+| 6 | Are retention windows and the operator token settled for that host? | `docs/ops/runbook.md`, `docs/ops/deployment-plan.md` §6 |
+| 7 | Licence chosen (MIT or Apache-2.0) and `LICENSE` committed? | `docs/third-party.md` — still open |
+
+Rows 2 and 5 are the ones this round changed the framing of; rows 1, 6 and 7 stay exactly as
+demanding as before.
