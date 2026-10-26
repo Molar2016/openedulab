@@ -2,7 +2,7 @@
   "name": "openedulab",
   "private": true,
   "version": "0.1.0-m1",
-  "description": "OpenEduLab — interactive teaching experiments for authenticated classrooms. Pre-auth prototype: login is required by requirements v2.1 but is NOT implemented yet (B1 skeleton only; no route serves protected data).",
+  "description": "OpenEduLab — interactive teaching experiments for authenticated classrooms. B2: the API implements self-registration, login, logout and server-side sessions (scrypt, HttpOnly cookie, CSRF, rate limits); the SPA is still the pre-auth prototype, no route serves protected data yet and the login flow is not wired end to end (B3).",
   "type": "module",
   "engines": {
     "node": ">=22.5.0 <23"

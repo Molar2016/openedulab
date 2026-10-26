@@ -83,13 +83,19 @@ describe('private API placeholders', () => {
     }
   });
 
-  it('has no auth endpoints yet, so /api/auth/session is a plain 404 rather than a fake session', async () => {
+  /**
+   * Superseded by B2: while no session layer existed, this route had to be a plain 404
+   * so nobody could mistake a stub for a session. B2 now mounts the real endpoint, so the
+   * assertion becomes: it answers honestly ("not authenticated"), never a fake session.
+   */
+  it('serves /api/auth/session as an honest unauthenticated answer after B2', async () => {
     const server = await start();
 
     const response = await server.inject({ method: 'GET', url: '/api/auth/session' });
 
-    expect(response.statusCode).toBe(404);
-    expect(response.json().error.code).toBe('not_found');
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ authenticated: false });
+    expect(response.headers['cache-control']).toBe('no-store');
   });
 
   it('returns JSON 404 for unknown API routes and never the SPA shell', async () => {

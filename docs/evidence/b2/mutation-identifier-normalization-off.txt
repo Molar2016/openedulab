@@ -1,0 +1,37 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+ [31m❯[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m20 skipped[39m[2m)[22m[33m 1895[2mms[22m[39m
+[31m   [31m×[31m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces[33m 637[2mms[22m[31m[39m
+[31m     → expected 400 to be 409 // Object.is equality[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent [33m623[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[2m | [22m[33m20 skipped[39m[90m (23)[39m
+[2m   Start at [22m 20:16:43
+[2m   Duration [22m 2.98s[2m (transform 146ms, setup 0ms, collect 348ms, tests 1.89s, environment 0ms, prepare 98ms)[22m
+
+(node:20516) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces
+[31m[1mAssertionError[22m: expected 400 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 400[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m151:30[22m[39m
+    [90m149| [39m
+    [90m150| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m151| [39m    [34mexpect[39m(duplicate[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m152| [39m    [34mexpect[39m([34merrorCode[39m(duplicate))[33m.[39m[34mtoBe[39m([32m'identifier_taken'[39m)[33m;[39m
+    [90m153| [39m    [34mexpect[39m([34mreadAccounts[39m(harness[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+

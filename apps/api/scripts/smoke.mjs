@@ -9,6 +9,7 @@
  * Usage: node apps/api/scripts/smoke.mjs
  */
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -116,7 +117,7 @@ async function main() {
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
 
-  process.stdout.write(`# B1 smoke — real process, node ${process.version}\n`);
+  process.stdout.write(`# B1+B2 smoke — real process, node ${process.version}\n`);
   process.stdout.write(`# repo=${repoRoot}\n# db=${databasePath}\n# port=${port}\n\n`);
 
   try {
@@ -202,7 +203,195 @@ async function main() {
       rows[0]?.checksum.slice(0, 12) + '…',
     );
 
-    process.stdout.write('\n## 6. restart against the same database\n');
+    process.stdout.write('\n## 6. authentication over a real socket (B2)\n');
+    const origin = baseUrl;
+    const credentialHeaders = { origin, 'content-type': 'application/json' };
+    const password = 'correct horse battery staple';
+
+    const postJson = async (route, body, headers = {}) => {
+      const response = await fetch(`${baseUrl}${route}`, {
+        method: 'POST',
+        headers: { ...credentialHeaders, ...headers },
+        body: JSON.stringify(body),
+      });
+      const json = await response.json().catch(() => ({}));
+      const setCookie = response.headers.getSetCookie?.() ?? [];
+      return { response, json, setCookie, text: JSON.stringify(json) };
+    };
+
+    const registerOnce = (identifier, headers) =>
+      postJson('/api/auth/register', { loginKind: 'email', identifier, password }, headers);
+    const loginOnce = (identifier, candidate = password, headers) =>
+      postJson('/api/auth/login', { loginKind: 'email', identifier, password: candidate }, headers);
+    const sessionWith = async (cookie) => {
+      const response = await fetch(`${baseUrl}/api/auth/session`, {
+        headers: cookie ? { cookie } : {},
+      });
+      return { status: response.status, json: await response.json() };
+    };
+
+    const registered = await registerOnce('smoke@example.com');
+    const registeredCookie = (registered.setCookie[0] ?? '').split(';')[0];
+    const registeredAttributes = registered.setCookie.join('; ');
+    check('register returns 201', registered.response.status === 201, `status=${registered.response.status}`);
+    check(
+      'register issues an HttpOnly, SameSite=Lax, Path=/ cookie',
+      /HttpOnly/.test(registeredAttributes) &&
+        /SameSite=Lax/.test(registeredAttributes) &&
+        /Path=\//.test(registeredAttributes) &&
+        /^oel_sid=[A-Za-z0-9_-]{43}$/.test(registeredCookie),
+      registeredCookie.slice(0, 12) + '…',
+    );
+    check(
+      'register returns only a masked hint',
+      registered.json.account?.displayHint === 's***@example.com' &&
+        !registered.text.includes('smoke@example.com'),
+      JSON.stringify(registered.json),
+    );
+
+    const anonymousSession = await sessionWith(null);
+    check(
+      'anonymous session is authenticated:false',
+      anonymousSession.status === 200 && anonymousSession.json.authenticated === false,
+      JSON.stringify(anonymousSession.json),
+    );
+    const liveSession = await sessionWith(registeredCookie);
+    check(
+      'registered session is authenticated:true without leaking identifiers',
+      liveSession.json.authenticated === true &&
+        liveSession.json.account?.displayHint === 's***@example.com' &&
+        !JSON.stringify(liveSession.json).includes('smoke@example.com'),
+      JSON.stringify(liveSession.json),
+    );
+
+    const duplicate = await registerOnce('SMOKE@Example.com ');
+    check(
+      'duplicate identifier is 409 identifier_taken after normalization',
+      duplicate.response.status === 409 && duplicate.json.error?.code === 'identifier_taken',
+      `status=${duplicate.response.status} code=${duplicate.json.error?.code}`,
+    );
+
+    const wrongPassword = await loginOnce('smoke@example.com', 'wrong password 12345');
+    const unknownAccount = await loginOnce('nobody@example.com');
+    check(
+      'wrong password is 401 invalid_credentials',
+      wrongPassword.response.status === 401 &&
+        wrongPassword.json.error?.code === 'invalid_credentials',
+      `status=${wrongPassword.response.status}`,
+    );
+    check(
+      'unknown identifier is byte-identical to a wrong password',
+      unknownAccount.response.status === 401 && unknownAccount.text === wrongPassword.text,
+      `status=${unknownAccount.response.status}`,
+    );
+    check(
+      'failed logins never set a cookie',
+      wrongPassword.setCookie.length === 0 && unknownAccount.setCookie.length === 0,
+    );
+
+    const blocked = [
+      ['missing Origin', await registerOnce('csrf-missing@example.com', { origin: 'MISSING' })],
+      ['foreign Origin', await registerOnce('csrf-foreign@example.com', { origin: 'https://evil.example' })],
+    ];
+    for (const [label, attempt] of blocked) {
+      check(
+        `CSRF: ${label} is rejected`,
+        attempt.response.status === 403 && attempt.json.error?.code === 'forbidden',
+        `status=${attempt.response.status}`,
+      );
+    }
+    const formAttempt = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/x-www-form-urlencoded' },
+      body: 'loginKind=email&identifier=smoke%40example.com&password=whatever123456',
+    });
+    check('CSRF: urlencoded form login is rejected', formAttempt.status === 403, `status=${formAttempt.status}`);
+
+    const forgedSession = await sessionWith('oel_sid=forged-token');
+    check(
+      'forged cookie is authenticated:false',
+      forgedSession.status === 200 && forgedSession.json.authenticated === false,
+    );
+
+    const logout = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: { origin, cookie: registeredCookie },
+    });
+    check('logout returns 204', logout.status === 204, `status=${logout.status}`);
+    check(
+      'logout clears the cookie',
+      (logout.headers.getSetCookie?.() ?? []).join('; ').includes('Max-Age=0'),
+    );
+    const replay = await sessionWith(registeredCookie);
+    check('replaying the logged-out cookie is unauthenticated', replay.json.authenticated === false);
+    const secondLogout = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: { origin, cookie: registeredCookie },
+    });
+    check('second logout is 401', secondLogout.status === 401, `status=${secondLogout.status}`);
+
+    const freshLogin = await loginOnce('smoke@example.com');
+    const liveCookie = (freshLogin.setCookie[0] ?? '').split(';')[0];
+    check('login with the right password is 200', freshLogin.response.status === 200);
+    check('login issues a new token', liveCookie !== registeredCookie, liveCookie.slice(0, 12) + '…');
+    check(
+      'the new session is authenticated',
+      (await sessionWith(liveCookie)).json.authenticated === true,
+    );
+
+    const authRows = (databasePath) => {
+      const db = new DatabaseSync(databasePath);
+      try {
+        return {
+          account: db
+            .prepare('SELECT login_kind, normalized_login, display_hint, password_hash, status FROM account')
+            .all(),
+          session: db.prepare('SELECT token_hash, revoked_at FROM session').all(),
+        };
+      } finally {
+        db.close();
+      }
+    };
+    const stored = authRows(databasePath);
+    check(
+      'database stores a scrypt hash, never the password',
+      stored.account.length === 1 &&
+        /^scrypt\$32768\$8\$3\$/.test(stored.account[0].password_hash) &&
+        !String(stored.account[0].password_hash).includes(password),
+      String(stored.account[0]?.password_hash).slice(0, 24) + '…',
+    );
+    check(
+      'database stores sha256(token), not the token',
+      stored.session.some(
+        (row) =>
+          row.token_hash ===
+          createHash('sha256').update(liveCookie.split('=')[1]).digest('hex'),
+      ),
+    );
+
+    process.stdout.write('\n## 7. registration rate limit over a real socket\n');
+    let limited = null;
+    let allowedRegistrations = 0;
+    for (let index = 0; index < 8; index += 1) {
+      const attempt = await registerOnce(`bulk-${index}@example.com`);
+      if (attempt.response.status === 429) {
+        limited = attempt;
+        break;
+      }
+      allowedRegistrations += 1;
+    }
+    check(
+      'repeated registrations from one IP hit 429',
+      limited !== null && limited.json.error?.code === 'rate_limited',
+      `allowed=${allowedRegistrations} status=${limited?.response.status}`,
+    );
+    check(
+      '429 carries a numeric Retry-After',
+      Number(limited?.response.headers.get('retry-after')) >= 1,
+      limited?.response.headers.get('retry-after') ?? 'none',
+    );
+
+    process.stdout.write('\n## 8. restart against the same database\n');
     await stop(first);
     const second = startServer(serverEnv({ port, databasePath, migrations: migrationsDir }));
     const healthAfterRestart = await waitForHealth(baseUrl);
@@ -214,9 +403,20 @@ async function main() {
       rowsAfterRestart[0]?.applied_at === rows[0]?.applied_at,
       `before=${rows[0]?.applied_at} after=${rowsAfterRestart[0]?.applied_at}`,
     );
+    const sessionAfterRestart = await sessionWith(liveCookie);
+    check(
+      'a live session survives a restart (server-side, DB-backed)',
+      sessionAfterRestart.json.authenticated === true,
+      JSON.stringify(sessionAfterRestart.json),
+    );
+    const revokedAfterRestart = await sessionWith(registeredCookie);
+    check(
+      'a revoked session stays revoked after a restart',
+      revokedAfterRestart.json.authenticated === false,
+    );
     await stop(second);
 
-    process.stdout.write('\n## 7. a tampered migration refuses to start\n');
+    process.stdout.write('\n## 9. a tampered migration refuses to start\n');
     const tamperedDir = path.join(root, 'migrations-tampered');
     await cp(migrationsDir, tamperedDir, { recursive: true });
     const target = path.join(tamperedDir, '0001_init.sql');

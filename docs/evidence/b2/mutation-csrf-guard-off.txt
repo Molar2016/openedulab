@@ -1,0 +1,155 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+ [31m❯[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[33m 4125[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline) [33m652[2mms[22m[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write that carries no Origin header[33m 371[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a foreign origin[33m 365[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a look-alike origin[33m 362[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a different port on the same host[33m 364[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a null origin[33m 380[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a urlencoded content type[90m 46[2mms[22m[31m[39m
+[31m     → expected 415 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a plain text content type[90m 44[2mms[22m[31m[39m
+[31m     → expected 400 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a multipart content type[90m 48[2mms[22m[31m[39m
+[31m     → expected 415 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a cross-site fetch hint even when the Origin looks right[33m 365[2mms[22m[31m[39m
+[31m     → expected 201 to be 403 // Object.is equality[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint [33m360[2mms[22m[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything[33m 361[2mms[22m[31m[39m
+[31m     → expected 204 to be 403 // Object.is equality[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type) [33m364[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 20:16:29
+[2m   Duration [22m 5.25s[2m (transform 150ms, setup 0ms, collect 350ms, tests 4.13s, environment 0ms, prepare 98ms)[22m
+
+(node:17972) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 10 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write that carries no Origin header
+[31m[1mAssertionError[22m: expected 201 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m47:29[22m[39m
+    [90m 45| [39m    })[33m;[39m
+    [90m 46| [39m
+    [90m 47| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 48| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'forbidden'[39m)[33m;[39m
+    [90m 49| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a foreign origin
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a look-alike origin
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a different port on the same host
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a null origin
+[31m[1mAssertionError[22m: expected 201 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m67:29[22m[39m
+    [90m 65| [39m    })[33m;[39m
+    [90m 66| [39m
+    [90m 67| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 68| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'forbidden'[39m)[33m;[39m
+    [90m 69| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a urlencoded content type
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a multipart content type
+[31m[1mAssertionError[22m: expected 415 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 415[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m85:33[22m[39m
+    [90m 83| [39m    })[33m;[39m
+    [90m 84| [39m
+    [90m 85| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 86| [39m    [34mexpect[39m(response[33m.[39m[34mjson[39m())[33m.[39m[34mtoMatchObject[39m({ error[33m:[39m { code[33m:[39m [32m'forbidden'[39m…
+    [90m 87| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a plain text content type
+[31m[1mAssertionError[22m: expected 400 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 400[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m85:33[22m[39m
+    [90m 83| [39m    })[33m;[39m
+    [90m 84| [39m
+    [90m 85| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 86| [39m    [34mexpect[39m(response[33m.[39m[34mjson[39m())[33m.[39m[34mtoMatchObject[39m({ error[33m:[39m { code[33m:[39m [32m'forbidden'[39m…
+    [90m 87| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a cross-site fetch hint even when the Origin looks right
+[31m[1mAssertionError[22m: expected 201 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m99:29[22m[39m
+    [90m 97| [39m    })[33m;[39m
+    [90m 98| [39m
+    [90m 99| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m100| [39m  })[33m;[39m
+    [90m101| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything
+[31m[1mAssertionError[22m: expected 204 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 204[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m127:27[22m[39m
+    [90m125| [39m    })[33m;[39m
+    [90m126| [39m
+    [90m127| [39m    [34mexpect[39m(forged[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m128| [39m    [35mconst[39m stillValid [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m {
+    [90m129| [39m      method[33m:[39m [32m'GET'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯[22m[39m
+

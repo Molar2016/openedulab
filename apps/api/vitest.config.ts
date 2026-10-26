@@ -14,5 +14,8 @@ export default defineConfig({
     environment: 'node',
     include: ['test/**/*.test.ts'],
     restoreMocks: true,
+    // Auth tests run the real scrypt work factor (N=2^15, r=8, p=3 ≈ 300 ms per hash);
+    // the 10-failure lockout case alone needs ~4 s. This is a timeout, not an assertion.
+    testTimeout: 30_000,
   },
 });

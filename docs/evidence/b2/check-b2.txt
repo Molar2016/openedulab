@@ -1,0 +1,151 @@
+
+> openedulab@0.1.0-m1 check
+> npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run test:api && npm run validate:content && npm run build && npm run build:api
+
+
+> openedulab@0.1.0-m1 typecheck
+> tsc --noEmit
+
+
+> openedulab@0.1.0-m1 typecheck:api
+> tsc -p apps/api/tsconfig.test.json
+
+
+> openedulab@0.1.0-m1 lint
+> eslint .
+
+
+> openedulab@0.1.0-m1 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab[39m
+
+ [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m tests/analytics.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 189[2mms[22m[39m
+ [32m✓[39m tests/host.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m46 passed[39m[22m[90m (46)[39m
+[2m   Start at [22m 20:21:30
+[2m   Duration [22m 2.75s[2m (transform 397ms, setup 954ms, collect 967ms, tests 605ms, environment 5.72s, prepare 1.00s)[22m
+
+
+> openedulab@0.1.0-m1 test:api
+> vitest run --config apps/api/vitest.config.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:17552) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23352) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20320) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21120) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22784) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22216) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7384) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21820) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9708) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23268) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 303[2mms[22m[39m
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 517[2mms[22m[39m
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 759[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m598[2mms[22m[39m
+ [32m✓[39m test/private-routes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1337[2mms[22m[39m
+   [33m[2m✓[22m[39m private API placeholders[2m > [22m'GET' '/api/catalog' is denied with 401 unauthenticated [33m570[2mms[22m[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1388[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mserves the built index.html at the root [33m577[2mms[22m[39m
+ [32m✓[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2961[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline) [33m1043[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint [33m450[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything [33m411[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type) [33m444[2mms[22m[39m
+ [32m✓[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 5290[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mreports only a masked identity for a live session [33m537[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation [33m625[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mrevokes only the session that logged out [33m805[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry [33m471[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one [33m405[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity [33m373[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled [33m378[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http [33m368[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22muses the __Host- prefix with Secure in production [33m393[2mms[22m[39m
+ [32m✓[39m test/auth.security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 5752[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext [33m1052[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mverifies a stored hash with timingSafeEqual semantics and rejects corrupted input [33m1609[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mupgrades the work factor on the next successful login [33m891[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database [33m380[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses [33m690[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string [33m396[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in [33m733[2mms[22m[39m
+ [32m✓[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 6110[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier [33m1060[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits [33m513[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19) [33m471[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces [33m821[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators [33m700[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent [33m698[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation [33m378[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account [33m432[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session [33m376[2mms[22m[39m
+ [32m✓[39m test/auth.login.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 9924[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token [33m1462[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too [33m859[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body [33m1224[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit) [33m1016[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password [33m1020[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account [33m379[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented [33m366[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak [33m3594[2mms[22m[39m
+ [32m✓[39m test/rate-limit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 12527[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After [33m3026[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget [33m1369[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password [33m3819[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mreleases the lock after the window passes [33m3556[2mms[22m[39m
+   [33m[2m✓[22m[39m rate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open [33m636[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m142 passed[39m[22m[90m (142)[39m
+[2m   Start at [22m 20:21:34
+[2m   Duration [22m 13.95s[2m (transform 814ms, setup 0ms, collect 5.55s, tests 46.87s, environment 3ms, prepare 1.87s)[22m
+
+
+> openedulab@0.1.0-m1 validate:content
+> node scripts/validate-content.mjs
+
+Content validation OK
+ - experiments: math.functions (slug: math-functions, locales: zh-CN, en)
+ - UI dictionaries: zh-CN, en with 66 keys each
+ - host SDK: 1.0.0
+
+> openedulab@0.1.0-m1 build
+> tsc --noEmit && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 50 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.24 kB[22m[1m[22m[2m │ gzip:  0.76 kB[22m
+[2mdist/[22m[35massets/index-DXPyi1m6.css  [39m[1m[2m 10.67 kB[22m[1m[22m[2m │ gzip:  2.97 kB[22m
+[2mdist/[22m[36massets/view-BCHndfrb.js    [39m[1m[2m 11.05 kB[22m[1m[22m[2m │ gzip:  3.97 kB[22m
+[2mdist/[22m[36massets/index-DrcVA2Q_.js   [39m[1m[2m175.02 kB[22m[1m[22m[2m │ gzip: 57.70 kB[22m
+[32m✓ built in 777ms[39m
+
+> openedulab@0.1.0-m1 build:api
+> tsc -p apps/api/tsconfig.json
+

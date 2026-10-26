@@ -1,0 +1,1241 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:22276) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23412) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21092) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12376) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6204) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19368) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23140) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19568) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7348) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22944) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 290[2mms[22m[39m
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 497[2mms[22m[39m
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 688[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m501[2mms[22m[39m
+ [31m❯[39m test/rate-limit.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 836[2mms[22m[39m
+[31m   [31m×[31m registration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After[33m 541[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m registration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget[90m 53[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m login rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password[90m 54[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m login rate limiting and lockout[2m > [22mreleases the lock after the window passes[90m 59[2mms[22m[31m[39m
+[31m     → expected 404 to be 429 // Object.is equality[39m
+[31m   [31m×[31m session endpoint rate limiting[2m > [22mallows 300 session reads per minute and then answers 429[90m 70[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m rate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open[90m 56[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+ [31m❯[39m test/auth.login.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 1004[2mms[22m[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token[33m 547[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too[90m 70[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body[90m 52[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit)[90m 68[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password[90m 61[2mms[22m[31m[39m
+[31m     → expected to disable exactly one account, changed 0[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account[90m 63[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented[90m 74[2mms[22m[31m[39m
+[31m     → expected 404 to be 409 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak[90m 66[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+ [31m❯[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m14 failed[39m[2m)[22m[33m 1299[2mms[22m[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline)[33m 546[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write that carries no Origin header[90m 56[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a foreign origin[90m 56[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a look-alike origin[90m 60[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a different port on the same host[90m 61[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a null origin[90m 52[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a urlencoded content type[90m 62[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a plain text content type[90m 68[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a multipart content type[90m 63[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a cross-site fetch hint even when the Origin looks right[90m 58[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint[90m 72[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything[90m 51[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type)[90m 45[2mms[22m[31m[39m
+[31m     → expected 404 to be 204 // Object.is equality[39m
+[31m   [31m×[31m CSRF guard on auth write routes (Origin + JSON)[2m > [22mdoes not gate safe reads on Origin[90m 46[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+ [31m❯[39m test/private-routes.test.ts [2m([22m[2m16 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1305[2mms[22m[39m
+   [33m[2m✓[22m[39m private API placeholders[2m > [22m'GET' '/api/catalog' is denied with 401 unauthenticated [33m494[2mms[22m[39m
+[31m   [31m×[31m private API placeholders[2m > [22mserves /api/auth/session as an honest unauthenticated answer after B2[90m 47[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1328[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mserves the built index.html at the root [33m504[2mms[22m[39m
+ [31m❯[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m | [22m[31m16 failed[39m[2m)[22m[33m 1374[2mms[22m[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session[33m 519[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22mreports only a masked identity for a live session[90m 53[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for a forged token without an error[90m 50[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for an empty token without an error[90m 61[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for an over-long token without an error[90m 64[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for a base64-url token of the wrong length without an error[90m 67[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers authenticated:false for a non-cookie header without an error[90m 63[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation[90m 71[2mms[22m[31m[39m
+[31m     → expected 404 to be 204 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22manswers 401 for logout without any session[90m 63[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22mrevokes only the session that logged out[90m 65[2mms[22m[31m[39m
+[31m     → expected { error: { code: 'not_found', …(1) } } to deeply equal { authenticated: false }[39m
+[31m   [31m×[31m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry[90m 68[2mms[22m[31m[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one[90m 45[2mms[22m[31m[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity[90m 50[2mms[22m[31m[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [31m×[31m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled[90m 45[2mms[22m[31m[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [31m×[31m session cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http[90m 42[2mms[22m[31m[39m
+[31m     → expected 'undefined' to match /^oel_sid=[A-Za-z0-9_-]{43};/[39m
+[31m   [31m×[31m session cookie attributes[2m > [22muses the __Host- prefix with Secure in production[90m 46[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+ [31m❯[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m | [22m[31m23 failed[39m[2m)[22m[33m 1641[2mms[22m[39m
+[31m   [31m×[31m POST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier[33m 531[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits[90m 51[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19)[90m 54[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register (R-01)[2m > [22mrejects an attempt to pick the account id, status or hash through the body[90m 66[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces[90m 54[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators[90m 57[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent[90m 71[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed email not-an-email with 400[90m 74[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed email user@@example.com with 400[90m 58[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed email user@localhost with 400[90m 59[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed email user name@example.com with 400[90m 64[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed email  with 400[90m 47[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed phone 12345 with 400[90m 52[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed phone +86-138-0000-1234x with 400[90m 41[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed phone ++8613800001234 with 400[90m 37[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects malformed phone  with 400[90m 41[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects an unsupported login kind[90m 41[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects a password that is too short[90m 41[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects a password that is too long[90m 38[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mrejects a password that is all whitespace[90m 48[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation[90m 41[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account[90m 37[2mms[22m[31m[39m
+[31m     → expected 404 to be 409 // Object.is equality[39m
+[31m   [31m×[31m POST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session[90m 33[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+ [31m❯[39m test/auth.security.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 2248[2mms[22m[39m
+[31m   [31m×[31m password storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext[33m 542[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'password_hash')[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mverifies a stored hash with timingSafeEqual semantics and rejects corrupted input [33m1429[2mms[22m[39m
+[31m   [31m×[31m password storage (R-19)[2m > [22mupgrades the work factor on the next successful login[90m 130[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m session token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database[90m 36[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'token_hash')[39m
+[31m   [31m×[31m session token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses[90m 38[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'id')[39m
+[31m   [31m×[31m caller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string[90m 37[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'id')[39m
+[31m   [31m×[31m caller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in[90m 35[2mms[22m[31m[39m
+[31m     → expected undefined to be defined[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 74 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m45:29[22m[39m
+    [90m 43| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mlogin[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'teacher@e[39m…
+    [90m 44| [39m
+    [90m 45| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 46| [39m    [34mexpect[39m(response[33m.[39mbody[33m.[39maccount[33m?.[39mdisplayHint)[33m.[39m[34mtoBe[39m([32m't***@example.com'[39m…
+    [90m 47| [39m    [35mconst[39m loginCookie [33m=[39m response[33m.[39m[34mcookie[39m([33mSESSION_COOKIE[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m59:29[22m[39m
+    [90m 57| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mlogin[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'  TEACHER[39m…
+    [90m 58| [39m
+    [90m 59| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 60| [39m  })[33m;[39m
+    [90m 61| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m75:34[22m[39m
+    [90m 73| [39m    })[33m;[39m
+    [90m 74| [39m
+    [90m 75| [39m    [34mexpect[39m(wrongPassword[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m 76| [39m    [34mexpect[39m(unknownIdentifier[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m 77| [39m    [34mexpect[39m([34merrorCode[39m(wrongPassword))[33m.[39m[34mtoBe[39m([32m'invalid_credentials'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit)
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m101:34[22m[39m
+    [90m 99| [39m    [35mconst[39m unknownMs [33m=[39m [33mDate[39m[33m.[39m[34mnow[39m() [33m-[39m unknownStarted[33m;[39m
+    [90m100| [39m
+    [90m101| [39m    [34mexpect[39m(wrongPassword[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m102| [39m    [34mexpect[39m(unknownIdentifier[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m103| [39m    [90m// Both paths must run the scrypt work factor; an early "no such a[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password
+[31m[1mError[22m: expected to disable exactly one account, changed 0[39m
+[36m [2m❯[22m disableAccount test/auth.login.test.ts:[2m30:13[22m[39m
+    [90m 28| [39m      [33m.[39m[34mrun[39m(normalizedLogin)[33m;[39m
+    [90m 29| [39m    [35mif[39m (result[33m.[39mchanges [33m!==[39m [34m1[39m) {
+    [90m 30| [39m      [35mthrow[39m [35mnew[39m [33mError[39m([32m`expected to disable exactly one account, change[39m…
+    [90m   | [39m            [31m^[39m
+    [90m 31| [39m    }
+    [90m 32| [39m  } [35mfinally[39m {
+[90m [2m❯[22m test/auth.login.test.ts:[2m113:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m139:29[22m[39m
+    [90m137| [39m    })[33m;[39m
+    [90m138| [39m
+    [90m139| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m140| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m141| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented
+[31m[1mAssertionError[22m: expected 404 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m158:29[22m[39m
+    [90m156| [39m    })[33m;[39m
+    [90m157| [39m
+    [90m158| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m159| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'already_authenticated'[39m)[33m;[39m
+    [90m160| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.login.test.ts[2m > [22mPOST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.login.test.ts:[2m173:29[22m[39m
+    [90m171| [39m        password[33m:[39m [32m`wrong-password-[39m[36m${[39mattempt[36m}[39m[32m`[39m[33m,[39m
+    [90m172| [39m      })[33m;[39m
+    [90m173| [39m      [34mexpect[39m(failed[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m174| [39m    }
+    [90m175| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m53:29[22m[39m
+    [90m 51| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'Teache[39m…
+    [90m 52| [39m
+    [90m 53| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 54| [39m    [34mexpect[39m(response[33m.[39mbody[33m.[39maccount[33m?.[39mdisplayHint)[33m.[39m[34mtoBe[39m([32m't***@example.com'[39m…
+    [90m 55| [39m    [34mexpect[39m(response[33m.[39mtext)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Teacher@Example.com'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m85:29[22m[39m
+    [90m 83| [39m    })[33m;[39m
+    [90m 84| [39m
+    [90m 85| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 86| [39m    [90m// The mask is built from the stored digits, which include the cou[39m…
+    [90m 87| [39m    [34mexpect[39m(response[33m.[39mbody[33m.[39maccount[33m?.[39mdisplayHint)[33m.[39m[34mtoBe[39m([32m'861****1234'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19)
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m108:29[22m[39m
+    [90m106| [39m    })[33m;[39m
+    [90m107| [39m
+    [90m108| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m109| [39m    [35mconst[39m [account] [33m=[39m [34mreadAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m110| [39m    [34mexpect[39m(account[33m.[39mid)[33m.[39m[34mtoMatch[39m([36m/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register (R-01)[2m > [22mrejects an attempt to pick the account id, status or hash through the body
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m135:31[22m[39m
+    [90m133| [39m      })[33m;[39m
+    [90m134| [39m
+    [90m135| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m136| [39m      [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m137| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m150:26[22m[39m
+    [90m148| [39m    [35mconst[39m duplicate [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'  TEA[39m…
+    [90m149| [39m
+    [90m150| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m151| [39m    [34mexpect[39m(duplicate[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m152| [39m    [34mexpect[39m([34merrorCode[39m(duplicate))[33m.[39m[34mtoBe[39m([32m'identifier_taken'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m168:26[22m[39m
+    [90m166| [39m    })[33m;[39m
+    [90m167| [39m
+    [90m168| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m169| [39m    [34mexpect[39m(duplicate[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m170| [39m    [34mexpect[39m([34merrorCode[39m(duplicate))[33m.[39m[34mtoBe[39m([32m'identifier_taken'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m182:26[22m[39m
+    [90m180| [39m    [35mconst[39m email [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'861380000[39m…
+    [90m181| [39m
+    [90m182| [39m    [34mexpect[39m(phone[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m183| [39m    [34mexpect[39m(email[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m184| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed email not-an-email with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed email user@@example.com with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed email user@localhost with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed email user name@example.com with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed email  with 400
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m199:29[22m[39m
+    [90m197| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { loginKind[33m,[39m identifi…
+    [90m198| [39m
+    [90m199| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m200| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m201| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed phone 12345 with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed phone +86-138-0000-1234x with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed phone ++8613800001234 with 400
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects malformed phone  with 400
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m213:29[22m[39m
+    [90m211| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { loginKind[33m,[39m identifi…
+    [90m212| [39m
+    [90m213| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m214| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m215| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects an unsupported login kind
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m226:29[22m[39m
+    [90m224| [39m    })[33m;[39m
+    [90m225| [39m
+    [90m226| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m227| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m228| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects a password that is too short
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects a password that is too long
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mrejects a password that is all whitespace
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m239:29[22m[39m
+    [90m237| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { password })[33m;[39m
+    [90m238| [39m
+    [90m239| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m240| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m241| [39m    [34mexpect[39m([34mreadAccounts[39m(harness[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m249:29[22m[39m
+    [90m247| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { password[33m:[39m [32m'密码 wit[39m…
+    [90m248| [39m
+    [90m249| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m250| [39m  })[33m;[39m
+    [90m251| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account
+[31m[1mAssertionError[22m: expected 404 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m270:27[22m[39m
+    [90m268| [39m    })[33m;[39m
+    [90m269| [39m
+    [90m270| [39m    [34mexpect[39m(second[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m271| [39m    [34mexpect[39m([34merrorCode[39m(second))[33m.[39m[34mtoBe[39m([32m'already_authenticated'[39m)[33m;[39m
+    [90m272| [39m    [34mexpect[39m([34mreadAccounts[39m(harness[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.register.test.ts[2m > [22mPOST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.register.test.ts:[2m289:29[22m[39m
+    [90m287| [39m    })[33m;[39m
+    [90m288| [39m
+    [90m289| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m290| [39m  })[33m;[39m
+    [90m291| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22mpassword storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'password_hash')[39m
+[36m [2m❯[22m test/auth.security.test.ts:[2m72:20[22m[39m
+    [90m 70| [39m
+    [90m 71| [39m    [35mconst[39m [account] [33m=[39m [34mreadAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m 72| [39m    [34mexpect[39m(account[33m.[39mpassword_hash)[33m.[39m[34mtoMatch[39m(
+    [90m   | [39m                   [31m^[39m
+    [90m 73| [39m      [36m/^scrypt\$32768\$8\$3\$[A-Za-z0-9+/=]{24}\$[A-Za-z0-9+/=]{44}$/[39m[33m,[39m
+    [90m 74| [39m    )[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22mpassword storage (R-19)[2m > [22mupgrades the work factor on the next successful login
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/auth.security.test.ts:[2m122:29[22m[39m
+    [90m120| [39m
+    [90m121| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mlogin[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m'legacy@ex[39m…
+    [90m122| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m123| [39m
+    [90m124| [39m    [35mconst[39m [account] [33m=[39m [34mreadAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22msession token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'token_hash')[39m
+[36m [2m❯[22m test/auth.security.test.ts:[2m138:20[22m[39m
+    [90m136| [39m
+    [90m137| [39m    [35mconst[39m [session] [33m=[39m [34mreadSessions[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m138| [39m    [34mexpect[39m(session[33m.[39mtoken_hash)[33m.[39m[34mtoBe[39m([34mcreateHash[39m([32m'sha256'[39m)[33m.[39m[34mupdate[39m(token)…
+    [90m   | [39m                   [31m^[39m
+    [90m139| [39m    [34mexpect[39m(session[33m.[39mtoken_hash)[33m.[39mnot[33m.[39m[34mtoBe[39m(token)[33m;[39m
+    [90m140| [39m    [34mexpect[39m([33mJSON[39m[33m.[39m[34mstringify[39m(session))[33m.[39mnot[33m.[39m[34mtoContain[39m(token)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22msession token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'id')[39m
+[36m [2m❯[22m test/auth.security.test.ts:[2m157:51[22m[39m
+    [90m155| [39m
+    [90m156| [39m    [35mfor[39m ([35mconst[39m response [35mof[39m [created[33m,[39m loggedIn[33m,[39m session]) {
+    [90m157| [39m      [34mexpect[39m(response[33m.[39mtext)[33m.[39mnot[33m.[39m[34mtoContain[39m(account[33m.[39mid)[33m;[39m
+    [90m   | [39m                                                  [31m^[39m
+    [90m158| [39m      [34mexpect[39m(response[33m.[39mtext)[33m.[39mnot[33m.[39m[34mtoContain[39m(token)[33m;[39m
+    [90m159| [39m      [34mexpect[39m(response[33m.[39mtext)[33m.[39mnot[33m.[39m[34mtoContain[39m([33mDEFAULT_PASSWORD[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22mcaller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'id')[39m
+[36m [2m❯[22m test/auth.security.test.ts:[2m174:57[22m[39m
+    [90m172| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m {
+    [90m173| [39m      method[33m:[39m [32m'GET'[39m[33m,[39m
+    [90m174| [39m      url[33m:[39m [32m`/api/auth/session?account_id=[39m[36m${[39mownerAccount[33m.[39mid[36m}[39m[32m`[39m[33m,[39m
+    [90m   | [39m                                                        [31m^[39m
+    [90m175| [39m      headers[33m:[39m [34mcookieHeader[39m(owner[33m.[39m[34mcookie[39m([33mSESSION_COOKIE[39m))[33m,[39m
+    [90m176| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/auth.security.test.ts[2m > [22mcaller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m test/auth.security.test.ts:[2m188:19[22m[39m
+    [90m186| [39m    [35mconst[39m accounts [33m=[39m [34mreadAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m187| [39m    [35mconst[39m other [33m=[39m accounts[33m.[39m[34mfind[39m((account) [33m=>[39m account[33m.[39mnormalized_login …
+    [90m188| [39m    [34mexpect[39m(other)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m189| [39m
+    [90m190| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline)
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m34:29[22m[39m
+    [90m 32| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [33mCREDENT[39m…
+    [90m 33| [39m
+    [90m 34| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 35| [39m  })[33m;[39m
+    [90m 36| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write that carries no Origin header
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m47:29[22m[39m
+    [90m 45| [39m    })[33m;[39m
+    [90m 46| [39m
+    [90m 47| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 48| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'forbidden'[39m)[33m;[39m
+    [90m 49| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a foreign origin
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a look-alike origin
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a different port on the same host
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a null origin
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m67:29[22m[39m
+    [90m 65| [39m    })[33m;[39m
+    [90m 66| [39m
+    [90m 67| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 68| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'forbidden'[39m)[33m;[39m
+    [90m 69| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a urlencoded content type
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a plain text content type
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a write with a multipart content type
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m85:33[22m[39m
+    [90m 83| [39m    })[33m;[39m
+    [90m 84| [39m
+    [90m 85| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 86| [39m    [34mexpect[39m(response[33m.[39m[34mjson[39m())[33m.[39m[34mtoMatchObject[39m({ error[33m:[39m { code[33m:[39m [32m'forbidden'[39m…
+    [90m 87| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mrejects a cross-site fetch hint even when the Origin looks right
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m99:29[22m[39m
+    [90m 97| [39m    })[33m;[39m
+    [90m 98| [39m
+    [90m 99| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m100| [39m  })[33m;[39m
+    [90m101| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m112:29[22m[39m
+    [90m110| [39m    })[33m;[39m
+    [90m111| [39m
+    [90m112| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m113| [39m  })[33m;[39m
+    [90m114| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m127:27[22m[39m
+    [90m125| [39m    })[33m;[39m
+    [90m126| [39m
+    [90m127| [39m    [34mexpect[39m(forged[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m128| [39m    [35mconst[39m stillValid [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m {
+    [90m129| [39m      method[33m:[39m [32m'GET'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type)
+[31m[1mAssertionError[22m: expected 404 to be 204 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 204[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m153:29[22m[39m
+    [90m151| [39m    })[33m;[39m
+    [90m152| [39m
+    [90m153| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m204[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m154| [39m  })[33m;[39m
+    [90m155| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/csrf.test.ts[2m > [22mCSRF guard on auth write routes (Origin + JSON)[2m > [22mdoes not gate safe reads on Origin
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/csrf.test.ts:[2m165:29[22m[39m
+    [90m163| [39m    })[33m;[39m
+    [90m164| [39m
+    [90m165| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m166| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m167| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/private-routes.test.ts[2m > [22mprivate API placeholders[2m > [22mserves /api/auth/session as an honest unauthenticated answer after B2
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/private-routes.test.ts:[2m96:33[22m[39m
+    [90m 94| [39m    [35mconst[39m response [33m=[39m [35mawait[39m server[33m.[39m[34minject[39m({ method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/api/a[39m…
+    [90m 95| [39m
+    [90m 96| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 97| [39m    [34mexpect[39m(response[33m.[39m[34mjson[39m())[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m 98| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22mregistration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/rate-limit.test.ts:[2m38:30[22m[39m
+    [90m 36| [39m    [35mfor[39m ([35mlet[39m index [33m=[39m [34m0[39m[33m;[39m index [33m<[39m [34m5[39m[33m;[39m index [33m+=[39m [34m1[39m) {
+    [90m 37| [39m      [35mconst[39m created [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier[33m:[39m [32m`user-[39m…
+    [90m 38| [39m      [34mexpect[39m(created[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 39| [39m    }
+    [90m 40| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22mregistration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/rate-limit.test.ts:[2m55:26[22m[39m
+    [90m 53| [39m
+    [90m 54| [39m    [35mconst[39m first [33m=[39m [35mawait[39m [34mregister[39m(harness[33m.[39mapp[33m,[39m { identifier })[33m;[39m
+    [90m 55| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 56| [39m
+    [90m 57| [39m    [35mfor[39m ([35mlet[39m attempt [33m=[39m [34m0[39m[33m;[39m attempt [33m<[39m [34m2[39m[33m;[39m attempt [33m+=[39m [34m1[39m) {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22mlogin rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/rate-limit.test.ts:[2m81:29[22m[39m
+    [90m 79| [39m        password[33m:[39m [32m`wrong-password-[39m[36m${[39mattempt[36m}[39m[32m`[39m[33m,[39m
+    [90m 80| [39m      })[33m;[39m
+    [90m 81| [39m      [34mexpect[39m(failed[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 82| [39m      [34mexpect[39m([34merrorCode[39m(failed))[33m.[39m[34mtoBe[39m([32m'invalid_credentials'[39m)[33m;[39m
+    [90m 83| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22mlogin rate limiting and lockout[2m > [22mreleases the lock after the window passes
+[31m[1mAssertionError[22m: expected 404 to be 429 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 429[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m expectRateLimited test/rate-limit.test.ts:[2m24:27[22m[39m
+    [90m 22| [39m
+    [90m 23| [39m[35mfunction[39m [34mexpectRateLimited[39m(response[33m:[39m [33mApiResponse[39m)[33m:[39m [35mvoid[39m {
+    [90m 24| [39m  [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m 25| [39m  [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'rate_limited'[39m)[33m;[39m
+    [90m 26| [39m  [35mconst[39m retryAfter [33m=[39m response[33m.[39mheaders[[32m'retry-after'[39m][33m;[39m
+[90m [2m❯[22m test/rate-limit.test.ts:[2m115:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22msession endpoint rate limiting[2m > [22mallows 300 session reads per minute and then answers 429
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/rate-limit.test.ts:[2m130:31[22m[39m
+    [90m128| [39m    [35mfor[39m ([35mlet[39m index [33m=[39m [34m0[39m[33m;[39m index [33m<[39m [34m300[39m[33m;[39m index [33m+=[39m [34m1[39m) {
+    [90m129| [39m      [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/[39m…
+    [90m130| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m131| [39m    }
+    [90m132| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/rate-limit.test.ts[2m > [22mrate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/rate-limit.test.ts:[2m152:29[22m[39m
+    [90m150| [39m    })[33m;[39m
+    [90m151| [39m
+    [90m152| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m153| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'invalid_credentials'[39m)[33m;[39m
+    [90m154| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m73:29[22m[39m
+    [90m 71| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/ap[39m…
+    [90m 72| [39m
+    [90m 73| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 74| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'set-cookie'[39m])[33m.[39m[34mtoBeUndefined[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22mreports only a masked identity for a live session
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m86:29[22m[39m
+    [90m 84| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie)[33m;[39m
+    [90m 85| [39m
+    [90m 86| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 87| [39m    [34mexpect[39m(response[33m.[39mbody[33m.[39mauthenticated)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 88| [39m    [34mexpect[39m(response[33m.[39mbody[33m.[39maccount[33m?.[39mdisplayHint)[33m.[39m[34mtoBe[39m([32m't***@example.com'[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for a forged token without an error
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for an empty token without an error
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for an over-long token without an error
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for a base64-url token of the wrong length without an error
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers authenticated:false for a non-cookie header without an error
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m106:29[22m[39m
+    [90m104| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie)[33m;[39m
+    [90m105| [39m
+    [90m106| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m107| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m108| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation
+[31m[1mAssertionError[22m: expected 404 to be 204 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 204[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m121:27[22m[39m
+    [90m119| [39m    })[33m;[39m
+    [90m120| [39m
+    [90m121| [39m    [34mexpect[39m(logout[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m204[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m122| [39m    [34mexpect[39m(logout[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+    [90m123| [39m    [35mconst[39m cleared [33m=[39m logout[33m.[39msetCookie[33m.[39m[34mjoin[39m([32m'; '[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22manswers 401 for logout without any session
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m148:29[22m[39m
+    [90m146| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m { method[33m:[39m [32m'POST'[39m[33m,[39m url[33m:[39m [32m'/a[39m…
+    [90m147| [39m
+    [90m148| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m149| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m150| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22mrevokes only the session that logged out
+[31m[1mAssertionError[22m: expected { error: { code: 'not_found', …(1) } } to deeply equal { authenticated: false }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "authenticated": false,[39m
+[31m+   "error": Object {[39m
+[31m+     "code": "not_found",[39m
+[31m+     "message": "No API route matches GET /api/auth/session",[39m
+[31m+   },[39m
+[2m  }[22m
+
+[36m [2m❯[22m test/session.test.ts:[2m165:60[22m[39m
+    [90m163| [39m    })[33m;[39m
+    [90m164| [39m
+    [90m165| [39m    [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m firstCookie))[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ a…
+    [90m   | [39m                                                           [31m^[39m
+    [90m166| [39m    [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m secondCookie))[33m.[39mbody[33m.[39mauthenticat…
+    [90m167| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m test/session.test.ts:[2m178:71[22m[39m
+    [90m176| [39m    [35mfor[39m ([35mlet[39m week [33m=[39m [34m0[39m[33m;[39m week [33m<[39m [34m4[39m[33m;[39m week [33m+=[39m [34m1[39m) {
+    [90m177| [39m      harness[33m.[39mclock[33m.[39mvalue [33m+=[39m [34m13[39m [33m*[39m [33mDAY_MS[39m[33m;[39m
+    [90m178| [39m      [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie))[33m.[39mbody[33m.[39mauthenticated)[33m.[39m…
+    [90m   | [39m                                                                      [31m^[39m
+    [90m179| [39m    }
+    [90m180| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m test/session.test.ts:[2m191:69[22m[39m
+    [90m189| [39m
+    [90m190| [39m    harness[33m.[39mclock[33m.[39mvalue [33m+=[39m [34m13[39m [33m*[39m [33mDAY_MS[39m[33m;[39m
+    [90m191| [39m    [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie))[33m.[39mbody[33m.[39mauthenticated)[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m192| [39m    [35mconst[39m [touched] [33m=[39m [34mreadSessions[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m193| [39m    [34mexpect[39m(touched[33m.[39mlast_seen_at)[33m.[39m[34mtoBe[39m(harness[33m.[39mclock[33m.[39mvalue)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m test/session.test.ts:[2m206:71[22m[39m
+    [90m204| [39m    [35mfor[39m ([35mlet[39m week [33m=[39m [34m0[39m[33m;[39m week [33m<[39m [34m4[39m[33m;[39m week [33m+=[39m [34m1[39m) {
+    [90m205| [39m      harness[33m.[39mclock[33m.[39mvalue [33m+=[39m [34m13[39m [33m*[39m [33mDAY_MS[39m[33m;[39m
+    [90m206| [39m      [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie))[33m.[39mbody[33m.[39mauthenticated)[33m.[39m…
+    [90m   | [39m                                                                      [31m^[39m
+    [90m207| [39m    }
+    [90m208| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m test/session.test.ts:[2m221:69[22m[39m
+    [90m219| [39m    [35mconst[39m cookie [33m=[39m created[33m.[39m[34mcookie[39m([33mSESSION_COOKIE[39m)[33m;[39m
+    [90m220| [39m
+    [90m221| [39m    [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie))[33m.[39mbody[33m.[39mauthenticated)[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m222| [39m
+    [90m223| [39m    [34mdisableAllAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22msession cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http
+[31m[1mAssertionError[22m: expected 'undefined' to match /^oel_sid=[A-Za-z0-9_-]{43};/[39m
+
+[32m- Expected:[39m 
+/^oel_sid=[A-Za-z0-9_-]{43};/
+
+[31m+ Received:[39m 
+"undefined"
+
+[36m [2m❯[22m test/session.test.ts:[2m237:20[22m[39m
+    [90m235| [39m    [35mconst[39m header [33m=[39m [33mArray[39m[33m.[39m[34misArray[39m(raw) [33m?[39m raw[33m.[39m[34mjoin[39m([32m'; '[39m) [33m:[39m [33mString[39m(raw)[33m;[39m
+    [90m236| [39m
+    [90m237| [39m    [34mexpect[39m(header)[33m.[39m[34mtoMatch[39m([35mnew[39m [33mRegExp[39m([32m`^[39m[36m${[39m[33mSESSION_COOKIE[39m[36m}[39m[32m=[A-Za-z0-9_-[39m…
+    [90m   | [39m                   [31m^[39m
+    [90m238| [39m    [34mexpect[39m(header)[33m.[39m[34mtoMatch[39m([36m/; HttpOnly/[39m)[33m;[39m
+    [90m239| [39m    [34mexpect[39m(header)[33m.[39m[34mtoMatch[39m([36m/; SameSite=Lax/[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/74]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22msession cookie attributes[2m > [22muses the __Host- prefix with Secure in production
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/session.test.ts:[2m254:29[22m[39m
+    [90m252| [39m    [35mconst[39m header [33m=[39m [33mArray[39m[33m.[39m[34misArray[39m(raw) [33m?[39m raw[33m.[39m[34mjoin[39m([32m'; '[39m) [33m:[39m [33mString[39m(raw)[33m;[39m
+    [90m253| [39m
+    [90m254| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m255| [39m    [34mexpect[39m(header)[33m.[39m[34mtoMatch[39m([35mnew[39m [33mRegExp[39m([32m`^[39m[36m${[39m[33mPRODUCTION_SESSION_COOKIE[39m[36m}[39m[32m=`[39m…
+    [90m256| [39m    [34mexpect[39m(header)[33m.[39m[34mtoMatch[39m([36m/; Secure/[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/74]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[31m74 failed[39m[22m[2m | [22m[1m[32m68 passed[39m[22m[90m (142)[39m
+[2m   Start at [22m 20:14:36
+[2m   Duration [22m 3.70s[2m (transform 809ms, setup 0ms, collect 5.57s, tests 12.51s, environment 3ms, prepare 1.90s)[22m
+

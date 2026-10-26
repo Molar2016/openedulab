@@ -1,0 +1,41 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+ [31m❯[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m15 skipped[39m[2m)[22m[33m 661[2mms[22m[39m
+[31m   [31m×[31m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled[33m 660[2mms[22m[31m[39m
+[31m     → expected { authenticated: true, …(1) } to deeply equal { authenticated: false }[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m15 skipped[39m[90m (16)[39m
+[2m   Start at [22m 20:16:36
+[2m   Duration [22m 1.73s[2m (transform 149ms, setup 0ms, collect 349ms, tests 661ms, environment 0ms, prepare 90ms)[22m
+
+(node:23148) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled
+[31m[1mAssertionError[22m: expected { authenticated: true, …(1) } to deeply equal { authenticated: false }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "authenticated": false,[39m
+[31m+   "account": Object {[39m
+[31m+     "createdAt": 1768467600000,[39m
+[31m+     "displayHint": "t***@example.com",[39m
+[31m+   },[39m
+[31m+   "authenticated": true,[39m
+[2m  }[22m
+
+[36m [2m❯[22m test/session.test.ts:[2m224:55[22m[39m
+    [90m222| [39m    [34mdisableAllAccounts[39m(harness[33m.[39mdatabasePath)[33m;[39m
+    [90m223| [39m
+    [90m224| [39m    [34mexpect[39m(([35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie))[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ authen…
+    [90m   | [39m                                                      [31m^[39m
+    [90m225| [39m  })[33m;[39m
+    [90m226| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+

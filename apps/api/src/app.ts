@@ -3,7 +3,8 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import type { AppConfig } from './config.js';
 import { openDatabase } from './db/database.js';
 import { migrate } from './db/migrate.js';
-import { apiError } from './http/errors.js';
+import { registerAuthRoutes } from './http/auth-routes.js';
+import { apiError, type ApiErrorCode } from './http/errors.js';
 import { registerHealthRoute } from './http/health.js';
 import { registerPrivateRouteStubs } from './http/private-routes.js';
 import { registerSpaFallback, registerSpaHosting } from './http/static.js';
@@ -24,9 +25,19 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   const { config, version, now = Date.now } = options;
 
   const app = Fastify({
-    logger: config.logLevel === 'silent' ? false : { level: config.logLevel },
+    logger:
+      config.logLevel === 'silent'
+        ? false
+        : {
+            level: config.logLevel,
+            // Never let a session cookie or bearer token reach a log sink.
+            redact: ['req.headers.cookie', 'req.headers.authorization'],
+          },
     bodyLimit: MAX_BODY_BYTES,
     trustProxy: false,
+    // Reject unknown body properties instead of silently stripping them: a client must
+    // never believe it can name an account id, status or hash field.
+    ajv: { customOptions: { removeAdditional: false } },
   });
 
   const db = openDatabase(config.databasePath);
@@ -57,11 +68,26 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
         .type('application/json; charset=utf-8')
         .send(apiError('server_error', 'Internal server error.'));
     }
-    const code = statusCode === 413 ? 'payload_too_large' : 'validation_failed';
+    if (statusCode === 413) {
+      return reply
+        .code(413)
+        .type('application/json; charset=utf-8')
+        .send(apiError('payload_too_large', 'Request body is too large.'));
+    }
+    const mapped: ApiErrorCode =
+      statusCode === 401
+        ? 'unauthenticated'
+        : statusCode === 403
+          ? 'forbidden'
+          : statusCode === 404
+            ? 'not_found'
+            : statusCode === 429
+              ? 'rate_limited'
+              : 'validation_failed';
     return reply
       .code(statusCode)
       .type('application/json; charset=utf-8')
-      .send(apiError(code, statusCode === 413 ? 'Request body is too large.' : 'Request is invalid.'));
+      .send(apiError(mapped, 'Request is invalid.'));
   });
 
   registerHealthRoute(app, {
@@ -71,6 +97,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     startedAt: now(),
     now,
   });
+  registerAuthRoutes(app, { config, db, now });
   registerPrivateRouteStubs(app);
   await registerSpaHosting(app, config.staticDir);
   registerSpaFallback(app);

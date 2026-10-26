@@ -1,0 +1,41 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+ [31m❯[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m14 skipped[39m[2m)[22m[33m 740[2mms[22m[39m
+[31m   [31m×[31m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation[33m 659[2mms[22m[31m[39m
+[31m     → expected { authenticated: true, …(1) } to deeply equal { authenticated: false }[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[2m | [22m[33m14 skipped[39m[90m (16)[39m
+[2m   Start at [22m 20:16:39
+[2m   Duration [22m 1.82s[2m (transform 147ms, setup 0ms, collect 341ms, tests 740ms, environment 0ms, prepare 98ms)[22m
+
+(node:22324) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/session.test.ts[2m > [22mGET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation
+[31m[1mAssertionError[22m: expected { authenticated: true, …(1) } to deeply equal { authenticated: false }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "authenticated": false,[39m
+[31m+   "account": Object {[39m
+[31m+     "createdAt": 1768467600000,[39m
+[31m+     "displayHint": "t***@example.com",[39m
+[31m+   },[39m
+[31m+   "authenticated": true,[39m
+[2m  }[22m
+
+[36m [2m❯[22m test/session.test.ts:[2m131:25[22m[39m
+    [90m129| [39m    [35mconst[39m replay [33m=[39m [35mawait[39m [34mreadSession[39m(harness[33m,[39m cookie)[33m;[39m
+    [90m130| [39m    [34mexpect[39m(replay[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m131| [39m    [34mexpect[39m(replay[33m.[39mbody)[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m132| [39m
+    [90m133| [39m    [35mconst[39m secondLogout [33m=[39m [35mawait[39m [34mapi[39m(harness[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
