@@ -107,10 +107,10 @@ Comment corrected; the route inventory test remains the source of truth for the 
 Looked for tests that pass without exercising the claim, and for assertions that were weakened
 over time:
 
-- **No test was deleted or relaxed in this stage.** All B3–B6 assertions still run: 253 API
-  tests before this stage, 262 after (9 new: 8 experiment-query, 7 operator-ordering minus 6
-  previously counted… see `docs/evidence/b8/check-b8.txt` for the exact totals), plus 6 new
-  retention tests.
+- **No test was deleted or relaxed in this stage.** All B3–B6 assertions still run: the API
+  suite went from 253 to 274 tests (+8 experiment query/path, +7 operator ordering and
+  throttling, +6 retention), and the web suite stayed at 90. Exact totals and output:
+  `docs/evidence/b8/check-b8.txt`.
 - **Skips are explicit and project-scoped** (`test.skip(testInfo.project.name !== …)`), not
   `test.fixme` or swallowed errors. The one capability-based skip is the Fullscreen API check.
 - **Counter-proofs exist for the gates** from B2–B5 (`docs/evidence/b2..b5/mutation-*.txt`).
