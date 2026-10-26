@@ -1,0 +1,8 @@
+
+> openedulab@0.1.0-m1 typecheck
+> tsc --noEmit
+
+tests/e2e/m1.spec.ts(7,5): error TS2717: Subsequent property declarations must have the same type.  Property '__openedulab' must be of type 'unknown', but here has type '{ services: { debug: { analyticsSink: { events: Record<string, unknown>[]; }; }; }; } | undefined'.
+tests/e2e/m1.spec.ts(125,67): error TS2339: Property 'services' does not exist on type '{}'.
+tests/e2e/m1.spec.ts(126,31): error TS7006: Parameter 'event' implicitly has an 'any' type.
+exit=2

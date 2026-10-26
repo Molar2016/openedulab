@@ -1,0 +1,31 @@
+
+> openedulab@0.1.0-m1 test:e2e
+> playwright test
+
+
+Running 20 tests using 1 worker
+
+  ok  1 [desktop-chromium] › tests\e2e\m1.spec.ts:23:3 › catalog and search › finds the experiment by search and filters, with visible result count (636ms)
+  ok  2 [desktop-chromium] › tests\e2e\m1.spec.ts:41:3 › catalog and search › switches to Chinese and keeps the URL shareable (520ms)
+  ok  3 [desktop-chromium] › tests\e2e\m1.spec.ts:54:3 › experiment › changes coefficients, resets and shows model readouts (751ms)
+  ok  4 [desktop-chromium] › tests\e2e\m1.spec.ts:78:3 › experiment › shows the degenerate-quadratic warning for a = 0 (458ms)
+  ok  5 [desktop-chromium] › tests\e2e\m1.spec.ts:85:3 › experiment › previews feedback and never claims it was sent (667ms)
+  ok  6 [desktop-chromium] › tests\e2e\m1.spec.ts:103:3 › experiment › tracks only whitelisted local events and makes no external requests (531ms)
+  ok  7 [desktop-chromium] › tests\e2e\m1.spec.ts:131:3 › experiment › enters and exits full screen with consistent state (637ms)
+  ok  8 [desktop-chromium] › tests\e2e\m1.spec.ts:148:3 › accessibility basics › every interactive control has an accessible name and a label (422ms)
+  -   9 [desktop-chromium] › tests\e2e\m1.spec.ts:172:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  ok 10 [desktop-chromium] › tests\e2e\m1.spec.ts:190:3 › demo recording › short classroom walkthrough (5.6s)
+  ok 11 [mobile-chromium] › tests\e2e\m1.spec.ts:23:3 › catalog and search › finds the experiment by search and filters, with visible result count (619ms)
+  ok 12 [mobile-chromium] › tests\e2e\m1.spec.ts:41:3 › catalog and search › switches to Chinese and keeps the URL shareable (495ms)
+  ok 13 [mobile-chromium] › tests\e2e\m1.spec.ts:54:3 › experiment › changes coefficients, resets and shows model readouts (766ms)
+  ok 14 [mobile-chromium] › tests\e2e\m1.spec.ts:78:3 › experiment › shows the degenerate-quadratic warning for a = 0 (387ms)
+  ok 15 [mobile-chromium] › tests\e2e\m1.spec.ts:85:3 › experiment › previews feedback and never claims it was sent (665ms)
+  ok 16 [mobile-chromium] › tests\e2e\m1.spec.ts:103:3 › experiment › tracks only whitelisted local events and makes no external requests (453ms)
+  ok 17 [mobile-chromium] › tests\e2e\m1.spec.ts:131:3 › experiment › enters and exits full screen with consistent state (625ms)
+  ok 18 [mobile-chromium] › tests\e2e\m1.spec.ts:148:3 › accessibility basics › every interactive control has an accessible name and a label (356ms)
+  ok 19 [mobile-chromium] › tests\e2e\m1.spec.ts:172:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling (644ms)
+  -  20 [mobile-chromium] › tests\e2e\m1.spec.ts:190:3 › demo recording › short classroom walkthrough
+
+  2 skipped
+  18 passed (18.3s)
+e2e_exit=0

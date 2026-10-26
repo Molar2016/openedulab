@@ -1,0 +1,54 @@
+
+> openedulab@0.1.0-m1 check
+> npm run typecheck && npm run lint && npm run test && npm run validate:content && npm run build
+
+
+> openedulab@0.1.0-m1 typecheck
+> tsc --noEmit
+
+
+> openedulab@0.1.0-m1 lint
+> eslint .
+
+
+> openedulab@0.1.0-m1 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab[39m
+
+ [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/analytics.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 250[2mms[22m[39m
+ [32m✓[39m tests/host.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 391[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m46 passed[39m[22m[90m (46)[39m
+[2m   Start at [22m 19:06:30
+[2m   Duration [22m 2.77s[2m (transform 388ms, setup 932ms, collect 915ms, tests 693ms, environment 5.77s, prepare 962ms)[22m
+
+
+> openedulab@0.1.0-m1 validate:content
+> node scripts/validate-content.mjs
+
+Content validation OK
+ - experiments: math.functions (slug: math-functions, locales: zh-CN, en)
+ - UI dictionaries: zh-CN, en with 66 keys each
+ - host SDK: 1.0.0
+
+> openedulab@0.1.0-m1 build
+> tsc --noEmit && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 50 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.24 kB[22m[1m[22m[2m │ gzip:  0.76 kB[22m
+[2mdist/[22m[35massets/index-DXPyi1m6.css  [39m[1m[2m 10.67 kB[22m[1m[22m[2m │ gzip:  2.97 kB[22m
+[2mdist/[22m[36massets/view-BCHndfrb.js    [39m[1m[2m 11.05 kB[22m[1m[22m[2m │ gzip:  3.97 kB[22m
+[2mdist/[22m[36massets/index-DrcVA2Q_.js   [39m[1m[2m175.02 kB[22m[1m[22m[2m │ gzip: 57.70 kB[22m
+[32m✓ built in 759ms[39m
+check_exit=0

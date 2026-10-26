@@ -1,0 +1,14 @@
+{
+  "id": "math.functions",
+  "slug": "math-functions",
+  "moduleVersion": "0.1.0",
+  "sdkVersionRange": "^1.0.0",
+  "titleKey": "title",
+  "descriptionKey": "description",
+  "subjects": ["math"],
+  "grades": ["middle", "high"],
+  "concepts": ["linear-function", "quadratic-function", "parabola"],
+  "languages": ["zh-CN", "en"],
+  "offlineSupport": true,
+  "reviewedStatus": "draft"
+}
