@@ -5,6 +5,13 @@ import type { I18n } from '../i18n';
 import { ExperimentErrorBoundary } from './ErrorBoundary';
 import { FeedbackDialog } from './FeedbackDialog';
 
+interface FavoriteControl {
+  readonly active: boolean;
+  readonly busy: boolean;
+  readonly error: boolean;
+  readonly onToggle: () => void;
+}
+
 interface Props {
   entry: RegistryEntry;
   locale: Locale;
@@ -13,6 +20,8 @@ interface Props {
   /** Content version reported by `GET /api/experiments/:id`; not read from the bundle. */
   contentVersion: string;
   reviewedStatus: 'draft' | 'verified';
+  /** Optional: supplied by the app when the viewer is signed in. */
+  favorite?: FavoriteControl;
   onBack: () => void;
 }
 
@@ -27,6 +36,7 @@ export function ExperimentHost({
   services,
   contentVersion,
   reviewedStatus,
+  favorite,
   onBack,
 }: Props): JSX.Element {
   const { manifest } = entry;
@@ -123,6 +133,23 @@ export function ExperimentHost({
           ← {t('experiment.back')}
         </button>
         <div className="experiment-host__actions">
+          {favorite !== undefined ? (
+            <button
+              type="button"
+              className="button button--ghost"
+              aria-pressed={favorite.active}
+              onClick={favorite.onToggle}
+              disabled={favorite.busy}
+              data-testid="favorite-button"
+            >
+              {favorite.active ? t('favorite.remove') : t('favorite.add')}
+            </button>
+          ) : null}
+          {favorite?.error === true ? (
+            <span className="small" role="status" data-testid="favorite-error">
+              {t('favorite.failed')}
+            </span>
+          ) : null}
           <button type="button" className="button button--ghost" onClick={handleReset} data-testid="reset-button">
             {t('experiment.reset')}
           </button>

@@ -80,6 +80,16 @@ export interface CatalogQuery {
   readonly limit?: number;
 }
 
+export interface FavoriteItem {
+  readonly experimentId: string;
+  readonly createdAt: number;
+}
+
+export interface RecentItem {
+  readonly experimentId: string;
+  readonly lastOpenedAt: number;
+}
+
 export interface ApiClient {
   session(): Promise<SessionInfo>;
   register(credentials: Credentials): Promise<{ displayHint: string }>;
@@ -87,6 +97,11 @@ export interface ApiClient {
   logout(): Promise<void>;
   catalog(query?: CatalogQuery): Promise<readonly CatalogItem[]>;
   experiment(id: string, locale?: string): Promise<ExperimentDetail>;
+  favorites(): Promise<readonly FavoriteItem[]>;
+  addFavorite(experimentId: string): Promise<FavoriteItem>;
+  removeFavorite(experimentId: string): Promise<void>;
+  recent(limit?: number): Promise<readonly RecentItem[]>;
+  recordRecent(experimentId: string): Promise<void>;
 }
 
 export interface ApiClientOptions {
@@ -95,8 +110,6 @@ export interface ApiClientOptions {
   /** Same-origin by default (empty prefix). */
   readonly baseUrl?: string;
 }
-
-const JSON_HEADERS = { 'content-type': 'application/json', accept: 'application/json' } as const;
 
 const KNOWN_CODES: readonly ApiErrorCode[] = [
   'unauthenticated',
@@ -142,7 +155,14 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       response = await doFetch(`${baseUrl}${path}`, {
         ...init,
         credentials: 'same-origin',
-        headers: { ...JSON_HEADERS, ...(init.headers ?? {}) },
+        // A JSON content type is only declared when a body is actually sent: an empty body
+        // with `application/json` is rejected by the parser, and the CSRF guard treats a
+        // declared non-JSON type as an attack.
+        headers: {
+          accept: 'application/json',
+          ...(init.body === undefined ? {} : { 'content-type': 'application/json' }),
+          ...(init.headers ?? {}),
+        },
       });
     } catch {
       // Offline, DNS failure or a blocked request: reported as a first-class code so the
@@ -207,5 +227,33 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       request<ExperimentDetail>(
         `/api/experiments/${encodeURIComponent(id)}${locale === undefined ? '' : `?locale=${encodeURIComponent(locale)}`}`,
       ),
+
+    async favorites() {
+      const body = await request<{ items: FavoriteItem[] }>('/api/me/favorites');
+      return body.items;
+    },
+
+    addFavorite: (experimentId) =>
+      request<FavoriteItem>(`/api/me/favorites/${encodeURIComponent(experimentId)}`, {
+        method: 'PUT',
+        body: '{}',
+      }),
+
+    removeFavorite: (experimentId) =>
+      request<void>(`/api/me/favorites/${encodeURIComponent(experimentId)}`, {
+        method: 'DELETE',
+      }),
+
+    async recent(limit) {
+      const suffix = limit === undefined ? '' : `?limit=${String(limit)}`;
+      const body = await request<{ items: RecentItem[] }>(`/api/me/recent${suffix}`);
+      return body.items;
+    },
+
+    recordRecent: (experimentId) =>
+      request<void>('/api/me/recent', {
+        method: 'POST',
+        body: JSON.stringify({ experimentId }),
+      }),
   };
 }

@@ -1,0 +1,381 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:18224) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20316) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22424) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/private-routes.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 589[2mms[22m[39m
+   [33m[2m✓[22m[39m API route inventory[2m > [22mregisters only classified API routes [33m343[2mms[22m[39m
+[31m   [31m×[31m API route inventory[2m > [22mexposes the credential routes as public and the resource routes as private[90m 64[2mms[22m[31m[39m
+[31m     → expected [ 'GET /api/catalog', …(1) ] to include 'GET /api/me/favorites'[39m
+ [31m❯[39m test/recent.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[33m 3395[2mms[22m[39m
+[31m   [31m×[31m recent use requires a session[2m > [22m'GET' '/api/me/recent' denies anonymous callers[33m 367[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m recent use requires a session[2m > [22m'POST' '/api/me/recent' denies anonymous callers[90m 61[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mkeeps one row per experiment and moves it to the top[33m 382[2mms[22m[31m[39m
+[31m     → expected 404 to be 204 // Object.is equality[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mreturns only the resource id and the timestamp[33m 397[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading '0')[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mhonours limit and rejects an invalid one[33m 376[2mms[22m[31m[39m
+[31m     → Target cannot be null or undefined.[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mrejects an experiment that is not in the index, and a malformed id[33m 375[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mrejects a body that tries to name an account[33m 372[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mrequires the CSRF guard on the write[33m 372[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m recent use is de-duplicated by resource[2m > [22mkeeps two accounts separate[33m 693[2mms[22m[31m[39m
+[31m     → expected undefined to deeply equal [][39m
+ [31m❯[39m test/favorites.test.ts [2m([22m[2m13 tests[22m[2m | [22m[31m12 failed[39m[2m)[22m[33m 4673[2mms[22m[39m
+[31m   [31m×[31m favorites require a session[2m > [22m'GET' '/api/me/favorites' denies anonymous callers[33m 376[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m favorites require a session[2m > [22m'PUT' '/api/me/favorites/math.functions' denies anonymous callers[90m 59[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m favorites require a session[2m > [22m'DELETE' '/api/me/favorites/math.functions' denies anonymous callers[90m 46[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m favoriting is idempotent and account-scoped[2m > [22madds a favorite once and reports the same timestamp on repeat[33m 371[2mms[22m[31m[39m
+[31m     → expected 404 to be 201 // Object.is equality[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrejects an experiment that is not in the content index [33m344[2mms[22m[39m
+[31m   [31m×[31m favoriting is idempotent and account-scoped[2m > [22mrejects a malformed experiment id[33m 368[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m favoriting is idempotent and account-scoped[2m > [22mrequires the CSRF guard on writes[33m 369[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m favoriting is idempotent and account-scoped[2m > [22mlists newest first[33m 371[2mms[22m[31m[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [31m×[31m favorite writes are rate limited[2m > [22manswers 429 with Retry-After once the per-account budget is spent[33m 383[2mms[22m[31m[39m
+[31m     → the 60-per-minute favorite budget must be enforced: expected null not to be null[39m
+[31m   [31m×[31m removing a favorite[2m > [22mis idempotent and removes the row[33m 341[2mms[22m[31m[39m
+[31m     → expected 404 to be 204 // Object.is equality[39m
+[31m   [31m×[31m favorites survive a new session and stay private[2m > [22mis visible in a second session of the same account[33m 661[2mms[22m[31m[39m
+[31m     → Target cannot be null or undefined.[39m
+[31m   [31m×[31m favorites survive a new session and stay private[2m > [22mis invisible to another account, and its writes do not leak in[33m 632[2mms[22m[31m[39m
+[31m     → Target cannot be null or undefined.[39m
+[31m   [31m×[31m favorites survive a new session and stay private[2m > [22mreturns no parameter or identity fields[33m 349[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading '0')[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 22 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites require a session[2m > [22m'GET' '/api/me/favorites' denies anonymous callers
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites require a session[2m > [22m'PUT' '/api/me/favorites/math.functions' denies anonymous callers
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites require a session[2m > [22m'DELETE' '/api/me/favorites/math.functions' denies anonymous callers
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m65:29[22m[39m
+    [90m 63| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m,[39m url })[33m;[39m
+    [90m 64| [39m
+    [90m 65| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 66| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m 67| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavoriting is idempotent and account-scoped[2m > [22madds a favorite once and reports the same timestamp on repeat
+[31m[1mAssertionError[22m: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m80:26[22m[39m
+    [90m 78| [39m      headers[33m:[39m cookie[33m,[39m
+    [90m 79| [39m    })[33m;[39m
+    [90m 80| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 81| [39m    [35mconst[39m createdAt [33m=[39m (first[33m.[39mbody [35mas[39m unknown [35mas[39m { createdAt[33m:[39m number })…
+    [90m 82| [39m    [34mexpect[39m([35mtypeof[39m createdAt)[33m.[39m[34mtoBe[39m([32m'number'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavoriting is idempotent and account-scoped[2m > [22mrejects a malformed experiment id
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m121:29[22m[39m
+    [90m119| [39m    })[33m;[39m
+    [90m120| [39m
+    [90m121| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m122| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m123| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavoriting is idempotent and account-scoped[2m > [22mrequires the CSRF guard on writes
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m135:29[22m[39m
+    [90m133| [39m    })[33m;[39m
+    [90m134| [39m
+    [90m135| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m136| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'forbidden'[39m)[33m;[39m
+    [90m137| [39m    [34mexpect[39m(([35mawait[39m [34mlistFavorites[39m(server[33m,[39m cookie))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoEqual[39m([…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavoriting is idempotent and account-scoped[2m > [22mlists newest first
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m153:20[22m[39m
+    [90m151| [39m        [33m.[39m[34mprepare[39m([32m'SELECT account_id, experiment_id, created_at FROM fa[39m…
+    [90m152| [39m        [33m.[39m[34mall[39m() [35mas[39m unknown [35mas[39m { account_id[33m:[39m string[33m;[39m experiment_id[33m:[39m stri…
+    [90m153| [39m      [34mexpect[39m(rows)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m154| [39m      [34mexpect[39m(rows[[34m0[39m][33m?.[39mexperiment_id)[33m.[39m[34mtoBe[39m([32m'math.functions'[39m)[33m;[39m
+    [90m155| [39m    } [35mfinally[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorite writes are rate limited[2m > [22manswers 429 with Retry-After once the per-account budget is spent
+[31m[1mAssertionError[22m: the 60-per-minute favorite budget must be enforced: expected null not to be null[39m
+[36m [2m❯[22m test/favorites.test.ts:[2m178:79[22m[39m
+    [90m176| [39m    }
+    [90m177| [39m
+    [90m178| [39m    [34mexpect[39m(limited[33m,[39m [32m'the 60-per-minute favorite budget must be enforce[39m…
+    [90m   | [39m                                                                              [31m^[39m
+    [90m179| [39m    [34mexpect[39m([33mNumber[39m(limited[33m?.[39mheaders[[32m'retry-after'[39m]))[33m.[39m[34mtoBeGreaterThanOrE[39m…
+    [90m180| [39m    [90m// The favorite added before the limit still exists: a 429 must no[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mremoving a favorite[2m > [22mis idempotent and removes the row
+[31m[1mAssertionError[22m: expected 404 to be 204 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 204[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/favorites.test.ts:[2m199:26[22m[39m
+    [90m197| [39m      headers[33m:[39m cookie[33m,[39m
+    [90m198| [39m    })[33m;[39m
+    [90m199| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m204[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m200| [39m
+    [90m201| [39m    [35mconst[39m second [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites survive a new session and stay private[2m > [22mis visible in a second session of the same account
+[31m[1mAssertionError[22m: Target cannot be null or undefined.[39m
+[36m [2m❯[22m test/favorites.test.ts:[2m228:29[22m[39m
+    [90m226| [39m
+    [90m227| [39m    [35mconst[39m list [33m=[39m [35mawait[39m [34mlistFavorites[39m(server[33m,[39m otherCookie)[33m;[39m
+    [90m228| [39m    [34mexpect[39m(list[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m229| [39m    [34mexpect[39m(list[33m.[39mbody[33m.[39mitems[[34m0[39m][33m?.[39mexperimentId)[33m.[39m[34mtoBe[39m([32m'math.functions'[39m)[33m;[39m
+    [90m230| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites survive a new session and stay private[2m > [22mis invisible to another account, and its writes do not leak in
+[31m[1mAssertionError[22m: Target cannot be null or undefined.[39m
+[36m [2m❯[22m test/favorites.test.ts:[2m245:63[22m[39m
+    [90m243| [39m    })[33m;[39m
+    [90m244| [39m
+    [90m245| [39m    [34mexpect[39m(([35mawait[39m [34mlistFavorites[39m(server[33m,[39m cookieA))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoHaveLe[39m…
+    [90m   | [39m                                                              [31m^[39m
+    [90m246| [39m    [90m// B has its own (empty) list: the request carries no account id, [39m…
+    [90m247| [39m    [90m// to tamper with.[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/favorites.test.ts[2m > [22mfavorites survive a new session and stay private[2m > [22mreturns no parameter or identity fields
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading '0')[39m
+[36m [2m❯[22m test/favorites.test.ts:[2m269:28[22m[39m
+    [90m267| [39m
+    [90m268| [39m    [35mconst[39m list [33m=[39m [35mawait[39m [34mlistFavorites[39m(server[33m,[39m cookie)[33m;[39m
+    [90m269| [39m    [35mconst[39m item [33m=[39m list[33m.[39mbody[33m.[39mitems[[34m0[39m] [35mas[39m unknown [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unkno…
+    [90m   | [39m                           [31m^[39m
+    [90m270| [39m    [34mexpect[39m([33mObject[39m[33m.[39m[34mkeys[39m(item)[33m.[39m[34msort[39m())[33m.[39m[34mtoEqual[39m([[32m'createdAt'[39m[33m,[39m [32m'experiment[39m…
+    [90m271| [39m    [34mexpect[39m(list[33m.[39mtext)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'owner@example.com'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/private-routes.test.ts[2m > [22mAPI route inventory[2m > [22mexposes the credential routes as public and the resource routes as private
+[31m[1mAssertionError[22m: expected [ 'GET /api/catalog', …(1) ] to include 'GET /api/me/favorites'[39m
+[36m [2m❯[22m test/private-routes.test.ts:[2m76:27[22m[39m
+    [90m 74| [39m    [34mexpect[39m(privateRoutes)[33m.[39m[34mtoContain[39m([32m'GET /api/catalog'[39m)[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(privateRoutes)[33m.[39m[34mtoContain[39m([32m'GET /api/experiments/:experimentI[39m…
+    [90m 76| [39m    [34mexpect[39m(privateRoutes)[33m.[39m[34mtoContain[39m([32m'GET /api/me/favorites'[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m 77| [39m    [34mexpect[39m(privateRoutes)[33m.[39m[34mtoContain[39m([32m'PUT /api/me/favorites/:experiment[39m…
+    [90m 78| [39m    [34mexpect[39m(privateRoutes)[33m.[39m[34mtoContain[39m([32m'DELETE /api/me/favorites/:experim[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use requires a session[2m > [22m'GET' '/api/me/recent' denies anonymous callers
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use requires a session[2m > [22m'POST' '/api/me/recent' denies anonymous callers
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/recent.test.ts:[2m96:29[22m[39m
+    [90m 94| [39m    })[33m;[39m
+    [90m 95| [39m
+    [90m 96| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 97| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+    [90m 98| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mkeeps one row per experiment and moves it to the top
+[31m[1mAssertionError[22m: expected 404 to be 204 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 204[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/recent.test.ts:[2m106:69[22m[39m
+    [90m104| [39m    [35mconst[39m base [33m=[39m server[33m.[39mclock[33m.[39mvalue[33m;[39m
+    [90m105| [39m
+    [90m106| [39m    [34mexpect[39m(([35mawait[39m [34mrecord[39m(server[33m,[39m cookie[33m,[39m [32m'math.functions'[39m))[33m.[39mstatus)[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m107| [39m
+    [90m108| [39m    server[33m.[39mclock[33m.[39mvalue [33m=[39m base [33m+[39m [34m1_000[39m[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mreturns only the resource id and the timestamp
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading '0')[39m
+[36m [2m❯[22m test/recent.test.ts:[2m131:28[22m[39m
+    [90m129| [39m
+    [90m130| [39m    [35mconst[39m list [33m=[39m [35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie)[33m;[39m
+    [90m131| [39m    [35mconst[39m item [33m=[39m list[33m.[39mbody[33m.[39mitems[[34m0[39m] [35mas[39m unknown [35mas[39m [33mRecord[39m[33m<[39mstring[33m,[39m unkno…
+    [90m   | [39m                           [31m^[39m
+    [90m132| [39m    [34mexpect[39m([33mObject[39m[33m.[39m[34mkeys[39m(item)[33m.[39m[34msort[39m())[33m.[39m[34mtoEqual[39m([[32m'experimentId'[39m[33m,[39m [32m'lastOpe[39m…
+    [90m133| [39m    [90m// No parameter values, no payload column, no user identity.[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mhonours limit and rejects an invalid one
+[31m[1mAssertionError[22m: Target cannot be null or undefined.[39m
+[36m [2m❯[22m test/recent.test.ts:[2m145:71[22m[39m
+    [90m143| [39m    }
+    [90m144| [39m
+    [90m145| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie[33m,[39m [32m'?limit=2'[39m))[33m.[39mbody[33m.[39mitems)[33m.[39m…
+    [90m   | [39m                                                                      [31m^[39m
+    [90m146| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie[33m,[39m [32m'?limit=0'[39m))[33m.[39mstatus)[33m.[39m[34mtoBe[39m…
+    [90m147| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie[33m,[39m [32m'?limit=51'[39m))[33m.[39mstatus)[33m.[39m[34mtoB[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mrejects an experiment that is not in the index, and a malformed id
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/recent.test.ts:[2m159:30[22m[39m
+    [90m157| [39m
+    [90m158| [39m    [35mconst[39m malformed [33m=[39m [35mawait[39m [34mrecord[39m(server[33m,[39m cookie[33m,[39m [32m'Math_Functions'[39m)[33m;[39m
+    [90m159| [39m    [34mexpect[39m(malformed[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m160| [39m
+    [90m161| [39m    [35mconst[39m missing [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mrejects a body that tries to name an account
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/recent.test.ts:[2m180:29[22m[39m
+    [90m178| [39m    })[33m;[39m
+    [90m179| [39m
+    [90m180| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m181| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m182| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mrequires the CSRF guard on the write
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/recent.test.ts:[2m195:29[22m[39m
+    [90m193| [39m    })[33m;[39m
+    [90m194| [39m
+    [90m195| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m196| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m cookie))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m197| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/22]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/recent.test.ts[2m > [22mrecent use is de-duplicated by resource[2m > [22mkeeps two accounts separate
+[31m[1mAssertionError[22m: expected undefined to deeply equal [][39m
+
+[32m- Expected:[39m 
+Array []
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m test/recent.test.ts:[2m206:64[22m[39m
+    [90m204| [39m    [35mawait[39m [34mrecord[39m(server[33m,[39m cookie[33m,[39m [32m'math.functions'[39m)[33m;[39m
+    [90m205| [39m
+    [90m206| [39m    [34mexpect[39m(([35mawait[39m [34mlistRecent[39m(server[33m,[39m otherCookie))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoEqual[39m…
+    [90m   | [39m                                                               [31m^[39m
+    [90m207| [39m  })[33m;[39m
+    [90m208| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/22]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m22 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (27)[39m
+[2m   Start at [22m 21:38:54
+[2m   Duration [22m 5.83s[2m (transform 264ms, setup 0ms, collect 1.18s, tests 8.66s, environment 1ms, prepare 336ms)[22m
+

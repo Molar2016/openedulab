@@ -75,6 +75,37 @@ describe('api client requests', () => {
     const fetchImpl = vi.fn(async () => new Response(null, { status: 204 }));
     await expect(client(fetchImpl as unknown as typeof fetch).logout()).resolves.toBeUndefined();
   });
+
+  it('adds a favorite with an empty JSON body and removes it without one', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ experimentId: 'math.functions', createdAt: 1 }, 201));
+    const api = client(fetchImpl as unknown as typeof fetch);
+
+    await api.addFavorite('math.functions');
+    const [putUrl, putInit] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(putUrl).toBe('/api/me/favorites/math.functions');
+    expect(putInit.method).toBe('PUT');
+    expect((putInit.headers as Record<string, string>)['content-type']).toBe('application/json');
+
+    const removeFetch = vi.fn(async () => new Response(null, { status: 204 }));
+    await client(removeFetch as unknown as typeof fetch).removeFavorite('math.functions');
+    const [deleteUrl, deleteInit] = removeFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(deleteUrl).toBe('/api/me/favorites/math.functions');
+    expect(deleteInit.method).toBe('DELETE');
+    // No body, therefore no content type: an empty JSON body would be rejected by the
+    // parser and a declared non-JSON type would trip the CSRF guard.
+    expect(deleteInit.body).toBeUndefined();
+    expect((deleteInit.headers as Record<string, string>)['content-type']).toBeUndefined();
+  });
+
+  it('records a recent use as a JSON body with only the experiment id', async () => {
+    const fetchImpl = vi.fn(async () => new Response(null, { status: 204 }));
+    await client(fetchImpl as unknown as typeof fetch).recordRecent('math.functions');
+
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('/api/me/recent');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual({ experimentId: 'math.functions' });
+  });
 });
 
 describe('api client failures', () => {

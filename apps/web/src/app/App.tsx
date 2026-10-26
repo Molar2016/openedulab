@@ -8,10 +8,12 @@ import type { AppServices } from '../services';
 import { ApiError, type ExperimentDetail } from '../services/api';
 import { CatalogPage } from './CatalogPage';
 import { LoginPage } from './LoginPage';
+import { MePage } from './MePage';
 import {
   aboutHref,
   catalogHref,
   loginHref,
+  meHref,
   parseRoute,
   nextFromSearch,
   type Route,
@@ -83,6 +85,11 @@ function ExperimentRoute({
 }): JSX.Element {
   const [state, setState] = useState<ExperimentState>({ kind: 'loading' });
   const [reloadToken, setReloadToken] = useState(0);
+  const [favorite, setFavorite] = useState<{ kind: 'unknown' | 'on' | 'off'; busy: boolean; error: boolean }>(
+    { kind: 'unknown', busy: false, error: false },
+  );
+  const [recentFailed, setRecentFailed] = useState(false);
+  const experimentId = entry.manifest.id;
 
   useEffect(() => {
     let cancelled = false;
@@ -101,6 +108,48 @@ function ExperimentRoute({
       cancelled = true;
     };
   }, [services, entry.manifest.id, locale, reloadToken]);
+
+  /**
+   * Opening an experiment records "which resource, when" — once, on mount, deduplicated by
+   * the server. It is a convenience: if it fails the experiment still works and the page
+   * says the list was not updated. Nothing about the parameters is sent.
+   */
+  useEffect(() => {
+    if (state.kind !== 'ready') return;
+    let cancelled = false;
+    services.api
+      .recordRecent(experimentId)
+      .catch(() => {
+        if (!cancelled) setRecentFailed(true);
+      });
+    services.api
+      .favorites()
+      .then((items) => {
+        if (cancelled) return;
+        setFavorite({
+          kind: items.some((item) => item.experimentId === experimentId) ? 'on' : 'off',
+          busy: false,
+          error: false,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setFavorite({ kind: 'unknown', busy: false, error: true });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [state.kind, services, experimentId]);
+
+  const toggleFavorite = useCallback((): void => {
+    const adding = favorite.kind !== 'on';
+    setFavorite((previous) => ({ ...previous, busy: true, error: false }));
+    const call = adding
+      ? services.api.addFavorite(experimentId)
+      : services.api.removeFavorite(experimentId);
+    call
+      .then(() => setFavorite({ kind: adding ? 'on' : 'off', busy: false, error: false }))
+      .catch(() => setFavorite((previous) => ({ ...previous, busy: false, error: true })));
+  }, [favorite.kind, services, experimentId]);
 
   if (state.kind === 'loading') {
     return (
@@ -127,15 +176,32 @@ function ExperimentRoute({
   }
 
   return (
-    <ExperimentHost
-      entry={entry}
-      locale={locale}
-      i18n={i18n}
-      services={services}
-      contentVersion={state.detail.contentVersion}
-      reviewedStatus={state.detail.reviewedStatus}
-      onBack={onBack}
-    />
+    <>
+      <ExperimentHost
+        entry={entry}
+        locale={locale}
+        i18n={i18n}
+        services={services}
+        contentVersion={state.detail.contentVersion}
+        reviewedStatus={state.detail.reviewedStatus}
+        {...(favorite.kind === 'unknown'
+          ? {}
+          : {
+              favorite: {
+                active: favorite.kind === 'on',
+                busy: favorite.busy,
+                error: favorite.error,
+                onToggle: toggleFavorite,
+              },
+            })}
+        onBack={onBack}
+      />
+      {recentFailed ? (
+        <p className="muted small" role="status" data-testid="recent-notice">
+          {i18n.t('experiment.recentFailed')}
+        </p>
+      ) : null}
+    </>
   );
 }
 
@@ -310,6 +376,9 @@ export function App({ services }: Props): JSX.Element {
     if (route.name === 'catalog') {
       return <CatalogPage api={services.api} locale={locale} i18n={i18n} navigate={navigate} />;
     }
+    if (route.name === 'me') {
+      return <MePage api={services.api} locale={locale} i18n={i18n} navigate={navigate} />;
+    }
     if (route.name === 'experiment') {
       return experimentEntry === undefined ? (
         <NotFound i18n={i18n} navigate={navigate} />
@@ -358,6 +427,18 @@ export function App({ services }: Props): JSX.Element {
               }}
             >
               {i18n.t('nav.catalog')}
+            </a>
+          ) : null}
+          {authenticated ? (
+            <a
+              href={meHref(locale)}
+              aria-current={route.name === 'me' ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                navigate(meHref(locale));
+              }}
+            >
+              {i18n.t('nav.me')}
             </a>
           ) : null}
           <a

@@ -189,7 +189,12 @@ async function main() {
     check('built asset is larger than 10 kB', assetBody.length > 10_000, `${assetBody.length} bytes`);
 
     process.stdout.write('\n## 4. private API refuses anonymous callers (B3 gate)\n');
-    for (const route of ['/api/catalog', '/api/experiments/math.functions']) {
+    for (const route of [
+      '/api/catalog',
+      '/api/experiments/math.functions',
+      '/api/me/favorites',
+      '/api/me/recent',
+    ]) {
       const response = await fetch(`${baseUrl}${route}`);
       const body = await response.json();
       check(
@@ -209,11 +214,15 @@ async function main() {
       anonymousHtmlApi.status === 401 && anonymousHtmlApi.headers.get('location') === null,
       `status=${anonymousHtmlApi.status}`,
     );
-    for (const route of ['/api/me/favorites', '/api/me/recent', '/api/events', '/api/feedback']) {
-      const response = await fetch(`${baseUrl}${route}`, { method: route === '/api/events' || route === '/api/feedback' ? 'POST' : 'GET' });
+    for (const [route, method] of [
+      ['/api/events', 'POST'],
+      ['/api/feedback', 'POST'],
+      ['/api/me/saved-state/math.functions', 'GET'],
+    ]) {
+      const response = await fetch(`${baseUrl}${route}`, { method });
       const body = await response.json();
       check(
-        `${route} is honestly absent (404, not a fake 401 endpoint)`,
+        `${route} is honestly absent (404, not a fake endpoint)`,
         response.status === 404 && body.error?.code === 'not_found',
         `status=${response.status} code=${body.error?.code}`,
       );
@@ -422,6 +431,101 @@ async function main() {
       `status=${authedDeepLink.status}`,
     );
 
+    process.stdout.write('\n## 6c. personal data: favorites and recent use (B4)\n');
+    const putJson = async (route, body, headers = {}) => {
+      const response = await fetch(`${baseUrl}${route}`, {
+        method: 'PUT',
+        headers: { origin, 'content-type': 'application/json', cookie: liveCookie, ...headers },
+        body: JSON.stringify(body ?? {}),
+      });
+      return { status: response.status, json: await response.json().catch(() => ({})) };
+    };
+    const postJsonAuthed = async (route, body) => {
+      const response = await fetch(`${baseUrl}${route}`, {
+        method: 'POST',
+        headers: { origin, 'content-type': 'application/json', cookie: liveCookie },
+        body: JSON.stringify(body),
+      });
+      return { status: response.status, json: await response.json().catch(() => ({})) };
+    };
+
+    const favoriteFirst = await putJson('/api/me/favorites/math.functions');
+    check('PUT favorite -> 201', favoriteFirst.status === 201, `status=${favoriteFirst.status}`);
+    const favoriteAgain = await putJson('/api/me/favorites/math.functions');
+    check(
+      'PUT the same favorite again -> 200 with the original timestamp',
+      favoriteAgain.status === 200 && favoriteAgain.json.createdAt === favoriteFirst.json.createdAt,
+      `${favoriteAgain.status} ${favoriteAgain.json.createdAt}`,
+    );
+    const favoriteUnknown = await putJson('/api/me/favorites/physics.nope');
+    check(
+      'PUT an unpublished experiment -> 404',
+      favoriteUnknown.status === 404,
+      `status=${favoriteUnknown.status}`,
+    );
+
+    const favoritesList = await authed('/api/me/favorites');
+    const favoritesBody = await favoritesList.json();
+    check(
+      'GET favorites -> only id + timestamp, no parameters',
+      favoritesList.status === 200 &&
+        favoritesBody.items.length === 1 &&
+        JSON.stringify(favoritesBody).match(/^\{.*\}$/) !== null &&
+        Object.keys(favoritesBody.items[0]).sort().join(',') === 'createdAt,experimentId',
+      JSON.stringify(favoritesBody.items),
+    );
+
+    check('POST recent -> 204', (await postJsonAuthed('/api/me/recent', { experimentId: 'math.functions' })).status === 204);
+    check('POST recent again -> 204 (deduplicated)', (await postJsonAuthed('/api/me/recent', { experimentId: 'math.functions' })).status === 204);
+    const recentList = await authed('/api/me/recent');
+    const recentBody = await recentList.json();
+    check(
+      'GET recent -> one row per resource, no slider values',
+      recentList.status === 200 &&
+        recentBody.items.length === 1 &&
+        Object.keys(recentBody.items[0]).sort().join(',') === 'experimentId,lastOpenedAt',
+      JSON.stringify(recentBody.items),
+    );
+
+    // A second account must not see the first account's favorites.
+    const secondAccount = await registerOnce('smoke-second@example.com');
+    const secondCookie = (secondAccount.setCookie[0] ?? '').split(';')[0];
+    const secondFavorites = await fetch(`${baseUrl}/api/me/favorites`, {
+      headers: { cookie: secondCookie },
+    });
+    const secondBody = await secondFavorites.json();
+    check(
+      'another account sees an empty favorites list',
+      secondFavorites.status === 200 && secondBody.items.length === 0,
+      JSON.stringify(secondBody),
+    );
+    const secondRemoval = await fetch(`${baseUrl}/api/me/favorites/math.functions`, {
+      method: 'DELETE',
+      headers: { origin, cookie: secondCookie },
+    });
+    check('another account deleting "the same" favorite is a no-op 204', secondRemoval.status === 204);
+    const favoritesStillThere = await (await authed('/api/me/favorites')).json();
+    check(
+      'the first account still has its favorite after that',
+      favoritesStillThere.items.length === 1,
+      JSON.stringify(favoritesStillThere.items),
+    );
+
+    const deleteFavorite = await fetch(`${baseUrl}/api/me/favorites/math.functions`, {
+      method: 'DELETE',
+      headers: { origin, cookie: liveCookie },
+    });
+    check('DELETE favorite -> 204', deleteFavorite.status === 204, `status=${deleteFavorite.status}`);
+    const deleteAgain = await fetch(`${baseUrl}/api/me/favorites/math.functions`, {
+      method: 'DELETE',
+      headers: { origin, cookie: liveCookie },
+    });
+    check('DELETE again -> 204 (idempotent)', deleteAgain.status === 204);
+    check(
+      'favorites list is empty afterwards',
+      (await (await authed('/api/me/favorites')).json()).items.length === 0,
+    );
+
     const authRows = (databasePath) => {
       const db = new DatabaseSync(databasePath);
       try {
@@ -438,9 +542,9 @@ async function main() {
     const stored = authRows(databasePath);
     check(
       'database stores a scrypt hash, never the password',
-      stored.account.length === 1 &&
-        /^scrypt\$32768\$8\$3\$/.test(stored.account[0].password_hash) &&
-        !String(stored.account[0].password_hash).includes(password),
+      stored.account.length === 2 &&
+        stored.account.every((row) => /^scrypt\$32768\$8\$3\$/.test(row.password_hash)) &&
+        stored.account.every((row) => !String(row.password_hash).includes(password)),
       String(stored.account[0]?.password_hash).slice(0, 24) + '…',
     );
     check(

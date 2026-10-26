@@ -31,6 +31,11 @@ export const PUBLIC_API_ROUTES: readonly RouteEntry[] = Object.freeze([
 export const PRIVATE_API_ROUTES: readonly RouteEntry[] = Object.freeze([
   { method: 'GET', url: '/api/catalog' },
   { method: 'GET', url: '/api/experiments/:experimentId' },
+  { method: 'GET', url: '/api/me/favorites' },
+  { method: 'PUT', url: '/api/me/favorites/:experimentId' },
+  { method: 'DELETE', url: '/api/me/favorites/:experimentId' },
+  { method: 'GET', url: '/api/me/recent' },
+  { method: 'POST', url: '/api/me/recent' },
 ]);
 
 function sameRoute(entry: RouteEntry, candidate: RouteEntry): boolean {

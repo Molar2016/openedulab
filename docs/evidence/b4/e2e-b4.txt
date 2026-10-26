@@ -1,0 +1,65 @@
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build
+[WebServer] > tsc --noEmit && vite build
+[WebServer] 
+[WebServer] vite v5.4.21 building for production...
+[WebServer] transforming...
+[WebServer] ✓ 53 modules transformed.
+[WebServer] rendering chunks...
+[WebServer] computing gzip size...
+[WebServer] dist/index.html                   1.24 kB │ gzip:  0.75 kB
+[WebServer] dist/assets/index-B0DsNRDj.css   11.63 kB │ gzip:  3.11 kB
+[WebServer] dist/assets/view-Be5mnt97.js     11.05 kB │ gzip:  3.97 kB
+[WebServer] dist/assets/index-Dg-Bf0hs.js   194.27 kB │ gzip: 63.36 kB
+[WebServer] ✓ built in 814ms
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build:api
+[WebServer] > tsc -p apps/api/tsconfig.json
+[WebServer] 
+[WebServer] (node:19336) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [openedulab-api] listening on http://127.0.0.1:3220
+[WebServer] [openedulab-api] version 0.1.0-m1 config {"env":"test","host":"127.0.0.1","port":3220,"publicOrigin":"http://127.0.0.1:3220","databasePath":"G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite","migrationsDir":"G:\\hermes\\projects\\openedulab\\apps\\api\\migrations","staticDir":"G:\\hermes\\projects\\openedulab\\dist","contentDir":"G:\\hermes\\projects\\openedulab\\experiments"}
+
+Running 37 tests using 1 worker
+
+  ok  1 [setup] › tests\e2e\auth.setup.ts:13:1 › register the shared teacher account (807ms)
+  ok  2 [desktop-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (693ms)
+  ok  3 [desktop-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (515ms)
+  ok  4 [desktop-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (761ms)
+  ok  5 [desktop-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (471ms)
+  ok  6 [desktop-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback and never claims it was sent (667ms)
+  ok  7 [desktop-chromium] › tests\e2e\app.spec.ts:114:3 › experiment › makes no cross-origin request and ships no debug sink (491ms)
+  ok  8 [desktop-chromium] › tests\e2e\app.spec.ts:130:3 › experiment › enters and exits full screen with consistent state (687ms)
+  ok  9 [desktop-chromium] › tests\e2e\app.spec.ts:147:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (815ms)
+  ok 10 [desktop-chromium] › tests\e2e\app.spec.ts:179:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (698ms)
+  ok 11 [desktop-chromium] › tests\e2e\app.spec.ts:206:3 › accessibility basics › every interactive control has an accessible name and a label (435ms)
+  -  12 [desktop-chromium] › tests\e2e\app.spec.ts:232:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  ok 13 [desktop-chromium] › tests\e2e\app.spec.ts:254:3 › recording › short classroom walkthrough (signed in) (5.6s)
+  ok 14 [desktop-chromium] › tests\e2e\gate.spec.ts:16:3 › a visitor without a session › is redirected from the root to the login page (298ms)
+  ok 15 [desktop-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.8s)
+  ok 16 [desktop-chromium] › tests\e2e\gate.spec.ts:42:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (210ms)
+  ok 17 [desktop-chromium] › tests\e2e\gate.spec.ts:58:3 › a visitor without a session › can read the public pages (237ms)
+  ok 18 [desktop-chromium] › tests\e2e\gate.spec.ts:66:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (863ms)
+  ok 19 [desktop-chromium] › tests\e2e\gate.spec.ts:113:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (668ms)
+  ok 20 [mobile-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (700ms)
+  ok 21 [mobile-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (526ms)
+  ok 22 [mobile-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (805ms)
+  ok 23 [mobile-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (392ms)
+  ok 24 [mobile-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback and never claims it was sent (633ms)
+  ok 25 [mobile-chromium] › tests\e2e\app.spec.ts:114:3 › experiment › makes no cross-origin request and ships no debug sink (430ms)
+  ok 26 [mobile-chromium] › tests\e2e\app.spec.ts:130:3 › experiment › enters and exits full screen with consistent state (655ms)
+  ok 27 [mobile-chromium] › tests\e2e\app.spec.ts:147:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (822ms)
+  ok 28 [mobile-chromium] › tests\e2e\app.spec.ts:179:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (700ms)
+  ok 29 [mobile-chromium] › tests\e2e\app.spec.ts:206:3 › accessibility basics › every interactive control has an accessible name and a label (372ms)
+  ok 30 [mobile-chromium] › tests\e2e\app.spec.ts:232:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling (668ms)
+  -  31 [mobile-chromium] › tests\e2e\app.spec.ts:254:3 › recording › short classroom walkthrough (signed in)
+  ok 32 [mobile-chromium] › tests\e2e\gate.spec.ts:16:3 › a visitor without a session › is redirected from the root to the login page (317ms)
+  ok 33 [mobile-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.2s)
+  ok 34 [mobile-chromium] › tests\e2e\gate.spec.ts:42:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (107ms)
+  ok 35 [mobile-chromium] › tests\e2e\gate.spec.ts:58:3 › a visitor without a session › can read the public pages (188ms)
+  ok 36 [mobile-chromium] › tests\e2e\gate.spec.ts:66:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (838ms)
+  ok 37 [mobile-chromium] › tests\e2e\gate.spec.ts:113:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (591ms)
+
+  2 skipped
+  35 passed (40.3s)

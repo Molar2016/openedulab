@@ -6,6 +6,7 @@ export type Route =
   | { name: 'about' }
   | { name: 'login' }
   | { name: 'register' }
+  | { name: 'me' }
   | { name: 'notFound'; path: string };
 
 export function parseRoute(pathname: string): Route {
@@ -14,6 +15,7 @@ export function parseRoute(pathname: string): Route {
   if (clean === '/about') return { name: 'about' };
   if (clean === '/login') return { name: 'login' };
   if (clean === '/register') return { name: 'register' };
+  if (clean === '/me') return { name: 'me' };
   const experiment = /^\/experiments\/([a-z0-9-]+)$/.exec(clean);
   if (experiment) return { name: 'experiment', slug: experiment[1] };
   return { name: 'notFound', path: clean };
@@ -29,6 +31,10 @@ export function experimentHref(slug: string, locale: string): string {
 
 export function aboutHref(locale: string): string {
   return `/about?lang=${locale}`;
+}
+
+export function meHref(locale: string): string {
+  return `/me?lang=${locale}`;
 }
 
 export function loginHref(locale: string, next?: string | null): string {

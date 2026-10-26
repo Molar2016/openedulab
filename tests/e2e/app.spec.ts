@@ -143,6 +143,65 @@ test.describe('experiment', () => {
   });
 });
 
+test.describe('favorites and recent use (B4)', () => {
+  test('favorites from the experiment page, sees it in My library, then removes it', async ({ page }) => {
+    await openExperiment(page);
+
+    const favorite = page.getByTestId('favorite-button');
+    await expect(favorite).toBeVisible();
+    // Leave the account in a known state regardless of an earlier failed run.
+    if ((await favorite.textContent()) === 'Remove from favorites') {
+      await favorite.click();
+      await expect(favorite).toHaveText('Add to favorites');
+    }
+
+    await favorite.click();
+    await expect(favorite).toHaveText('Remove from favorites');
+    await expect(favorite).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByRole('link', { name: 'My library' }).click();
+    const favorites = page.getByTestId('favorites-list');
+    await expect(favorites.getByTestId('item-math-functions')).toBeVisible();
+    await shot(page, STAGE, 'me-favorites');
+
+    await page.getByTestId('remove-math.functions').click();
+    await expect(page.getByTestId('favorites-empty')).toBeVisible();
+
+    // The experiment page now offers to add it again, i.e. the removal was real.
+    await page.getByRole('link', { name: 'Experiment catalog' }).click();
+    await page
+      .getByTestId('experiment-card-math-functions')
+      .getByRole('link', { name: /start experiment/i })
+      .click();
+    await expect(page.getByTestId('favorite-button')).toHaveText('Add to favorites');
+  });
+
+  test('keeps one recent entry per resource and never shows parameter values', async ({ page }) => {
+    await openExperiment(page);
+    await page.goto('/?lang=en');
+    await page
+      .getByTestId('experiment-card-math-functions')
+      .getByRole('link', { name: /start experiment/i })
+      .click();
+    await expect(page.getByTestId('formula')).toHaveText('y = x²');
+    // Change a coefficient: that must not create a second entry nor be stored.
+    await page.locator('#coef-a').fill('3');
+
+    await page.goto('/me?lang=en');
+    const recent = page.getByTestId('recent-list');
+    await expect(recent).toBeVisible();
+    await expect(recent.getByTestId('item-math-functions')).toHaveCount(1);
+    await expect(recent.locator('li')).toHaveCount(1);
+    await expect(page.locator('#me-recent-heading')).toContainText('Recently opened');
+    await expect(page.getByTestId('opened-math.functions')).toBeVisible();
+    await shot(page, STAGE, 'me-recent');
+
+    // Nothing on this page may show a slider value or a parameter name.
+    const text = (await page.getByTestId('recent-list').textContent()) ?? '';
+    expect(text).not.toMatch(/coef|slider|param/i);
+  });
+});
+
 test.describe('accessibility basics', () => {
   test('every interactive control has an accessible name and a label', async ({ page }) => {
     await openExperiment(page);

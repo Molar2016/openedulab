@@ -73,10 +73,15 @@ describe('API route inventory', () => {
       .map((entry) => `${entry.method} ${entry.url}`);
     expect(privateRoutes).toContain('GET /api/catalog');
     expect(privateRoutes).toContain('GET /api/experiments/:experimentId');
-    // Not implemented yet (B4/B5): they must not exist as fake endpoints either.
-    expect(routes.some((entry) => entry.url.startsWith('/api/me/'))).toBe(false);
+    expect(privateRoutes).toContain('GET /api/me/favorites');
+    expect(privateRoutes).toContain('PUT /api/me/favorites/:experimentId');
+    expect(privateRoutes).toContain('DELETE /api/me/favorites/:experimentId');
+    expect(privateRoutes).toContain('GET /api/me/recent');
+    expect(privateRoutes).toContain('POST /api/me/recent');
+    // Not implemented yet (B5): they must not exist as fake endpoints either.
     expect(routes.some((entry) => entry.url === '/api/events')).toBe(false);
     expect(routes.some((entry) => entry.url === '/api/feedback')).toBe(false);
+    expect(routes.some((entry) => entry.url === '/api/me/saved-state/:experimentId')).toBe(false);
   });
 
   it('denies anonymous and forged callers on every private route', async () => {
