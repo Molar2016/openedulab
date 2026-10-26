@@ -40,6 +40,7 @@
 ## 版本控制（本地仓库，无远端）
 - 分支 `main`；**B0 首次提交**：`1bc20b2881e4e7833216277780971efe0a0b4fd9`（`1bc20b2`），61 个受跟踪文件，`node_modules/`(140M)、`dist/`、`test-results/`(1.3M)、`playwright-report/`(1.8M) 均由 `.gitignore` 排除。
 - **B1 提交**：`80c2f90532b02ac63c88c1799a68b539b5b18147`（`80c2f90`），34 个文件变更（+3556/−26），受跟踪文件总数 89；`apps/api/dist/`（tsc 产物）、`apps/api/data/`（本地 SQLite）、`*.sqlite*` 均被忽略，提交后用 `git check-ignore -v` 核对过。工作区只剩一个未跟踪文件 `docs/roadmap.md`（非本轮产出，**未**纳入提交）。
+- **B1 修复提交**：`9e8d1cde2e46f00aaf597f0c3542c99447541b90`（`9e8d1cd`），把 `@fastify/static` 从有 4 条高危穿越公告的 `8.3.0` 升到修复版 `10.1.7`，适配 v10 的 `setHeaders(reply, path)` 签名，并把穿越用例从 3 个扩到 8 个编码载荷；该提交后 `npm audit --omit=dev` 为 0 漏洞。
 - 无远端、未推送、未部署、未发布；无 `AGENTS.md`（未获用户同意）。
 
 ## 已核事实（B0/B1 实测，非推断）
