@@ -213,6 +213,31 @@
 5. **GitHub Pages 修正为"只适合静态介绍页，不适合本应用"**：现有站点是强制登录的 Fastify + SQLite 同源动态应用（登录态是服务端 Cookie、目录/实验/收藏/参数全走 `/api/*` 的 `requireSession()`），Pages 只能托管静态文件，**无法**承载；**本轮不启用 Pages**——公开一个登不进去的空壳会误导访问者，做成"看起来完整"就必须有假后端/假数据，这是被明令禁止的。若将来要静态介绍页，必须写明"无在线演示、无公开实例、需服务端才能登录"（`docs/ops/deployment-plan.md` §2.1）。
 6. **上线仍需单独授权**：同意"继续推进发布前工作"**不等于**同意把网站放到公网上；本轮未开隧道、未改生产、未动 DNS/防火墙、未产生费用（`docs/privacy/launch-readiness.md` §5 保留了上线闸门表）。
 
+### R5-2 依赖安全：把 6 条开发工具链公告真实修掉
+
+**基线（先重现，后动手）**：在未改动的锁文件上跑 `npm audit` → **6（2 critical / 1 high / 3 moderate）**，`npm audit --omit=dev` → **0**；`npm run check` → 退出码 0（web 10 文件/122 测试、API 23 文件/330 测试）。原文：`docs/evidence/r5/audit-before.txt`、`check-before.txt`。
+
+**升级组合（最小且真正安全，不用 `--force`）**：
+- `vite` 5.4.21 → **7.3.7**（清掉 vite 自身的 dev-server 穿越 / `server.fs.deny` 绕过，以及经 esbuild 的代理读取）
+- `vitest` 2.1.9 → **5.0.5**（清掉 vitest/mocker 文件读取与手动 mock 注入、tinypool 原型污染→RCE）
+- `@vitejs/plugin-react` 4.7.0 → **5.2.0**（peer 覆盖 vite 4–8）
+
+**为什么不按 `npm audit fix --force` 上 vite 8**：vite 8 把 esbuild/Rollup 换成 **Rolldown/Oxc**（打包器重写、产物会变），安全性上相对 7 没有额外收益——上面每条公告在 `vite >= 7` 即已清除（esbuild `^0.27||^0.28`，`vitest@5` 只要求 `vite >= 6.4`）。所以 7 是"最小的安全版本组合"；升 8 记为后续独立事项，不夹在安全修复里。
+
+**升级逼出来的两处配置改动（都在 `vite.config.ts`，各有理由）**：
+1. `/// <reference types="vitest" />` + 从 `vite` 取 `defineConfig` 在 vitest 5 下不再给 `test` 字段类型（TS2769）。改为从 `vitest/config` 取 `defineConfig`（它转出 vite 的同名函数并类型化 `test`），构建与测试共用同一份配置。
+2. **浏览器目标显式钉住**：vite 7 默认 `build.target` 变成 `baseline-widely-available`（Chrome 111 / Safari 16.4），而 vite 5 默认是 `modules` 那组（Chrome 87 / Edge 88 / Firefox 78 / Safari 14）。若放任默认值，一次**安全**升级会顺手把课堂/投影老旧机器的支持面砍掉。故钉为 vite 5 的那组，支持面不变；要抬门槛是另一个产品决定，需单独验证。
+
+**实测（同一棵工作树，证据 `docs/evidence/r5/`）**：
+- `npm audit` → **0 vulnerabilities**；`npm audit --omit=dev` → **0**（`audit-after.txt`）。
+- `npm run check` → 退出码 0：web **10 文件 / 122 测试**、API **23 文件 / 330 测试**、lint/typecheck 无输出、`validate-content` OK、两个构建成功（`check-after.txt`、`build.txt`）。**测试一条未删、断言一条未放宽**，通过数与升级前逐项相同。
+- `npm run smoke:api` → **108/108 checks passed**（真实进程、真 socket，`smoke.txt`）。
+- `npx playwright test` → **78 passed / 52 skipped / 0 failed**（4 个 project，1.3 分钟，`e2e.txt`）；52 条跳过仍是既有的显式 `test.skip(project…)`。
+- `npm run check:backup` PASS（八张表、`integrity_check=ok`、快照 180224 字节）；`npm run check:restore` PASS（恢复库 `healthz=ok`、`applied=1`、写探针 201）；`retention --dry-run` 0 行（`backup.txt`/`restore.txt`/`retention-dry-run.txt`）。
+- `npm ci --dry-run` 退出码 0（锁文件与 `package.json` 一致，`npm-ci-dry-run.txt`）；实际解析版本见 `npm-ls-after.txt`。
+
+**没有做的事**：没有 `npm audit fix --force`；没有用 `overrides` 强行钉住传递依赖来"消音"；没有删测试/跳过测试/放宽断言换绿；没有升 vite 8（Rolldown 重写）、没有升 React 18→19、没有动运行时依赖（`fastify`/`@fastify/static`/`react`/`react-dom` 版本不变，`npm audit --omit=dev` 本来就是 0）。
+
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 
 

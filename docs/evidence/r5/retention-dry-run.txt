@@ -1,0 +1,13 @@
+
+> openedulab@0.1.0-m1 retention:dry-run
+> node scripts/retention-purge.mjs --db test-results/e2e/app.sqlite
+
+retention dry-run on G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  generatedAt: 2026-10-26T23:34:38.239Z
+  event           would delete       0 rows (older than 90d, cutoff 2026-07-28T23:34:38.239Z)
+  feedback        would delete       0 rows (older than 180d, cutoff 2026-04-29T23:34:38.239Z)
+  internal_audit  would delete       0 rows (older than 365d, cutoff 2025-10-26T23:34:38.239Z)
+  session         would delete       0 rows (older than 30d, cutoff 2026-09-26T23:34:38.239Z)
+  total: would delete 0 rows
+(node:23332) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

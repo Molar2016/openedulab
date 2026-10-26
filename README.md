@@ -41,11 +41,11 @@ no public URL — the GitHub repository is source only, so no site can be opened
 JS/CSS cannot be protected by a login (design §2); the gate protects pages, API responses
 and content metadata.
 
-Dependency advisories are scoped to development tooling (Vite dev server / Vitest), not to
-the runtime dependencies: `npm audit --omit=dev` reports 0, `npm audit` reports 6 in
-devDependencies, all fixed only by a major upgrade of Vite/Vitest. GitHub's Dependabot
-alerts are **disabled** for this repository, so GitHub is not watching these for us; the
-local audit above is the actual evidence. See `docs/third-party.md`.
+Dependencies: both `npm audit` and `npm audit --omit=dev` report **0 vulnerabilities** as of
+the R5 upgrade (`vite` 5→7, `vitest` 2→5, `@vitejs/plugin-react` 4→5, which cleared 6
+dev-tool advisories — 2 critical, 1 high, 3 moderate — without touching a single test).
+Dependabot alerts are now enabled on the repository; automatic security-update PRs are left
+off on purpose. Code scanning is not configured. See `docs/third-party.md`.
 
 ## Quick start (local)
 

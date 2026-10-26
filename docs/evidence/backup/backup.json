@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-26T16:07:53.731Z",
+  "checkedAt": "2026-10-26T23:34:34.504Z",
   "source": "sqlite",
   "databasePath": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite",
   "ok": true,
@@ -11,7 +11,7 @@
     "favorite": 0,
     "recent_use": 2,
     "saved_state": 1,
-    "event": 68,
+    "event": 69,
     "feedback": 5,
     "internal_audit": 3
   },
