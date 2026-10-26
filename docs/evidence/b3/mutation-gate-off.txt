@@ -1,0 +1,386 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:21324) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22400) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/private-routes.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 604[2mms[22m[39m
+   [33m[2m✓[22m[39m API route inventory[2m > [22mregisters only classified API routes [33m368[2mms[22m[39m
+[31m   [31m×[31m API route inventory[2m > [22mdenies anonymous and forged callers on every private route[90m 77[2mms[22m[31m[39m
+[31m     → GET /api/catalog must deny anonymous callers: expected 500 to be 401 // Object.is equality[39m
+ [31m❯[39m test/authorization.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[33m 4092[2mms[22m[39m
+[31m   [31m×[31m private routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 unauthenticated without a cookie[33m 373[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+[31m   [31m×[31m private routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 for a forged cookie[90m 58[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+[31m   [31m×[31m private routes reject anonymous callers[2m > [22mGET /api/catalog ignores caller-supplied identity fields[33m 360[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/experiments/math.functions ignores caller-supplied identity fields [33m361[2mms[22m[39m
+[31m   [31m×[31m a live session grants access[2m > [22mserves the catalog to the account that just registered[33m 384[2mms[22m[31m[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mserves experiment metadata without leaking identity or filesystem paths [33m363[2mms[22m[39m
+[31m   [31m×[31m a live session grants access[2m > [22mkeeps the session working across requests and processes no account id in the body[33m 344[2mms[22m[31m[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [31m×[31m the gate follows server-side session state[2m > [22mrejects the cookie after logout[33m 336[2mms[22m[31m[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [31m×[31m the gate follows server-side session state[2m > [22mrejects an absolutely expired session[33m 338[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+[31m   [31m×[31m the gate follows server-side session state[2m > [22mrejects an idle-expired session even inside the absolute window[33m 361[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+[31m   [31m×[31m the gate follows server-side session state[2m > [22mrejects a session whose account was disabled[33m 346[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+[31m   [31m×[31m the gate follows server-side session state[2m > [22mrejects a session row deleted from the database[33m 369[2mms[22m[31m[39m
+[31m     → expected 500 to be 401 // Object.is equality[39m
+ [31m❯[39m test/catalog.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 5637[2mms[22m[39m
+[31m   [31m×[31m catalog content[2m > [22mlists every indexed experiment sorted by id[33m 714[2mms[22m[31m[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [31m×[31m catalog content[2m > [22mreturns localized title and description, plus the content version[33m 396[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'find')[39m
+[31m   [31m×[31m catalog content[2m > [22mdefaults to Chinese when no locale is requested[33m 365[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading '0')[39m
+[31m   [31m×[31m catalog content[2m > [22mexposes exactly the catalog fields and no internal detail[33m 384[2mms[22m[31m[39m
+[31m     → result.body.items is not iterable[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22mfilters by subject, grade and concept[33m 391[2mms[22m[31m[39m
+[31m     → Target cannot be null or undefined.[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively[33m 385[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'map')[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22mcaps the result set with limit[33m 384[2mms[22m[31m[39m
+[31m     → Target cannot be null or undefined.[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=0 [33m365[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=51 [33m368[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=abc [33m362[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?locale=fr [33m387[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?subject=math&unknown=1 [33m352[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa [33m376[2mms[22m[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22mrequires a session before any query is evaluated[33m 362[2mms[22m[31m[39m
+[31m     → expected 400 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 19 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mprivate routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 unauthenticated without a cookie
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m58:31[22m[39m
+    [90m 56| [39m      [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m end…
+    [90m 57| [39m
+    [90m 58| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m 59| [39m      [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m 60| [39m      [34mexpect[39m(response[33m.[39mheaders[[32m'content-type'[39m])[33m.[39m[34mtoMatch[39m([36m/^application\/[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mprivate routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 for a forged cookie
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m80:33[22m[39m
+    [90m 78| [39m          headers[33m:[39m { cookie[33m:[39m [32m`[39m[36m${[39m[33mSESSION_COOKIE[39m[36m}[39m[32m=[39m[36m${[39mvalue[36m}[39m[32m`[39m }[33m,[39m
+    [90m 79| [39m        })[33m;[39m
+    [90m 80| [39m        [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 81| [39m        [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m 82| [39m      }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mprivate routes reject anonymous callers[2m > [22mGET /api/catalog ignores caller-supplied identity fields
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m96:31[22m[39m
+    [90m 94| [39m      })[33m;[39m
+    [90m 95| [39m
+    [90m 96| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m 97| [39m      [34mexpect[39m(created[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m 98| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22ma live session grants access[2m > [22mserves the catalog to the account that just registered
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m114:29[22m[39m
+    [90m112| [39m    })[33m;[39m
+    [90m113| [39m
+    [90m114| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m115| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+    [90m116| [39m    [35mconst[39m body [33m=[39m response[33m.[39mbody [35mas[39m unknown [35mas[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22ma live session grants access[2m > [22mkeeps the session working across requests and processes no account id in the body
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m149:26[22m[39m
+    [90m147| [39m    [35mconst[39m second [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/api/c[39m…
+    [90m148| [39m
+    [90m149| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m150| [39m    [34mexpect[39m(second[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m151| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mthe gate follows server-side session state[2m > [22mrejects the cookie after logout
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m161:27[22m[39m
+    [90m159| [39m
+    [90m160| [39m    [35mconst[39m before [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/api/c[39m…
+    [90m161| [39m    [34mexpect[39m(before[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m162| [39m
+    [90m163| [39m    [35mconst[39m loggedOut [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mthe gate follows server-side session state[2m > [22mrejects an absolutely expired session
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m184:29[22m[39m
+    [90m182| [39m
+    [90m183| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/api[39m…
+    [90m184| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m185| [39m  })[33m;[39m
+    [90m186| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mthe gate follows server-side session state[2m > [22mrejects an idle-expired session even inside the absolute window
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m195:29[22m[39m
+    [90m193| [39m
+    [90m194| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/api[39m…
+    [90m195| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m196| [39m  })[33m;[39m
+    [90m197| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mthe gate follows server-side session state[2m > [22mrejects a session whose account was disabled
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m209:29[22m[39m
+    [90m207| [39m      headers[33m:[39m [34mcookieHeader[39m(created[33m.[39m[34mcookie[39m())[33m,[39m
+    [90m208| [39m    })[33m;[39m
+    [90m209| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m210| [39m  })[33m;[39m
+    [90m211| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m > [22mthe gate follows server-side session state[2m > [22mrejects a session row deleted from the database
+[31m[1mAssertionError[22m: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/authorization.test.ts:[2m223:29[22m[39m
+    [90m221| [39m      headers[33m:[39m [34mcookieHeader[39m(created[33m.[39m[34mcookie[39m())[33m,[39m
+    [90m222| [39m    })[33m;[39m
+    [90m223| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m224| [39m  })[33m;[39m
+    [90m225| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mlists every indexed experiment sorted by id
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/catalog.test.ts:[2m78:27[22m[39m
+    [90m 76| [39m    [35mconst[39m result [33m=[39m [35mawait[39m [34mcatalog[39m(server[33m,[39m cookie)[33m;[39m
+    [90m 77| [39m
+    [90m 78| [39m    [34mexpect[39m(result[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m 79| [39m    [34mexpect[39m(result[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+    [90m 80| [39m    [34mexpect[39m(result[33m.[39mbody[33m.[39mitems[33m.[39m[34mmap[39m((item) [33m=>[39m item[33m.[39mid))[33m.[39m[34mtoEqual[39m([
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mreturns localized title and description, plus the content version
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'find')[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m93:35[22m[39m
+    [90m 91| [39m    [35mconst[39m chinese [33m=[39m [35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?locale=zh-CN'[39m)[33m;[39m
+    [90m 92| [39m
+    [90m 93| [39m    [35mconst[39m en [33m=[39m english[33m.[39mbody[33m.[39mitems[33m.[39m[34mfind[39m((item) [33m=>[39m item[33m.[39mid [33m===[39m [32m'math.fun[39m…
+    [90m   | [39m                                  [31m^[39m
+    [90m 94| [39m    [35mconst[39m zh [33m=[39m chinese[33m.[39mbody[33m.[39mitems[33m.[39m[34mfind[39m((item) [33m=>[39m item[33m.[39mid [33m===[39m [32m'math.fun[39m…
+    [90m 95| [39m    [34mexpect[39m(en[33m?.[39mtitle)[33m.[39m[34mtoBe[39m([32m'Linear and quadratic functions'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mdefaults to Chinese when no locale is requested
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading '0')[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m106:24[22m[39m
+    [90m104| [39m    [35mconst[39m result [33m=[39m [35mawait[39m [34mcatalog[39m(server[33m,[39m cookie)[33m;[39m
+    [90m105| [39m
+    [90m106| [39m    [34mexpect[39m(result[33m.[39mbody[33m.[39mitems[[34m0[39m][33m?.[39mtitle)[33m.[39m[34mtoBe[39m([32m'一次函数与二次函数'[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m107| [39m  })[33m;[39m
+    [90m108| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mexposes exactly the catalog fields and no internal detail
+[31m[1mTypeError[22m: result.body.items is not iterable[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m114:36[22m[39m
+    [90m112| [39m    [35mconst[39m result [33m=[39m [35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?locale=en'[39m)[33m;[39m
+    [90m113| [39m
+    [90m114| [39m    [35mfor[39m ([35mconst[39m item [35mof[39m result[33m.[39mbody[33m.[39mitems) {
+    [90m   | [39m                                   [31m^[39m
+    [90m115| [39m      [34mexpect[39m([33mObject[39m[33m.[39m[34mkeys[39m(item)[33m.[39m[34msort[39m())[33m.[39m[34mtoEqual[39m([
+    [90m116| [39m        [32m'concepts'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22mfilters by subject, grade and concept
+[31m[1mAssertionError[22m: Target cannot be null or undefined.[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m136:73[22m[39m
+    [90m134| [39m    [35mconst[39m { server[33m,[39m cookie } [33m=[39m [35mawait[39m [34mstartWith[39m()[33m;[39m
+    [90m135| [39m
+    [90m136| [39m    [34mexpect[39m(([35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?subject=math'[39m))[33m.[39mbody[33m.[39mitems…
+    [90m   | [39m                                                                        [31m^[39m
+    [90m137| [39m    [34mexpect[39m(([35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?subject=physics'[39m))[33m.[39mbody[33m.[39mit…
+    [90m138| [39m      [32m'physics.freefall'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'map')[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m157:70[22m[39m
+    [90m155| [39m    [35mconst[39m { server[33m,[39m cookie } [33m=[39m [35mawait[39m [34mstartWith[39m()[33m;[39m
+    [90m156| [39m
+    [90m157| [39m    [34mexpect[39m(([35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?q=FREEFALL'[39m))[33m.[39mbody[33m.[39mitems[33m.[39m[34mm[39m…
+    [90m   | [39m                                                                     [31m^[39m
+    [90m158| [39m      [32m'physics.freefall'[39m[33m,[39m
+    [90m159| [39m    ])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22mcaps the result set with limit
+[31m[1mAssertionError[22m: Target cannot be null or undefined.[39m
+[36m [2m❯[22m test/catalog.test.ts:[2m174:68[22m[39m
+    [90m172| [39m    [35mconst[39m { server[33m,[39m cookie } [33m=[39m [35mawait[39m [34mstartWith[39m()[33m;[39m
+    [90m173| [39m
+    [90m174| [39m    [34mexpect[39m(([35mawait[39m [34mcatalog[39m(server[33m,[39m cookie[33m,[39m [32m'?limit=2'[39m))[33m.[39mbody[33m.[39mitems)[33m.[39m[34mtoH[39m…
+    [90m   | [39m                                                                   [31m^[39m
+    [90m175| [39m  })[33m;[39m
+    [90m176| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22mrequires a session before any query is evaluated
+[31m[1mAssertionError[22m: expected 400 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 400[39m
+
+[36m [2m❯[22m test/catalog.test.ts:[2m205:29[22m[39m
+    [90m203| [39m    })[33m;[39m
+    [90m204| [39m
+    [90m205| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m206| [39m  })[33m;[39m
+    [90m207| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/private-routes.test.ts[2m > [22mAPI route inventory[2m > [22mdenies anonymous and forged callers on every private route
+[31m[1mAssertionError[22m: GET /api/catalog must deny anonymous callers: expected 500 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m test/private-routes.test.ts:[2m93:9[22m[39m
+    [90m 91| [39m        anonymous[33m.[39mstatus[33m,[39m
+    [90m 92| [39m        [32m`[39m[36m${[39mentry[33m.[39mmethod[36m}[39m[32m [39m[36m${[39mentry[33m.[39murl[36m}[39m[32m must deny anonymous callers`[39m[33m,[39m
+    [90m 93| [39m      )[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m        [31m^[39m
+    [90m 94| [39m      [34mexpect[39m([34merrorCode[39m(anonymous))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m 95| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/19]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m19 failed[39m[22m[2m | [22m[1m[32m17 passed[39m[22m[90m (36)[39m
+[2m   Start at [22m 21:25:06
+[2m   Duration [22m 6.80s[2m (transform 261ms, setup 0ms, collect 1.19s, tests 10.33s, environment 1ms, prepare 324ms)[22m
+

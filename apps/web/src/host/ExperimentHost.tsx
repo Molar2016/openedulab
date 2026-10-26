@@ -10,6 +10,9 @@ interface Props {
   locale: Locale;
   i18n: I18n;
   services: ExperimentServices;
+  /** Content version reported by `GET /api/experiments/:id`; not read from the bundle. */
+  contentVersion: string;
+  reviewedStatus: 'draft' | 'verified';
   onBack: () => void;
 }
 
@@ -17,7 +20,15 @@ interface Props {
  * Experiment Host: lifecycle, toolbar (reset/fullscreen/feedback), error isolation and
  * analytics. Experiments receive only locale, resetToken and services.
  */
-export function ExperimentHost({ entry, locale, i18n, services, onBack }: Props): JSX.Element {
+export function ExperimentHost({
+  entry,
+  locale,
+  i18n,
+  services,
+  contentVersion,
+  reviewedStatus,
+  onBack,
+}: Props): JSX.Element {
   const { manifest } = entry;
   const [resetToken, setResetToken] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -138,6 +149,12 @@ export function ExperimentHost({ entry, locale, i18n, services, onBack }: Props)
       <header className="experiment-host__header">
         <h1>{title}</h1>
         <p className="muted">{description}</p>
+        <p className="muted small" data-testid="experiment-meta">
+          {t('experiment.contentVersion')} {contentVersion} ·{' '}
+          {reviewedStatus === 'verified'
+            ? t('catalog.reviewed.verified')
+            : t('catalog.reviewed.draft')}
+        </p>
       </header>
 
       {entry.issues.length > 0 || !entry.compatible ? (

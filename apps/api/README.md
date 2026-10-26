@@ -1,32 +1,47 @@
-# apps/api — B2 authentication
+# apps/api — B3 authorization gate
 
 Fastify 5 + TypeScript server for the authenticated platform described in
 `docs/architecture/A-stage-design.md`. B1 built the skeleton (validated configuration,
-checksummed migration runner, `GET /api/healthz`, same-origin SPA hosting). **B2 adds
-self-registration, login, logout and sessions.** Resource gating is still B3.
+checksummed migration runner, `GET /api/healthz`, same-origin SPA hosting). B2 added
+self-registration, login, logout and sessions. **B3 adds the authorization gate, the
+server-side content index and the SPA login flow.**
 
 ## Status (read this before assuming anything works)
 
-- **Authentication exists; authorization does not.** `POST /api/auth/register`,
-  `POST /api/auth/login`, `POST /api/auth/logout` and `GET /api/auth/session` are real:
-  scrypt password hashes, server-side revocable sessions, HttpOnly cookie, CSRF checks,
-  in-process rate limits.
-- Every route that will require a session (`/api/catalog`, `/api/experiments/:id`,
-  `/api/me/*`, `/api/events`, `/api/feedback`) is still a placeholder returning
-  **401 `unauthenticated` to everybody**, including callers with a valid session. That
-  is a denial, not protection: nothing here proves access control yet. B3 replaces the
-  placeholders with `requireSession()`.
-- `/api/internal/*` is **not mounted at all** (404) — the operator channel arrives later
-  with its own Bearer token.
-- Client-side deep links (`/experiments/math.functions`) return the public SPA shell for
-  everyone. The authenticated deep-link redirect is B3 work, and the SPA in this
-  repository is still the **pre-auth prototype** with no login form: there is no
-  end-to-end login flow yet, only a working API.
+- **Authentication and authorization both exist now.** `POST /api/auth/register`,
+  `POST /api/auth/login`, `POST /api/auth/logout` and `GET /api/auth/session` are real
+  (scrypt, server-side revocable sessions, HttpOnly cookie, CSRF checks, rate limits), and
+  every resource route runs behind `requireSession()` as an `onRequest` hook.
+- **Protected today:** `GET /api/catalog` and `GET /api/experiments/:experimentId` return
+  content from the startup content index **only** with a live session; anonymous and
+  forged callers get `401 unauthenticated`. Browser navigations to `/` or
+  `/experiments/:slug` are answered with `302 /login?next=…`. `/login`, `/register` and
+  `/about` are the only public pages.
+- **Not protected by a login, by design:** the built JS/CSS bundle. Anyone can fetch a
+  static file; the boundary is the API and the HTML redirect, as stated in the design §2.
+- **Not implemented yet (B4/B5):** `/api/me/favorites`, `/api/me/recent`,
+  `/api/me/saved-state/:id`, `/api/events`, `/api/feedback` — these return `404`, not a
+  fake `401` endpoint. `/api/internal/*` is also `404` until its Bearer token exists.
 - Sessions are stored in the database and survive a restart; the rate limiter is
   in-process, so it resets on restart and assumes a single instance (design D14/Q6).
 - `Secure` + `__Host-oel_sid` are used only when `OEL_ENV=production`. Any HTTPS
   deployment must run in production mode; local http uses `oel_sid` without `Secure`.
 - Do not deploy this. `docs/PROJECT_STATE.md` tracks what is actually verified.
+
+## Authorization invariants
+
+1. One gate: `src/http/auth-context.ts` resolves the cookie → `sha256` → `session` row →
+   `account.status`, per request. Handlers receive an account context; they never read an
+   account id from a path, query, body or header.
+2. One service instance: `buildApp` creates the `AuthService` and hands the same object to
+   the credential routes and the gate, so "signed in" is always the same answer.
+3. One declaration: `src/http/route-inventory.ts` lists every `/api` route as public or
+   gated, and `test/private-routes.test.ts` compares it with the routes the running server
+   registered — a new endpoint that is not classified fails the suite.
+4. Denials are indistinguishable: no cookie, expired, revoked, disabled account and forged
+   token all produce the same `401` body. There is no existence signal.
+5. The SPA guard is a convenience. Deleting it changes the user experience, not the
+   security posture; the 302 and the 401 come from Fastify.
 
 ## Auth API
 
@@ -67,15 +82,19 @@ apps/api/
   src/db/account-repository.ts   account queries (SQL stays in the db layer)
   src/db/session-repository.ts   session queries, revocation, invalidation
   src/domain/auth-service.ts     register/login/resolve/revoke: the auth rules
+  src/domain/content-index.ts    manifest index: validation, catalog filter, detail
   src/security/identifier.ts     normalization + display masking
   src/security/password.ts       scrypt hash/verify/rehash + dummy verification
   src/security/session-token.ts  random token, sha256 storage form
   src/security/session-policy.ts cookie policy (__Host- in production) + TTLs
   src/security/rate-limit.ts     in-process fixed-window limiter
   src/http/auth-routes.ts        /api/auth/* with schemas, CSRF hook, rate limits
+  src/http/auth-context.ts       requireSession(): the single authorization gate
+  src/http/content-routes.ts     /api/catalog + /api/experiments/:id (gated)
+  src/http/route-inventory.ts    declared public/gated route surface
+  src/http/spa-gate.ts           302 /login?next=… for anonymous navigations
   src/http/csrf.ts               Origin + JSON + Sec-Fetch-Site guard
   src/http/health.ts     GET /api/healthz (public)
-  src/http/private-routes.ts  401 placeholders for future authenticated routes
   src/http/static.ts     SPA hosting + deep-link fallback (no API fallthrough)
   migrations/0001_init.sql     schema from the A-stage design §5
   test/                  vitest (node environment) suite

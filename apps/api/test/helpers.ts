@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const SPA_MARKER = 'data-fixture="spa-shell"';
 
@@ -60,7 +61,12 @@ export interface EnvPaths {
   staticDir: string;
   migrationsDir: string;
   databasePath: string;
+  /** Defaults to the repository's real `experiments/` tree. */
+  contentDir?: string;
 }
+
+/** The shipped content tree; auth/catalog fixtures index the real manifests. */
+export const CONTENT_DIR = fileURLToPath(new URL('../../../experiments', import.meta.url));
 
 export function baseEnv(paths: EnvPaths): Record<string, string> {
   return {
@@ -71,6 +77,7 @@ export function baseEnv(paths: EnvPaths): Record<string, string> {
     OEL_DATABASE_PATH: paths.databasePath,
     OEL_STATIC_DIR: paths.staticDir,
     OEL_MIGRATIONS_DIR: paths.migrationsDir,
+    OEL_CONTENT_DIR: paths.contentDir ?? CONTENT_DIR,
     OEL_LOG_LEVEL: 'silent',
   };
 }

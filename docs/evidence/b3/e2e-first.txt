@@ -1,0 +1,8 @@
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build
+[WebServer] > tsc --noEmit && vite build
+[WebServer] 
+[WebServer] tests/e2e/gate.spec.ts(31,46): error TS2339: Property 'email' does not exist on type '{ readonly identifier: "e2e-teacher@example.com"; readonly password: "classroom demo password"; }'.
+[WebServer] [e2e] build step failed: npm run build
+Error: Process from config.webServer was not able to start. Exit code: 2
+

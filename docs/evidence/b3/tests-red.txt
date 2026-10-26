@@ -1,0 +1,587 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+ [31m❯[39m test/authorization.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:21664) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21632) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22900) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19616) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19236) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21700) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18372) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19368) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20556) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:10528) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/private-routes.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 527[2mms[22m[39m
+ [32m✓[39m test/config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 263[2mms[22m[39m
+(node:9852) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12388) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/catalog.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m16 failed[39m[2m)[22m[33m 814[2mms[22m[39m
+[31m   [31m×[31m catalog content[2m > [22mlists every indexed experiment sorted by id[90m 86[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog content[2m > [22mreturns localized title and description, plus the content version[90m 42[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog content[2m > [22mdefaults to Chinese when no locale is requested[90m 46[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog content[2m > [22mexposes exactly the catalog fields and no internal detail[90m 49[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22mfilters by subject, grade and concept[90m 85[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively[90m 50[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog filtering and search[2m > [22mcaps the result set with limit[90m 52[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?limit=0[90m 43[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?limit=51[90m 65[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?limit=abc[90m 58[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?locale=fr[90m 59[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?subject=math&unknown=1[90m 41[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22manswers 400 for ?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[90m 37[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m catalog rejects malformed input[2m > [22mrequires a session before any query is evaluated[90m 35[2mms[22m[31m[39m
+[31m     → Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[31m   [31m×[31m content index fails closed[2m > [22mrefuses to start when two manifests share an id[90m 29[2mms[22m[31m[39m
+[31m     → expected [Function] to throw error matching /duplicate id/i but got 'Refusing to start: invalid server con…'[39m
+[31m   [31m×[31m content index fails closed[2m > [22mrefuses to start when a manifest has no locale dictionary[90m 25[2mms[22m[31m[39m
+[31m     → expected [Function] to throw error matching /locale|title/i but got 'Refusing to start: invalid server con…'[39m
+(node:20036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 724[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m536[2mms[22m[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1413[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mserves the built index.html at the root [33m570[2mms[22m[39m
+ [31m❯[39m test/spa-gate.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 2548[2mms[22m[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next[33m 681[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects an experiment deep link with its query string[90m 79[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects an unknown page instead of leaking the shell[90m 67[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects HEAD as well[90m 65[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m public pages stay public[2m > [22mserves build artefacts without a session[90m 69[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mserves the catalog root and the experiment deep link [33m585[2mms[22m[39m
+[31m   [31m×[31m authenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked[33m 522[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+ [32m✓[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 3408[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline) [33m1192[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint [33m579[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything [33m453[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type) [33m510[2mms[22m[39m
+ [31m❯[39m test/experiments.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 3953[2mms[22m[39m
+[31m   [31m×[31m experiment metadata[2m > [22mreturns the indexed manifest, content version and localized text[33m 1081[2mms[22m[31m[39m
+[31m     → expected 401 to be 200 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata[2m > [22manswers 404 for an experiment that is not in the index[33m 544[2mms[22m[31m[39m
+[31m     → expected 401 to be 404 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata[2m > [22manswers 400 for malformed id Math.Functions, never a filesystem lookup[33m 530[2mms[22m[31m[39m
+[31m     → expected 401 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata[2m > [22manswers 400 for malformed id math, never a filesystem lookup[33m 435[2mms[22m[31m[39m
+[31m     → expected 401 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata[2m > [22manswers 400 for malformed id math..functions, never a filesystem lookup[33m 448[2mms[22m[31m[39m
+[31m     → expected 401 to be 400 // Object.is equality[39m
+[31m   [31m×[31m experiment metadata[2m > [22manswers 400 for malformed id math.functions%2F..%2Fetc, never a filesystem lookup[33m 497[2mms[22m[31m[39m
+[31m     → expected 401 to be 400 // Object.is equality[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mrequires a session [33m417[2mms[22m[39m
+ [32m✓[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 5753[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session [33m647[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mreports only a masked identity for a live session [33m623[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation [33m575[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mrevokes only the session that logged out [33m938[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry [33m469[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one [33m472[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity [33m441[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled [33m442[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http [33m398[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22muses the __Host- prefix with Secure in production [33m355[2mms[22m[39m
+ [32m✓[39m test/auth.security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 6484[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext [33m1196[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mverifies a stored hash with timingSafeEqual semantics and rejects corrupted input [33m1901[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mupgrades the work factor on the next successful login [33m1036[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database [33m429[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses [33m815[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string [33m373[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in [33m731[2mms[22m[39m
+ [32m✓[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 6685[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier [33m1210[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits [33m598[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19) [33m592[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces [33m880[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators [33m770[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent [33m863[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation [33m394[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account [33m356[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session [33m348[2mms[22m[39m
+ [32m✓[39m test/auth.login.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 10675[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token [33m1778[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too [33m1055[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body [33m1247[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit) [33m1120[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password [33m1091[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account [33m388[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented [33m371[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak [33m3623[2mms[22m[39m
+ [32m✓[39m test/rate-limit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 13227[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After [33m3430[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget [33m1510[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password [33m3789[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mreleases the lock after the window passes [33m3596[2mms[22m[39m
+   [33m[2m✓[22m[39m rate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open [33m784[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/authorization.test.ts[2m [ test/authorization.test.ts ][22m
+[31m[1mError[22m: Transform failed with 1 error:
+G:/hermes/projects/openedulab/apps/api/test/authorization.test.ts:135:66: ERROR: Unexpected ")"[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mG:/hermes/projects/openedulab/apps/api/test/authorization.test.ts[39m:135:66
+[33m  
+  [33mUnexpected ")"[33m
+  133|  
+  134|      expect(response.status).toBe(200);
+  135|      expect(response.text).not.toMatch(/[A-Za-z]:\\\\|[A-Za-z]:\\//);
+     |                                                                    ^
+  136|      expect(response.text).not.toContain('password');
+  137|      expect(response.text).not.toContain('teacher@example.com');
+  [39m
+[90m [2m❯[22m failureErrorWithLog ../../node_modules/esbuild/lib/main.js:[2m1472:15[22m[39m
+[90m [2m❯[22m ../../node_modules/esbuild/lib/main.js:[2m755:50[22m[39m
+[90m [2m❯[22m responseCallbacks.<computed> ../../node_modules/esbuild/lib/main.js:[2m622:9[22m[39m
+[90m [2m❯[22m handleIncomingPacket ../../node_modules/esbuild/lib/main.js:[2m677:12[22m[39m
+[90m [2m❯[22m Socket.readFromStdout ../../node_modules/esbuild/lib/main.js:[2m600:7[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/private-routes.test.ts[2m [ test/private-routes.test.ts ][22m
+[31m[1mError[22m: Failed to load url ../src/http/route-inventory.js (resolved id: ../src/http/route-inventory.js) in G:/hermes/projects/openedulab/apps/api/test/private-routes.test.ts. Does the file exist?[39m
+[90m [2m❯[22m loadAndTransform ../../node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m51969:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/30]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 28 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mlists every indexed experiment sorted by id
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m74:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mreturns localized title and description, plus the content version
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m88:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mdefaults to Chinese when no locale is requested
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m102:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog content[2m > [22mexposes exactly the catalog fields and no internal detail
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m110:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22mfilters by subject, grade and concept
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m134:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m155:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog filtering and search[2m > [22mcaps the result set with limit
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m172:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?limit=0
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?limit=51
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?limit=abc
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?locale=fr
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?subject=math&unknown=1
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22manswers 400 for ?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m187:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcatalog rejects malformed input[2m > [22mrequires a session before any query is evaluated
+[31m[1mConfigError[22m: Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables.[39m
+[36m [2m❯[22m Module.loadConfig src/config.ts:[2m213:11[22m[39m
+    [90m211| [39m
+    [90m212| [39m  [35mif[39m (issues[33m.[39mlength [33m>[39m [34m0[39m) {
+    [90m213| [39m    [35mthrow[39m [35mnew[39m [33mConfigError[39m(issues)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m214| [39m  }
+    [90m215| [39m
+[90m [2m❯[22m Module.startAuthHarness test/support/auth-app.ts:[2m75:13[22m[39m
+[90m [2m❯[22m startWith test/catalog.test.ts:[2m47:13[22m[39m
+[90m [2m❯[22m test/catalog.test.ts:[2m198:24[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcontent index fails closed[2m > [22mrefuses to start when two manifests share an id
+[31m[1mAssertionError[22m: expected [Function] to throw error matching /duplicate id/i but got 'Refusing to start: invalid server con…'[39m
+
+[32m- Expected:[39m 
+/duplicate id/i
+
+[31m+ Received:[39m 
+"Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables."
+
+[36m [2m❯[22m test/catalog.test.ts:[2m217:5[22m[39m
+    [90m215| [39m    ])[33m;[39m
+    [90m216| [39m
+    [90m217| [39m    [35mawait[39m [34mexpect[39m([34mstartAuthHarness[39m({ [33mOEL_CONTENT_DIR[39m[33m:[39m contentDir }))[33m.[39mre…
+    [90m   | [39m    [31m^[39m
+    [90m218| [39m  })[33m;[39m
+    [90m219| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/catalog.test.ts[2m > [22mcontent index fails closed[2m > [22mrefuses to start when a manifest has no locale dictionary
+[31m[1mAssertionError[22m: expected [Function] to throw error matching /locale|title/i but got 'Refusing to start: invalid server con…'[39m
+
+[32m- Expected:[39m 
+/locale|title/i
+
+[31m+ Received:[39m 
+"Refusing to start: invalid server configuration.
+  - OEL_CONTENT_DIR: unknown setting; check for a typo or remove it
+See .env.example for the required variables."
+
+[36m [2m❯[22m test/catalog.test.ts:[2m226:5[22m[39m
+    [90m224| [39m    ])[33m;[39m
+    [90m225| [39m
+    [90m226| [39m    [35mawait[39m [34mexpect[39m([34mstartAuthHarness[39m({ [33mOEL_CONTENT_DIR[39m[33m:[39m contentDir }))[33m.[39mre…
+    [90m   | [39m    [31m^[39m
+    [90m227| [39m      [36m/locale|title/i[39m[33m,[39m
+    [90m228| [39m    )[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22mreturns the indexed manifest, content version and localized text
+[31m[1mAssertionError[22m: expected 401 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m35:29[22m[39m
+    [90m 33| [39m    })[33m;[39m
+    [90m 34| [39m
+    [90m 35| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 36| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+    [90m 37| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39m[34mtoMatchObject[39m({
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22manswers 404 for an experiment that is not in the index
+[31m[1mAssertionError[22m: expected 401 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m60:29[22m[39m
+    [90m 58| [39m    })[33m;[39m
+    [90m 59| [39m
+    [90m 60| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 61| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'not_found'[39m)[33m;[39m
+    [90m 62| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22manswers 400 for malformed id Math.Functions, never a filesystem lookup
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22manswers 400 for malformed id math, never a filesystem lookup
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22manswers 400 for malformed id math..functions, never a filesystem lookup
+[31m[1m[7m FAIL [27m[22m[39m test/experiments.test.ts[2m > [22mexperiment metadata[2m > [22manswers 400 for malformed id math.functions%2F..%2Fetc, never a filesystem lookup
+[31m[1mAssertionError[22m: expected 401 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m test/experiments.test.ts:[2m75:31[22m[39m
+    [90m 73| [39m      })[33m;[39m
+    [90m 74| [39m
+    [90m 75| [39m      [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m 76| [39m      [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m 77| [39m    }[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m39:29[22m[39m
+    [90m 37| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/'[39m[33m,[39m …
+    [90m 38| [39m
+    [90m 39| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 40| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m([32m'/login?next=%2F'[39m)[33m;[39m
+    [90m 41| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects an experiment deep link with its query string
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m54:29[22m[39m
+    [90m 52| [39m    })[33m;[39m
+    [90m 53| [39m
+    [90m 54| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 55| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m(
+    [90m 56| [39m      [32m'/login?next=%2Fexperiments%2Fmath-functions%3Flang%3Dzh-CN'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects an unknown page instead of leaking the shell
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m66:29[22m[39m
+    [90m 64| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/nop[39m…
+    [90m 65| [39m
+    [90m 66| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 67| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m([32m'/login?next=%2Fnope'[39m)[33m;[39m
+    [90m 68| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects HEAD as well
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m79:33[22m[39m
+    [90m 77| [39m    })[33m;[39m
+    [90m 78| [39m
+    [90m 79| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 80| [39m    [34mexpect[39m(response[33m.[39mheaders[33m.[39mlocation)[33m.[39m[34mtoBe[39m([32m'/login?next=%2F'[39m)[33m;[39m
+    [90m 81| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22mpublic pages stay public[2m > [22mserves build artefacts without a session
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m116:29[22m[39m
+    [90m114| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/ass[39m…
+    [90m115| [39m
+    [90m116| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m117| [39m    [34mexpect[39m(response[33m.[39mtext)[33m.[39m[34mtoContain[39m([32m'oel-app'[39m)[33m;[39m
+    [90m118| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/30]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22mauthenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m147:29[22m[39m
+    [90m145| [39m
+    [90m146| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/'[39m[33m,[39m …
+    [90m147| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m148| [39m  })[33m;[39m
+    [90m149| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/30]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (15)[39m
+[2m      Tests [22m [1m[31m28 failed[39m[22m[2m | [22m[1m[32m136 passed[39m[22m[90m (164)[39m
+[2m   Start at [22m 21:08:59
+[2m   Duration [22m 14.74s[2m (transform 864ms, setup 0ms, collect 6.01s, tests 56.47s, environment 5ms, prepare 2.61s)[22m
+

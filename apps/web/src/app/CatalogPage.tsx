@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Locale } from '../experiment/contract';
-import { experiments, textFor } from '../experiment/registry';
 import type { I18n } from '../i18n';
+import type { ApiClient, CatalogItem } from '../services/api';
 import { experimentHref } from './router';
 
 interface Props {
+  api: ApiClient;
   locale: Locale;
   i18n: I18n;
   navigate: (to: string) => void;
@@ -12,49 +13,83 @@ interface Props {
 
 const ALL = 'all';
 
+type State =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'error' }
+  | { readonly kind: 'ready'; readonly items: readonly CatalogItem[] };
+
 function tagLabel(i18n: I18n, kind: 'subject' | 'grade' | 'concept', value: string): string {
   const key = `tag.${kind}.${value}`;
   const label = i18n.t(key);
   return label === key ? value : label;
 }
 
-function uniqueSorted(values: string[]): string[] {
+function uniqueSorted(values: readonly string[]): string[] {
   return [...new Set(values)].sort();
 }
 
-export function CatalogPage({ locale, i18n, navigate }: Props): JSX.Element {
+/**
+ * Catalog (design §7.2, R-07).
+ *
+ * The list comes from `GET /api/catalog`, i.e. from an authenticated request — the page
+ * shows no experiment metadata before the server answered. Filtering happens on the
+ * fetched set so the UI stays responsive; the API also filters, and is tested for it.
+ */
+export function CatalogPage({ api, locale, i18n, navigate }: Props): JSX.Element {
+  const [state, setState] = useState<State>({ kind: 'loading' });
   const [query, setQuery] = useState('');
   const [subject, setSubject] = useState(ALL);
   const [grade, setGrade] = useState(ALL);
   const [concept, setConcept] = useState(ALL);
+  const [reloadToken, setReloadToken] = useState(0);
+
   const t = (key: string, params?: Record<string, string | number>): string => i18n.t(key, params);
 
-  const available = useMemo(() => experiments.filter((entry) => entry.compatible && entry.issues.length === 0), []);
+  useEffect(() => {
+    let cancelled = false;
+    setState({ kind: 'loading' });
+    api
+      .catalog({ locale })
+      .then((items) => {
+        if (!cancelled) setState({ kind: 'ready', items });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ kind: 'error' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, locale, reloadToken]);
+
+  const items = useMemo(
+    () => (state.kind === 'ready' ? state.items : []),
+    [state],
+  );
 
   const options = useMemo(
     () => ({
-      subjects: uniqueSorted(available.flatMap((entry) => entry.manifest.subjects)),
-      grades: uniqueSorted(available.flatMap((entry) => entry.manifest.grades)),
-      concepts: uniqueSorted(available.flatMap((entry) => entry.manifest.concepts)),
+      subjects: uniqueSorted(items.flatMap((item) => item.subjects)),
+      grades: uniqueSorted(items.flatMap((item) => item.grades)),
+      concepts: uniqueSorted(items.flatMap((item) => item.concepts)),
     }),
-    [available],
+    [items],
   );
 
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
-  const visible = available.filter((entry) => {
-    if (subject !== ALL && !entry.manifest.subjects.includes(subject)) return false;
-    if (grade !== ALL && !entry.manifest.grades.includes(grade)) return false;
-    if (concept !== ALL && !entry.manifest.concepts.includes(concept)) return false;
+  const visible = items.filter((item) => {
+    if (subject !== ALL && !item.subjects.includes(subject)) return false;
+    if (grade !== ALL && !item.grades.includes(grade)) return false;
+    if (concept !== ALL && !item.concepts.includes(concept)) return false;
     if (tokens.length === 0) return true;
     const haystack = [
-      textFor(entry, locale, 'title'),
-      textFor(entry, locale, 'description'),
-      entry.manifest.id,
-      entry.manifest.slug,
-      ...entry.manifest.subjects.map((value) => tagLabel(i18n, 'subject', value)),
-      ...entry.manifest.grades.map((value) => tagLabel(i18n, 'grade', value)),
-      ...entry.manifest.concepts.map((value) => tagLabel(i18n, 'concept', value)),
+      item.title,
+      item.description,
+      item.id,
+      item.slug,
+      ...item.subjects.map((value) => tagLabel(i18n, 'subject', value)),
+      ...item.grades.map((value) => tagLabel(i18n, 'grade', value)),
+      ...item.concepts.map((value) => tagLabel(i18n, 'concept', value)),
     ]
       .join(' ')
       .toLowerCase();
@@ -98,95 +133,111 @@ export function CatalogPage({ locale, i18n, navigate }: Props): JSX.Element {
         <p className="muted">{t('catalog.subheading')}</p>
       </div>
 
-      <div className="search">
-        <label htmlFor="catalog-search">{t('catalog.searchLabel')}</label>
-        <input
-          id="catalog-search"
-          type="search"
-          value={query}
-          placeholder={t('catalog.searchPlaceholder')}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </div>
-
-      <div className="filters" aria-label={t('catalog.filters')}>
-        {filterGroup(t('catalog.filter.subject'), options.subjects, subject, setSubject, 'subject')}
-        {filterGroup(t('catalog.filter.grade'), options.grades, grade, setGrade, 'grade')}
-        {filterGroup(t('catalog.filter.concept'), options.concepts, concept, setConcept, 'concept')}
-      </div>
-
-      <div className="catalog__summary">
-        <p aria-live="polite" className="small" data-testid="result-count">
-          {t('catalog.resultCount', { count: visible.length })}
-        </p>
-        {hasFilters ? (
-          <button type="button" className="button button--ghost small" onClick={clearFilters}>
-            {t('catalog.clearFilters')}
-          </button>
-        ) : null}
-      </div>
-
-      {visible.length === 0 ? (
-        <div className="empty" data-testid="catalog-empty">
-          <h2>{t('catalog.empty')}</h2>
-          <p className="muted">{t('catalog.emptyHint')}</p>
-          <button type="button" className="button" onClick={clearFilters}>
-            {t('catalog.clearFilters')}
+      {state.kind === 'error' ? (
+        <div className="empty" role="alert" data-testid="catalog-error">
+          <h2>{t('catalog.error.title')}</h2>
+          <p className="muted">{t('catalog.error.body')}</p>
+          <button type="button" className="button" onClick={() => setReloadToken((value) => value + 1)}>
+            {t('catalog.error.retry')}
           </button>
         </div>
-      ) : (
-        <ul className="cards">
-          {visible.map((entry) => {
-            const href = experimentHref(entry.manifest.slug, locale);
-            const title = textFor(entry, locale, 'title');
-            return (
-              <li key={entry.manifest.id}>
-                <article className="card" data-testid={`experiment-card-${entry.manifest.slug}`}>
-                  <div className="card__meta">
-                    <span className="badge">{tagLabel(i18n, 'subject', entry.manifest.subjects[0])}</span>
-                    <span className="badge badge--muted">
-                      {entry.manifest.reviewedStatus === 'verified'
-                        ? t('catalog.reviewed.verified')
-                        : t('catalog.reviewed.draft')}
-                    </span>
-                    <span className="badge badge--muted">v{entry.manifest.moduleVersion}</span>
-                  </div>
-                  <h2>
-                    <a
-                      href={href}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate(href);
-                      }}
-                    >
-                      {title}
-                    </a>
-                  </h2>
-                  <p className="muted">{textFor(entry, locale, 'description')}</p>
-                  <ul className="tags">
-                    {entry.manifest.grades.map((value) => (
-                      <li key={`grade-${value}`}>{tagLabel(i18n, 'grade', value)}</li>
-                    ))}
-                    {entry.manifest.concepts.map((value) => (
-                      <li key={`concept-${value}`}>{tagLabel(i18n, 'concept', value)}</li>
-                    ))}
-                  </ul>
-                  <a
-                    className="button"
-                    href={href}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigate(href);
-                    }}
-                  >
-                    {t('catalog.start')}
-                  </a>
-                </article>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      ) : null}
+
+      {state.kind === 'loading' ? (
+        <p className="muted" role="status" data-testid="catalog-loading">
+          {t('catalog.loading')}
+        </p>
+      ) : null}
+
+      {state.kind === 'ready' ? (
+        <>
+          <div className="search">
+            <label htmlFor="catalog-search">{t('catalog.searchLabel')}</label>
+            <input
+              id="catalog-search"
+              type="search"
+              value={query}
+              placeholder={t('catalog.searchPlaceholder')}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+
+          <div className="filters" aria-label={t('catalog.filters')}>
+            {filterGroup(t('catalog.filter.subject'), options.subjects, subject, setSubject, 'subject')}
+            {filterGroup(t('catalog.filter.grade'), options.grades, grade, setGrade, 'grade')}
+            {filterGroup(t('catalog.filter.concept'), options.concepts, concept, setConcept, 'concept')}
+          </div>
+
+          <div className="catalog__summary">
+            <p aria-live="polite" className="small" data-testid="result-count">
+              {t('catalog.resultCount', { count: visible.length })}
+            </p>
+            {hasFilters ? (
+              <button type="button" className="button button--ghost small" onClick={clearFilters}>
+                {t('catalog.clearFilters')}
+              </button>
+            ) : null}
+          </div>
+
+          {visible.length === 0 ? (
+            <div className="empty" data-testid="catalog-empty">
+              <h2>{t('catalog.empty')}</h2>
+              <p className="muted">{t('catalog.emptyHint')}</p>
+              <button type="button" className="button" onClick={clearFilters}>
+                {t('catalog.clearFilters')}
+              </button>
+            </div>
+          ) : (
+            <ul className="cards">
+              {visible.map((item) => {
+                const href = experimentHref(item.slug, locale);
+                return (
+                  <li key={item.id}>
+                    <article className="card" data-testid={`experiment-card-${item.slug}`}>
+                      <div className="card__meta">
+                        <span className="badge">{tagLabel(i18n, 'subject', item.subjects[0] ?? '')}</span>
+                        <span className="badge badge--muted">
+                          {t('catalog.contentVersion', { version: item.contentVersion })}
+                        </span>
+                      </div>
+                      <h2>
+                        <a
+                          href={href}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            navigate(href);
+                          }}
+                        >
+                          {item.title}
+                        </a>
+                      </h2>
+                      <p className="muted">{item.description}</p>
+                      <ul className="tags">
+                        {item.grades.map((value) => (
+                          <li key={`grade-${value}`}>{tagLabel(i18n, 'grade', value)}</li>
+                        ))}
+                        {item.concepts.map((value) => (
+                          <li key={`concept-${value}`}>{tagLabel(i18n, 'concept', value)}</li>
+                        ))}
+                      </ul>
+                      <a
+                        className="button"
+                        href={href}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          navigate(href);
+                        }}
+                      >
+                        {t('catalog.start')}
+                      </a>
+                    </article>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
+      ) : null}
     </section>
   );
 }

@@ -27,15 +27,20 @@ async function start(): Promise<FastifyInstance> {
 const HTML_ACCEPT = { accept: 'text/html,application/xhtml+xml' };
 
 describe('same-origin SPA hosting', () => {
-  it('serves the built index.html at the root', async () => {
+  /**
+   * Superseded in B3: the root used to be public. It is now a protected page, so an
+   * anonymous navigation is redirected to the login page (see `spa-gate.test.ts` for the
+   * authenticated case and the deep-link matrix). What must stay true here is that the
+   * server never answers an anonymous navigation with the app shell.
+   */
+  it('redirects an anonymous navigation to the root instead of serving the shell', async () => {
     const server = await start();
 
     const response = await server.inject({ method: 'GET', url: '/', headers: HTML_ACCEPT });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toMatch(/^text\/html/);
-    expect(response.headers['cache-control']).toBe('no-cache');
-    expect(response.body).toContain(SPA_MARKER);
+    expect(response.statusCode).toBe(302);
+    expect(response.headers.location).toBe('/login?next=%2F');
+    expect(response.body).not.toContain(SPA_MARKER);
   });
 
   it('serves hashed assets from the build output', async () => {
@@ -48,7 +53,19 @@ describe('same-origin SPA hosting', () => {
     expect(response.body).toContain('oel-app');
   });
 
-  it('returns the SPA shell for a client-side deep link (no auth gate yet — B3)', async () => {
+  it('serves the public login page as the SPA shell', async () => {
+    const server = await start();
+
+    const response = await server.inject({ method: 'GET', url: '/login', headers: HTML_ACCEPT });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toMatch(/^text\/html/);
+    expect(response.headers['cache-control']).toBe('no-cache');
+    expect(response.body).toContain(SPA_MARKER);
+  });
+
+  /** Superseded in B3: deep links are gated, so an anonymous navigation is a 302. */
+  it('redirects an anonymous client-side deep link (B3 gate)', async () => {
     const server = await start();
 
     const response = await server.inject({
@@ -57,10 +74,9 @@ describe('same-origin SPA hosting', () => {
       headers: HTML_ACCEPT,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toMatch(/^text\/html/);
-    expect(response.headers['cache-control']).toBe('no-cache');
-    expect(response.body).toContain(SPA_MARKER);
+    expect(response.statusCode).toBe(302);
+    expect(response.headers.location).toBe('/login?next=%2Fexperiments%2Fmath.functions');
+    expect(response.body).not.toContain(SPA_MARKER);
   });
 
   it('does not hand HTML to a request that explicitly asks for JSON', async () => {

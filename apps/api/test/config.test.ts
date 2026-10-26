@@ -43,6 +43,7 @@ describe('loadConfig — fail closed', () => {
       databasePath: f.databasePath,
       migrationsDir: f.migrationsDir,
       staticDir: f.staticDir,
+      contentDir: f.env.OEL_CONTENT_DIR,
       logLevel: 'silent',
     });
   });
@@ -65,6 +66,7 @@ describe('loadConfig — fail closed', () => {
         OEL_DATABASE_PATH: undefined,
         OEL_STATIC_DIR: undefined,
         OEL_MIGRATIONS_DIR: undefined,
+        OEL_CONTENT_DIR: undefined,
       }),
     );
 
@@ -76,7 +78,18 @@ describe('loadConfig — fail closed', () => {
         'OEL_DATABASE_PATH',
         'OEL_STATIC_DIR',
         'OEL_MIGRATIONS_DIR',
+        'OEL_CONTENT_DIR',
       ]),
+    );
+  });
+
+  it('rejects a content directory without any <folder>/manifest.json', async () => {
+    const f = await withFixture();
+    const emptyContent = path.join(f.root, 'empty-content');
+    await mkdir(emptyContent, { recursive: true });
+
+    expect(rejectedFields(envWith(f.env, { OEL_CONTENT_DIR: emptyContent }))).toContain(
+      'OEL_CONTENT_DIR',
     );
   });
 

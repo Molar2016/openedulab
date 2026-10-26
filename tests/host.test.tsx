@@ -11,7 +11,15 @@ const i18n = createI18n('en');
 
 function renderHost(services: AppServices, target: RegistryEntry = entry) {
   return render(
-    <ExperimentHost entry={target} locale="en" i18n={i18n} services={services} onBack={() => undefined} />,
+    <ExperimentHost
+      entry={target}
+      locale="en"
+      i18n={i18n}
+      services={services}
+      contentVersion={target.manifest.contentVersion ?? target.manifest.moduleVersion}
+      reviewedStatus={target.manifest.reviewedStatus}
+      onBack={() => undefined}
+    />,
   );
 }
 

@@ -1,8 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { DatabaseSync } from 'node:sqlite';
 
 import type { AppConfig } from '../config.js';
-import { createAuthService, DuplicateIdentifierError, type AuthService } from '../domain/auth-service.js';
+import { DuplicateIdentifierError, type AuthService } from '../domain/auth-service.js';
 import { normalizeIdentifier } from '../security/identifier.js';
 import { validatePassword } from '../security/password.js';
 import { InMemoryRateLimiter, type RateLimitRule, type RateLimitStatus } from '../security/rate-limit.js';
@@ -84,13 +83,17 @@ const MESSAGES = {
 
 export interface AuthRouteOptions {
   readonly config: AppConfig;
-  readonly db: DatabaseSync;
   readonly now: () => number;
+  /**
+   * The same service instance the `requireSession` gate uses. Owned by `buildApp` so a
+   * session created here is immediately valid everywhere, and a revocation here is
+   * immediately fatal everywhere.
+   */
+  readonly service: AuthService;
 }
 
 export function registerAuthRoutes(app: FastifyInstance, options: AuthRouteOptions): void {
-  const { config, db, now } = options;
-  const service: AuthService = createAuthService({ db, now });
+  const { config, now, service } = options;
   const limiter = new InMemoryRateLimiter(now);
   const cookiePolicy = sessionCookiePolicy(config);
   const csrfGuard = createCsrfGuard(config);

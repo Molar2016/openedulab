@@ -1,18 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Locale } from '../experiment/contract';
 import { SDK_VERSION } from '../experiment/contract';
-import { getExperimentBySlug } from '../experiment/registry';
+import { getExperimentBySlug, type RegistryEntry } from '../experiment/registry';
 import { ExperimentHost } from '../host/ExperimentHost';
 import { createI18n, persistLocale, resolveInitialLocale } from '../i18n';
 import type { AppServices } from '../services';
+import { ApiError, type ExperimentDetail } from '../services/api';
 import { CatalogPage } from './CatalogPage';
-import { aboutHref, catalogHref, parseRoute, type Route } from './router';
+import { LoginPage } from './LoginPage';
+import {
+  aboutHref,
+  catalogHref,
+  loginHref,
+  parseRoute,
+  nextFromSearch,
+  type Route,
+} from './router';
 
 interface Props {
   services: AppServices;
 }
 
-function NotFound({ i18n, navigate }: { i18n: ReturnType<typeof createI18n>; navigate: (to: string) => void }): JSX.Element {
+type SessionState =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'anonymous' }
+  | { readonly kind: 'authenticated'; readonly displayHint: string };
+
+function NotFound({
+  i18n,
+  navigate,
+}: {
+  i18n: ReturnType<typeof createI18n>;
+  navigate: (to: string) => void;
+}): JSX.Element {
   return (
     <section className="empty" data-testid="not-found">
       <h1>{i18n.t('notFound.title')}</h1>
@@ -31,16 +51,110 @@ function About({ i18n }: { i18n: ReturnType<typeof createI18n> }): JSX.Element {
       <p>{i18n.t('about.body')}</p>
       <h2>{i18n.t('about.privacyHeading')}</h2>
       <p>{i18n.t('about.privacyBody')}</p>
-      <p className="muted">{i18n.t('about.noAccounts')}</p>
+      <p className="muted">{i18n.t('about.unverified')}</p>
       <p className="muted">{i18n.t('about.licensePending')}</p>
-      <p className="muted small">{i18n.t('footer.noBackend')}</p>
     </section>
   );
 }
 
+type ExperimentState =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'missing' }
+  | { readonly kind: 'error' }
+  | { readonly kind: 'ready'; readonly detail: ExperimentDetail };
+
+/**
+ * One experiment route: metadata is fetched from `GET /api/experiments/:id` before the
+ * experiment renders, so the page itself is a protected resource rather than a local
+ * module that happens to be in the bundle.
+ */
+function ExperimentRoute({
+  entry,
+  locale,
+  i18n,
+  services,
+  onBack,
+}: {
+  entry: RegistryEntry;
+  locale: Locale;
+  i18n: ReturnType<typeof createI18n>;
+  services: AppServices;
+  onBack: () => void;
+}): JSX.Element {
+  const [state, setState] = useState<ExperimentState>({ kind: 'loading' });
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ kind: 'loading' });
+    services.api
+      .experiment(entry.manifest.id, locale)
+      .then((detail) => {
+        if (!cancelled) setState({ kind: 'ready', detail });
+      })
+      .catch((failure: unknown) => {
+        if (cancelled) return;
+        const code = failure instanceof ApiError ? failure.code : 'network_error';
+        setState({ kind: code === 'not_found' ? 'missing' : 'error' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [services, entry.manifest.id, locale, reloadToken]);
+
+  if (state.kind === 'loading') {
+    return (
+      <p className="muted" role="status" data-testid="experiment-loading">
+        {i18n.t('experiment.loading')}
+      </p>
+    );
+  }
+
+  if (state.kind === 'missing') {
+    return <NotFound i18n={i18n} navigate={() => onBack()} />;
+  }
+
+  if (state.kind === 'error') {
+    return (
+      <section className="empty" role="alert" data-testid="experiment-meta-error">
+        <h1>{i18n.t('catalog.error.title')}</h1>
+        <p className="muted">{i18n.t('catalog.error.body')}</p>
+        <button type="button" className="button" onClick={() => setReloadToken((value) => value + 1)}>
+          {i18n.t('catalog.error.retry')}
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <ExperimentHost
+      entry={entry}
+      locale={locale}
+      i18n={i18n}
+      services={services}
+      contentVersion={state.detail.contentVersion}
+      reviewedStatus={state.detail.reviewedStatus}
+      onBack={onBack}
+    />
+  );
+}
+
+/**
+ * Root component.
+ *
+ * The session is asked for once on load and after every credential change; the answer
+ * decides what may be rendered. This is a convenience layer only — the server gate
+ * (`requireSession`, deep-link 302) is what actually protects the resources, so a client
+ * that ignores this component still gets nothing.
+ */
 export function App({ services }: Props): JSX.Element {
   const [locale, setLocale] = useState<Locale>(() => resolveInitialLocale());
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.pathname));
+  const [session, setSession] = useState<SessionState>({ kind: 'loading' });
+  const [pendingNext, setPendingNext] = useState<string | null>(() =>
+    nextFromSearch(window.location.search),
+  );
+  const [accountError, setAccountError] = useState<string | null>(null);
 
   const i18n = useMemo(
     () =>
@@ -56,16 +170,41 @@ export function App({ services }: Props): JSX.Element {
     const next = new URL(to, window.location.origin);
     const current = `${window.location.pathname}${window.location.search}`;
     const target = `${next.pathname}${next.search}`;
-    if (target === current) return;
-    window.history.pushState({}, '', target);
+    if (target !== current) {
+      window.history.pushState({}, '', target);
+    }
     setRoute(parseRoute(next.pathname));
+    setPendingNext(nextFromSearch(next.search));
   }, []);
 
   useEffect(() => {
-    const onPopState = (): void => setRoute(parseRoute(window.location.pathname));
+    const onPopState = (): void => {
+      setRoute(parseRoute(window.location.pathname));
+      setPendingNext(nextFromSearch(window.location.search));
+    };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    services.api
+      .session()
+      .then((info) => {
+        if (cancelled) return;
+        setSession(
+          info.authenticated && info.account !== undefined
+            ? { kind: 'authenticated', displayHint: info.account.displayHint }
+            : { kind: 'anonymous' },
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSession({ kind: 'anonymous' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [services]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -96,7 +235,96 @@ export function App({ services }: Props): JSX.Element {
     }
   }, [route]);
 
+  const handleAuthenticated = useCallback(
+    (displayHint: string): void => {
+      setSession({ kind: 'authenticated', displayHint });
+      setAccountError(null);
+      const target = pendingNext ?? '/';
+      navigate(target);
+    },
+    [navigate, pendingNext],
+  );
+
+  const handleLogout = useCallback((): void => {
+    setAccountError(null);
+    services.api
+      .logout()
+      .then(() => {
+        setSession({ kind: 'anonymous' });
+        navigate(loginHref(locale, null));
+      })
+      .catch((failure: unknown) => {
+        // A failed logout must not look like a successful one: the session may still be
+        // alive on the server, so the UI keeps showing "signed in" and says why.
+        const code = failure instanceof ApiError ? failure.code : 'network_error';
+        setAccountError(
+          code === 'network_error'
+            ? i18n.t('account.logoutOffline')
+            : i18n.t('account.logoutFailed'),
+        );
+      });
+  }, [i18n, locale, navigate, services]);
+
+  const authenticated = session.kind === 'authenticated';
   const experimentEntry = route.name === 'experiment' ? getExperimentBySlug(route.slug) : undefined;
+  const currentPath = `${window.location.pathname}${window.location.search}`;
+  const nextTarget = pendingNext ?? (route.name === 'catalog' ? null : currentPath);
+
+  const body = ((): JSX.Element => {
+    if (route.name === 'about') {
+      return <About i18n={i18n} />;
+    }
+    if (route.name === 'login' || route.name === 'register') {
+      return (
+        <LoginPage
+          mode={route.name === 'register' ? 'register' : 'login'}
+          i18n={i18n}
+          api={services.api}
+          locale={locale}
+          next={pendingNext}
+          onAuthenticated={handleAuthenticated}
+          navigate={navigate}
+        />
+      );
+    }
+    if (session.kind === 'loading') {
+      return (
+        <p className="muted" role="status" data-testid="session-loading">
+          {i18n.t('auth.session.loading')}
+        </p>
+      );
+    }
+    if (session.kind === 'anonymous') {
+      return (
+        <LoginPage
+          mode="login"
+          i18n={i18n}
+          api={services.api}
+          locale={locale}
+          next={nextTarget}
+          onAuthenticated={handleAuthenticated}
+          navigate={navigate}
+        />
+      );
+    }
+    if (route.name === 'catalog') {
+      return <CatalogPage api={services.api} locale={locale} i18n={i18n} navigate={navigate} />;
+    }
+    if (route.name === 'experiment') {
+      return experimentEntry === undefined ? (
+        <NotFound i18n={i18n} navigate={navigate} />
+      ) : (
+        <ExperimentRoute
+          entry={experimentEntry}
+          locale={locale}
+          i18n={i18n}
+          services={services}
+          onBack={() => navigate(catalogHref(locale))}
+        />
+      );
+    }
+    return <NotFound i18n={i18n} navigate={navigate} />;
+  })();
 
   return (
     <div className="app">
@@ -120,16 +348,18 @@ export function App({ services }: Props): JSX.Element {
         </div>
 
         <nav className="app-header__nav" aria-label={i18n.t('nav.catalog')}>
-          <a
-            href={catalogHref(locale)}
-            aria-current={route.name === 'catalog' ? 'page' : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              navigate(catalogHref(locale));
-            }}
-          >
-            {i18n.t('nav.catalog')}
-          </a>
+          {authenticated ? (
+            <a
+              href={catalogHref(locale)}
+              aria-current={route.name === 'catalog' ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                navigate(catalogHref(locale));
+              }}
+            >
+              {i18n.t('nav.catalog')}
+            </a>
+          ) : null}
           <a
             href={aboutHref(locale)}
             aria-current={route.name === 'about' ? 'page' : undefined}
@@ -150,33 +380,31 @@ export function App({ services }: Props): JSX.Element {
             {i18n.t('locale.en')}
           </button>
         </div>
+
+        {session.kind === 'authenticated' ? (
+          <div className="account" data-testid="account-block">
+            <span className="account__hint small">
+              {i18n.t('account.signedInAs', { hint: session.displayHint })}
+            </span>
+            <button
+              type="button"
+              className="button button--ghost small"
+              onClick={handleLogout}
+              data-testid="logout-button"
+            >
+              {i18n.t('account.logout')}
+            </button>
+          </div>
+        ) : null}
       </header>
 
-      <p className="no-login small">{i18n.t('app.noLogin')}</p>
+      {accountError !== null ? (
+        <p className="auth__error" role="alert" data-testid="account-error">
+          {accountError}
+        </p>
+      ) : null}
 
-      <main id="main">
-        {route.name === 'catalog' ? (
-          <CatalogPage locale={locale} i18n={i18n} navigate={navigate} />
-        ) : null}
-
-        {route.name === 'about' ? <About i18n={i18n} /> : null}
-
-        {route.name === 'experiment' ? (
-          experimentEntry ? (
-            <ExperimentHost
-              entry={experimentEntry}
-              locale={locale}
-              i18n={i18n}
-              services={services}
-              onBack={() => navigate(catalogHref(locale))}
-            />
-          ) : (
-            <NotFound i18n={i18n} navigate={navigate} />
-          )
-        ) : null}
-
-        {route.name === 'notFound' ? <NotFound i18n={i18n} navigate={navigate} /> : null}
-      </main>
+      <main id="main">{body}</main>
 
       <footer className="app-footer">
         <a
@@ -192,7 +420,6 @@ export function App({ services }: Props): JSX.Element {
         <span className="muted small">
           v{services.appVersion} · SDK {SDK_VERSION}
         </span>
-        <span className="muted small">{i18n.t('footer.noBackend')}</span>
       </footer>
     </div>
   );

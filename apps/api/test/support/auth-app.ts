@@ -66,6 +66,7 @@ export async function startAuthHarness(
 
   await mkdir(path.join(staticDir, 'assets'), { recursive: true });
   await writeFile(path.join(staticDir, 'index.html'), INDEX_HTML, 'utf8');
+  await writeFile(path.join(staticDir, 'assets', 'app.js'), 'console.log("oel-app");\n', 'utf8');
   await mkdir(migrationsDir, { recursive: true });
   await cp(MIGRATIONS_DIR, migrationsDir, { recursive: true });
 

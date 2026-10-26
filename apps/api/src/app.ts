@@ -3,11 +3,17 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import type { AppConfig } from './config.js';
 import { openDatabase } from './db/database.js';
 import { migrate } from './db/migrate.js';
+import { createAuthService } from './domain/auth-service.js';
+import { loadContentIndex, type ContentIndex } from './domain/content-index.js';
+import { createSessionGate } from './http/auth-context.js';
 import { registerAuthRoutes } from './http/auth-routes.js';
+import { registerContentRoutes } from './http/content-routes.js';
 import { apiError, type ApiErrorCode } from './http/errors.js';
 import { registerHealthRoute } from './http/health.js';
-import { registerPrivateRouteStubs } from './http/private-routes.js';
+import { createRouteCollector, exposeRouteInventory } from './http/route-inventory.js';
+import { registerSpaGate } from './http/spa-gate.js';
 import { registerSpaFallback, registerSpaHosting } from './http/static.js';
+import { sessionCookiePolicy } from './security/session-policy.js';
 
 export interface BuildAppOptions {
   readonly config: AppConfig;
@@ -18,8 +24,13 @@ export interface BuildAppOptions {
 const MAX_BODY_BYTES = 64 * 1024;
 
 /**
- * Builds the HTTP app: applies migrations (fail-closed) before any route exists,
- * then registers the API surface and same-origin SPA hosting.
+ * Builds the HTTP app: validates the content index and applies migrations (both
+ * fail-closed) before any route exists, then registers the API surface and same-origin
+ * SPA hosting.
+ *
+ * Authorization is wired once, here: a single `AuthService` instance backs both the
+ * credential routes and the `requireSession` gate, so "signed in" means the same thing
+ * for every route and every HTML navigation.
  */
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
   const { config, version, now = Date.now } = options;
@@ -39,6 +50,17 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     // never believe it can name an account id, status or hash field.
     ajv: { customOptions: { removeAdditional: false } },
   });
+
+  const routes = createRouteCollector();
+  app.addHook('onRoute', routes.record);
+
+  let contentIndex: ContentIndex;
+  try {
+    contentIndex = loadContentIndex(config.contentDir);
+  } catch (error) {
+    await app.close();
+    throw error;
+  }
 
   const db = openDatabase(config.databasePath);
   try {
@@ -90,6 +112,10 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       .send(apiError(mapped, 'Request is invalid.'));
   });
 
+  const sessionService = createAuthService({ db, now });
+  const cookiePolicy = sessionCookiePolicy(config);
+  const gate = createSessionGate({ service: sessionService, cookiePolicy });
+
   registerHealthRoute(app, {
     db,
     version,
@@ -97,10 +123,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     startedAt: now(),
     now,
   });
-  registerAuthRoutes(app, { config, db, now });
-  registerPrivateRouteStubs(app);
+  registerAuthRoutes(app, { config, now, service: sessionService });
+  registerContentRoutes(app, { contentIndex, gate });
+  registerSpaGate(app, { gate });
   await registerSpaHosting(app, config.staticDir);
   registerSpaFallback(app);
+  exposeRouteInventory(app, routes.entries);
 
   return app;
 }

@@ -85,6 +85,11 @@ export function validateManifests(entries: ManifestEntry[], hostVersion = SDK_VE
     if (!SEMVER.test(manifest.moduleVersion ?? '')) {
       issues.push(`${prefix} moduleVersion "${manifest.moduleVersion}" is not semver`);
     }
+    // The server content index requires contentVersion; the browser only carries it, so a
+    // malformed value is still reported here rather than reaching a page silently.
+    if (manifest.contentVersion !== undefined && !SEMVER.test(manifest.contentVersion)) {
+      issues.push(`${prefix} contentVersion "${manifest.contentVersion}" is not semver`);
+    }
     if (caretRangeMajor(manifest.sdkVersionRange ?? '') === null) {
       issues.push(`${prefix} sdkVersionRange "${manifest.sdkVersionRange}" must be a caret range like "^1.0.0"`);
     } else if (!isSdkCompatible(manifest.sdkVersionRange, hostVersion)) {

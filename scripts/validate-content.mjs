@@ -53,6 +53,9 @@ async function validateExperiment(folder, hostMajor, seenIds, seenSlugs) {
   if (!ID.test(manifest.id ?? '')) fail(`${folder}: id "${manifest.id}" must look like "math.functions"`);
   if (!SLUG.test(manifest.slug ?? '')) fail(`${folder}: slug "${manifest.slug}" must be kebab-case`);
   if (!SEMVER.test(manifest.moduleVersion ?? '')) fail(`${folder}: moduleVersion "${manifest.moduleVersion}" must be semver`);
+  if (!SEMVER.test(manifest.contentVersion ?? '')) {
+    fail(`${folder}: contentVersion "${manifest.contentVersion}" must be semver (server index requires it)`);
+  }
 
   const range = /^\^(\d+)\.(\d+)\.(\d+)$/.exec(manifest.sdkVersionRange ?? '');
   if (!range) {

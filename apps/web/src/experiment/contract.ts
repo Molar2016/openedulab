@@ -62,6 +62,8 @@ export interface ExperimentManifest {
   id: string;
   slug: string;
   moduleVersion: string;
+  /** Content version (design §10): what events, saved state and cached metadata key on. */
+  contentVersion?: string;
   /** Caret range, e.g. "^1.0.0". The host accepts only matching major versions. */
   sdkVersionRange: string;
   titleKey: string;

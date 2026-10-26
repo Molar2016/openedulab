@@ -55,7 +55,7 @@ const ASSET_EXTENSIONS = new Set([
 ]);
 
 /** Looks like a request for a build artefact rather than a client-side route. */
-function looksLikeAsset(pathname: string): boolean {
+export function looksLikeAsset(pathname: string): boolean {
   const dot = pathname.lastIndexOf('.');
   if (dot === -1) {
     return false;
@@ -71,8 +71,10 @@ function looksLikeAsset(pathname: string): boolean {
  * Experiment slugs contain dots (`math.functions`), so the asset test is an explicit
  * extension allowlist instead of a "any extension" heuristic.
  *
- * Client-side deep links currently return the public SPA shell. The authenticated
- * deep-link gate (302 to /login) is B3 work and is deliberately not claimed here.
+ * Client-side deep links fall through to this handler, which serves the SPA shell. The
+ * authenticated deep-link gate (302 to /login for anonymous navigations) runs earlier as
+ * an `onRequest` hook — see `http/spa-gate.ts` — so by the time we get here the caller is
+ * either authenticated or asking for a public page.
  */
 export function registerSpaFallback(app: FastifyInstance): void {
   app.setNotFoundHandler((request, reply) => {

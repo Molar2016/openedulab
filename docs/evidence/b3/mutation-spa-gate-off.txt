@@ -1,0 +1,165 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:4840) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13084) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/static.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 1085[2mms[22m[39m
+[31m   [31m×[31m same-origin SPA hosting[2m > [22mredirects an anonymous navigation to the root instead of serving the shell[33m 385[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m same-origin SPA hosting[2m > [22mredirects an anonymous client-side deep link (B3 gate)[90m 48[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+ [31m❯[39m test/spa-gate.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 1667[2mms[22m[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next[33m 388[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects an experiment deep link with its query string[90m 58[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects an unknown page instead of leaking the shell[90m 54[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+[31m   [31m×[31m anonymous navigations are redirected to the login page[2m > [22mredirects HEAD as well[90m 53[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mserves the catalog root and the experiment deep link [33m355[2mms[22m[39m
+[31m   [31m×[31m authenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked[33m 361[2mms[22m[31m[39m
+[31m     → expected 200 to be 302 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 7 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m39:29[22m[39m
+    [90m 37| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/'[39m[33m,[39m …
+    [90m 38| [39m
+    [90m 39| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 40| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m([32m'/login?next=%2F'[39m)[33m;[39m
+    [90m 41| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects an experiment deep link with its query string
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m54:29[22m[39m
+    [90m 52| [39m    })[33m;[39m
+    [90m 53| [39m
+    [90m 54| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 55| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m(
+    [90m 56| [39m      [32m'/login?next=%2Fexperiments%2Fmath-functions%3Flang%3Dzh-CN'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects an unknown page instead of leaking the shell
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m66:29[22m[39m
+    [90m 64| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/nop[39m…
+    [90m 65| [39m
+    [90m 66| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 67| [39m    [34mexpect[39m([34mlocation[39m(response))[33m.[39m[34mtoBe[39m([32m'/login?next=%2Fnope'[39m)[33m;[39m
+    [90m 68| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22manonymous navigations are redirected to the login page[2m > [22mredirects HEAD as well
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m79:33[22m[39m
+    [90m 77| [39m    })[33m;[39m
+    [90m 78| [39m
+    [90m 79| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 80| [39m    [34mexpect[39m(response[33m.[39mheaders[33m.[39mlocation)[33m.[39m[34mtoBe[39m([32m'/login?next=%2F'[39m)[33m;[39m
+    [90m 81| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/spa-gate.test.ts[2m > [22mauthenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/spa-gate.test.ts:[2m147:29[22m[39m
+    [90m145| [39m
+    [90m146| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m { method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/'[39m[33m,[39m …
+    [90m147| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m148| [39m  })[33m;[39m
+    [90m149| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/static.test.ts[2m > [22msame-origin SPA hosting[2m > [22mredirects an anonymous navigation to the root instead of serving the shell
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/static.test.ts:[2m41:33[22m[39m
+    [90m 39| [39m    [35mconst[39m response [33m=[39m [35mawait[39m server[33m.[39m[34minject[39m({ method[33m:[39m [32m'GET'[39m[33m,[39m url[33m:[39m [32m'/'[39m[33m,[39m he…
+    [90m 40| [39m
+    [90m 41| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 42| [39m    [34mexpect[39m(response[33m.[39mheaders[33m.[39mlocation)[33m.[39m[34mtoBe[39m([32m'/login?next=%2F'[39m)[33m;[39m
+    [90m 43| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m([33mSPA_MARKER[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/static.test.ts[2m > [22msame-origin SPA hosting[2m > [22mredirects an anonymous client-side deep link (B3 gate)
+[31m[1mAssertionError[22m: expected 200 to be 302 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 302[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m test/static.test.ts:[2m77:33[22m[39m
+    [90m 75| [39m    })[33m;[39m
+    [90m 76| [39m
+    [90m 77| [39m    [34mexpect[39m(response[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m302[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 78| [39m    [34mexpect[39m(response[33m.[39mheaders[33m.[39mlocation)[33m.[39m[34mtoBe[39m([32m'/login?next=%2Fexperiments[39m…
+    [90m 79| [39m    [34mexpect[39m(response[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m([33mSPA_MARKER[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m24 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 21:25:18
+[2m   Duration [22m 2.81s[2m (transform 202ms, setup 0ms, collect 778ms, tests 2.75s, environment 0ms, prepare 207ms)[22m
+

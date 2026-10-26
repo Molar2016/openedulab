@@ -1,0 +1,61 @@
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build
+[WebServer] > tsc --noEmit && vite build
+[WebServer] 
+[WebServer] vite v5.4.21 building for production...
+[WebServer] transforming...
+[WebServer] ✓ 52 modules transformed.
+[WebServer] rendering chunks...
+[WebServer] computing gzip size...
+[WebServer] dist/index.html                   1.24 kB │ gzip:  0.75 kB
+[WebServer] dist/assets/index-B0DsNRDj.css   11.63 kB │ gzip:  3.11 kB
+[WebServer] dist/assets/view-60dHvEQ2.js     11.05 kB │ gzip:  3.97 kB
+[WebServer] dist/assets/index-C8xQOxZf.js   187.67 kB │ gzip: 61.57 kB
+[WebServer] ✓ built in 831ms
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build:api
+[WebServer] > tsc -p apps/api/tsconfig.json
+[WebServer] 
+[WebServer] (node:18932) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [openedulab-api] listening on http://127.0.0.1:3220
+[WebServer] [openedulab-api] version 0.1.0-m1 config {"env":"test","host":"127.0.0.1","port":3220,"publicOrigin":"http://127.0.0.1:3220","databasePath":"G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite","migrationsDir":"G:\\hermes\\projects\\openedulab\\apps\\api\\migrations","staticDir":"G:\\hermes\\projects\\openedulab\\dist","contentDir":"G:\\hermes\\projects\\openedulab\\experiments"}
+
+Running 33 tests using 1 worker
+
+  ok  1 [setup] › tests\e2e\auth.setup.ts:13:1 › register the shared teacher account (776ms)
+  ok  2 [desktop-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (673ms)
+  ok  3 [desktop-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (497ms)
+  ok  4 [desktop-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (731ms)
+  ok  5 [desktop-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (479ms)
+  ok  6 [desktop-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback and never claims it was sent (618ms)
+  ok  7 [desktop-chromium] › tests\e2e\app.spec.ts:114:3 › experiment › makes no cross-origin request and ships no debug sink (489ms)
+  ok  8 [desktop-chromium] › tests\e2e\app.spec.ts:130:3 › experiment › enters and exits full screen with consistent state (674ms)
+  ok  9 [desktop-chromium] › tests\e2e\app.spec.ts:147:3 › accessibility basics › every interactive control has an accessible name and a label (470ms)
+  -  10 [desktop-chromium] › tests\e2e\app.spec.ts:173:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  ok 11 [desktop-chromium] › tests\e2e\app.spec.ts:195:3 › recording › short classroom walkthrough (signed in) (5.6s)
+  ok 12 [desktop-chromium] › tests\e2e\gate.spec.ts:16:3 › a visitor without a session › is redirected from the root to the login page (300ms)
+  ok 13 [desktop-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.2s)
+  ok 14 [desktop-chromium] › tests\e2e\gate.spec.ts:42:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (233ms)
+  ok 15 [desktop-chromium] › tests\e2e\gate.spec.ts:58:3 › a visitor without a session › can read the public pages (236ms)
+  ok 16 [desktop-chromium] › tests\e2e\gate.spec.ts:66:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (856ms)
+  ok 17 [desktop-chromium] › tests\e2e\gate.spec.ts:113:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (664ms)
+  ok 18 [mobile-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (704ms)
+  ok 19 [mobile-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (527ms)
+  ok 20 [mobile-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (804ms)
+  ok 21 [mobile-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (396ms)
+  ok 22 [mobile-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback and never claims it was sent (637ms)
+  ok 23 [mobile-chromium] › tests\e2e\app.spec.ts:114:3 › experiment › makes no cross-origin request and ships no debug sink (443ms)
+  ok 24 [mobile-chromium] › tests\e2e\app.spec.ts:130:3 › experiment › enters and exits full screen with consistent state (666ms)
+  ok 25 [mobile-chromium] › tests\e2e\app.spec.ts:147:3 › accessibility basics › every interactive control has an accessible name and a label (382ms)
+  ok 26 [mobile-chromium] › tests\e2e\app.spec.ts:173:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling (679ms)
+  -  27 [mobile-chromium] › tests\e2e\app.spec.ts:195:3 › recording › short classroom walkthrough (signed in)
+  ok 28 [mobile-chromium] › tests\e2e\gate.spec.ts:16:3 › a visitor without a session › is redirected from the root to the login page (320ms)
+  ok 29 [mobile-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.2s)
+  ok 30 [mobile-chromium] › tests\e2e\gate.spec.ts:42:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (113ms)
+  ok 31 [mobile-chromium] › tests\e2e\gate.spec.ts:58:3 › a visitor without a session › can read the public pages (201ms)
+  ok 32 [mobile-chromium] › tests\e2e\gate.spec.ts:66:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (856ms)
+  ok 33 [mobile-chromium] › tests\e2e\gate.spec.ts:113:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (620ms)
+
+  2 skipped
+  31 passed (34.8s)

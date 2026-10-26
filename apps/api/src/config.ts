@@ -12,6 +12,8 @@ export interface AppConfig {
   readonly databasePath: string;
   readonly migrationsDir: string;
   readonly staticDir: string;
+  /** Root of the content tree; the server indexes each folder's manifest.json. */
+  readonly contentDir: string;
   readonly logLevel: LogLevel;
 }
 
@@ -43,6 +45,7 @@ const REQUIRED_KEYS = [
   'OEL_DATABASE_PATH',
   'OEL_STATIC_DIR',
   'OEL_MIGRATIONS_DIR',
+  'OEL_CONTENT_DIR',
 ] as const;
 
 const OPTIONAL_KEYS = ['OEL_HOST', 'OEL_LOG_LEVEL'] as const;
@@ -209,6 +212,25 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     }
   }
 
+  const contentValue = read(env, 'OEL_CONTENT_DIR');
+  let contentDir = '';
+  if (contentValue !== undefined) {
+    contentDir = resolve(contentValue);
+    if (!isDirectory(contentDir)) {
+      issues.push({
+        field: 'OEL_CONTENT_DIR',
+        message: `directory does not exist: ${contentDir}`,
+      });
+      contentDir = '';
+    } else if (!hasManifestFile(contentDir)) {
+      issues.push({
+        field: 'OEL_CONTENT_DIR',
+        message: `directory contains no <folder>/manifest.json: ${contentDir}`,
+      });
+      contentDir = '';
+    }
+  }
+
   if (issues.length > 0) {
     throw new ConfigError(issues);
   }
@@ -221,6 +243,7 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     databasePath,
     migrationsDir,
     staticDir,
+    contentDir,
     logLevel,
   });
 }
@@ -253,6 +276,17 @@ function hasMigrationFile(dir: string): boolean {
   }
 }
 
+/** A content directory is only usable if at least one `<folder>/manifest.json` exists. */
+function hasManifestFile(dir: string): boolean {
+  try {
+    return readdirSync(dir, { withFileTypes: true }).some(
+      (entry) => entry.isDirectory() && isFile(resolve(dir, entry.name, 'manifest.json')),
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function describeConfigForLog(config: AppConfig): Record<string, string | number> {
   return {
     env: config.env,
@@ -262,5 +296,6 @@ export function describeConfigForLog(config: AppConfig): Record<string, string |
     databasePath: config.databasePath,
     migrationsDir: config.migrationsDir,
     staticDir: config.staticDir,
+    contentDir: config.contentDir,
   };
 }

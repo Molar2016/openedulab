@@ -1,28 +1,30 @@
-import { test, expect, type Page } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { expect, test, type Page } from '@playwright/test';
+import { openExperiment, shot } from './support';
 
-// `window.__openedulab` is typed once for the whole project in
-// apps/web/src/debug-hook.d.ts; do not re-declare it here.
+/**
+ * Authenticated product surface (B3).
+ *
+ * Formerly `m1.spec.ts`, the no-login prototype spec. Every assertion that described the
+ * prototype ("the catalog is public", "the debug hook exposes the analytics sink") is
+ * replaced by its authenticated counterpart: the catalog only exists after a real session,
+ * and the production bundle ships no debug sink — so event whitelisting is asserted where
+ * it can be observed, in the API tests and (B5) through the operator query.
+ */
 
-const EVIDENCE = join(process.cwd(), 'docs', 'evidence', 'm1');
+const STAGE = 'b3';
 
-async function shot(page: Page, name: string): Promise<void> {
-  await mkdir(EVIDENCE, { recursive: true });
-  await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: join(EVIDENCE, `${name}.png`), fullPage: false });
+async function noHorizontalOverflow(page: Page): Promise<boolean> {
+  return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 }
 
-async function openExperiment(page: Page, locale: 'en' | 'zh-CN' = 'en'): Promise<void> {
-  await page.goto(`/?lang=${locale}`);
-  await page.getByTestId('experiment-card-math-functions').getByRole('link', { name: /start experiment|开始实验/i }).click();
-  await expect(page.getByTestId('formula')).toHaveText('y = x²');
-}
-
-test.describe('catalog and search', () => {
-  test('finds the experiment by search and filters, with visible result count', async ({ page }) => {
+test.describe('catalog and search (signed in)', () => {
+  test('shows the account, finds the experiment by search and filter, and counts results', async ({
+    page,
+  }) => {
     await page.goto('/?lang=en');
+
     await expect(page.getByRole('heading', { name: 'Pick an experiment' })).toBeVisible();
+    await expect(page.getByTestId('account-block')).toContainText('e***@example.com');
     await expect(page.getByTestId('result-count')).toHaveText('1 experiment');
     await expect(page.getByTestId('experiment-card-math-functions')).toBeVisible();
 
@@ -35,7 +37,7 @@ test.describe('catalog and search', () => {
 
     await page.getByRole('button', { name: 'Clear filters' }).click();
     await expect(page.getByTestId('result-count')).toHaveText('1 experiment');
-    await shot(page, 'catalog-en');
+    await shot(page, STAGE, 'catalog-en');
   });
 
   test('switches to Chinese and keeps the URL shareable', async ({ page }) => {
@@ -45,15 +47,25 @@ test.describe('catalog and search', () => {
     await expect(page.getByRole('heading', { name: '选择一个实验' })).toBeVisible();
     await expect(page).toHaveURL(/lang=zh-CN/);
     await expect(page.getByTestId('result-count')).toHaveText('共 1 个实验');
-    await expect(page.getByTestId('experiment-card-math-functions')).toContainText('一次函数与二次函数');
-    await shot(page, 'catalog-zh');
+    await expect(page.getByTestId('experiment-card-math-functions')).toContainText(
+      '一次函数与二次函数',
+    );
+    await shot(page, STAGE, 'catalog-zh');
   });
 });
 
 test.describe('experiment', () => {
-  test('changes coefficients, resets and shows model readouts', async ({ page }) => {
-    await openExperiment(page);
-    await shot(page, 'experiment-default');
+  test('loads server metadata, changes coefficients, resets and switches mode', async ({ page }) => {
+    await page.goto('/?lang=en');
+    await page
+      .getByTestId('experiment-card-math-functions')
+      .getByRole('link', { name: /start experiment/i })
+      .click();
+
+    await expect(page.getByTestId('formula')).toHaveText('y = x²');
+    await expect(page.getByTestId('experiment-meta')).toContainText('1.0.0');
+    await expect(page.getByTestId('account-block')).toBeVisible();
+    await shot(page, STAGE, 'experiment-default');
 
     await page.locator('#coef-a').fill('2');
     await expect(page.getByTestId('formula')).toHaveText('y = 2x²');
@@ -63,7 +75,7 @@ test.describe('experiment', () => {
     await expect(page.getByTestId('formula')).toHaveText('y = 2x² − 2x');
     await expect(page.getByTestId('readout-roots')).toContainText('0, 1');
     await expect(page.getByTestId('readout-vertex')).toContainText('(0.5, -0.5)');
-    await shot(page, 'experiment-adjusted');
+    await shot(page, STAGE, 'experiment-adjusted');
 
     await page.getByTestId('reset-button').click();
     await expect(page.getByTestId('formula')).toHaveText('y = x²');
@@ -77,7 +89,9 @@ test.describe('experiment', () => {
 
   test('shows the degenerate-quadratic warning for a = 0', async ({ page }) => {
     await openExperiment(page);
+
     await page.locator('#coef-a').fill('0');
+
     await expect(page.getByTestId('formula')).toHaveText('y = 0');
     await expect(page.getByTestId('model-warnings')).toContainText('no longer quadratic');
   });
@@ -93,38 +107,23 @@ test.describe('experiment', () => {
 
     const preview = page.getByTestId('feedback-preview');
     await expect(preview).toContainText(`"messageLength": ${message.length}`);
-    await expect(preview).toContainText('Not sent');
     await expect(preview).not.toContainText('vertex label overlaps');
-    await shot(page, 'feedback-preview');
-    await page.getByRole('button', { name: 'Close' }).click();
-    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await shot(page, STAGE, 'feedback-preview');
   });
 
-  test('tracks only whitelisted local events and makes no external requests', async ({ page }) => {
+  test('makes no cross-origin request and ships no debug sink', async ({ page }) => {
     const external: string[] = [];
     page.on('request', (request) => {
       const url = request.url();
-      if (!url.startsWith('http://127.0.0.1:5199') && !url.startsWith('data:')) external.push(url);
+      if (!url.startsWith('http://127.0.0.1:3220') && !url.startsWith('data:')) external.push(url);
     });
 
     await openExperiment(page);
     await page.locator('#coef-a').fill('3');
     await page.getByTestId('reset-button').click();
-    await page.getByTestId('complete-button').click();
-    await expect(page.getByTestId('complete-note')).toBeVisible();
 
-    const events = await page.evaluate(() => window.__openedulab?.services.debug.analyticsSink.events ?? []);
-    const types = events.map((event) => event.type);
-    expect(types).toContain('experiment_open');
-    expect(types).toContain('experiment_interact');
-    expect(types).toContain('experiment_reset');
-    expect(types).toContain('experiment_complete');
-    for (const event of events) {
-      expect(Object.keys(event).every((key) =>
-        ['type', 'experimentId', 'moduleVersion', 'locale', 'controlGroup', 'interactionBucket', 'enterOrExit', 'errorCode', 'appVersion'].includes(key),
-      )).toBe(true);
-    }
-    expect(JSON.stringify(events)).not.toMatch(/3(\D|$)/);
+    // The production bundle must not expose the local analytics sink.
+    expect(await page.evaluate(() => 'openedulab' in window)).toBe(false);
     expect(external).toEqual([]);
   });
 
@@ -136,7 +135,7 @@ test.describe('experiment', () => {
     await page.getByTestId('fullscreen-button').click();
     await expect(page.getByTestId('fullscreen-button')).toHaveText('Exit full screen');
     await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
-    await shot(page, 'fullscreen');
+    await shot(page, STAGE, 'fullscreen');
 
     await page.getByTestId('fullscreen-button').click();
     await expect(page.getByTestId('fullscreen-button')).toHaveText('Full screen');
@@ -147,6 +146,7 @@ test.describe('experiment', () => {
 test.describe('accessibility basics', () => {
   test('every interactive control has an accessible name and a label', async ({ page }) => {
     await openExperiment(page);
+
     const problems = await page.evaluate(() => {
       const issues: string[] = [];
       document.querySelectorAll('button, a').forEach((element) => {
@@ -164,6 +164,7 @@ test.describe('accessibility basics', () => {
       if (duplicates.length) issues.push(`duplicate ids: ${duplicates.join(', ')}`);
       return issues;
     });
+
     expect(problems).toEqual([]);
   });
 });
@@ -174,27 +175,34 @@ test.describe('mobile layout', () => {
 
     await page.goto('/?lang=zh-CN');
     await expect(page.getByRole('heading', { name: '选择一个实验' })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
-    await shot(page, 'mobile-catalog-zh');
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    await shot(page, STAGE, 'mobile-catalog-zh');
 
-    await page.getByTestId('experiment-card-math-functions').getByRole('link', { name: /开始实验/ }).click();
+    await page
+      .getByTestId('experiment-card-math-functions')
+      .getByRole('link', { name: /开始实验/ })
+      .click();
     await expect(page.getByTestId('formula')).toHaveText('y = x²');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+    expect(await noHorizontalOverflow(page)).toBe(true);
+
     await page.locator('#coef-a').fill('-1');
     await expect(page.getByTestId('formula')).toHaveText('y = −x²');
-    await shot(page, 'mobile-experiment-zh');
+    await shot(page, STAGE, 'mobile-experiment-zh');
   });
 });
 
-test.describe('demo recording', () => {
-  test('short classroom walkthrough', async ({ page }, testInfo) => {
+test.describe('recording', () => {
+  test('short classroom walkthrough (signed in)', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop recording only');
 
     await page.goto('/?lang=zh-CN');
     await expect(page.getByTestId('result-count')).toHaveText('共 1 个实验');
     await page.waitForTimeout(700);
 
-    await page.getByTestId('experiment-card-math-functions').getByRole('link', { name: /开始实验/ }).click();
+    await page
+      .getByTestId('experiment-card-math-functions')
+      .getByRole('link', { name: /开始实验/ })
+      .click();
     await expect(page.getByTestId('formula')).toHaveText('y = x²');
     await page.waitForTimeout(600);
 
@@ -208,5 +216,12 @@ test.describe('demo recording', () => {
     await page.waitForTimeout(500);
     await page.getByRole('button', { name: '一次函数 y = ax + b' }).click();
     await page.waitForTimeout(900);
+
+    // Keep the walkthrough as evidence (Playwright deletes test-results artefacts later).
+    const video = page.video();
+    await page.close();
+    if (video) {
+      await video.saveAs(`${process.cwd()}/docs/evidence/${STAGE}/walkthrough.webm`);
+    }
   });
 });

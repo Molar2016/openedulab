@@ -1,114 +1,132 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
 
-import { buildApp } from '../src/app.js';
-import { loadConfig } from '../src/config.js';
-import { createFixture, type Fixture } from './helpers.js';
-
-let fixture: Fixture | null = null;
-let app: FastifyInstance | null = null;
-
-afterEach(async () => {
-  await app?.close();
-  app = null;
-  if (fixture) {
-    await fixture.cleanup();
-    fixture = null;
-  }
-});
-
-async function start(): Promise<FastifyInstance> {
-  fixture = await createFixture();
-  app = await buildApp({ config: loadConfig(fixture.env), version: '9.9.9-test' });
-  return app;
-}
+import { api, errorCode, SESSION_COOKIE, startAuthHarness, type AuthHarness } from './support/auth-app.js';
+import {
+  isPrivateApiRoute,
+  isPublicApiRoute,
+  type RouteEntry,
+} from '../src/http/route-inventory.js';
 
 /**
- * Routes that will require a session once B2/B3 exist. Until then they must deny
- * every caller — the placeholder is a denial, never an unauthenticated resource.
+ * B3 route inventory (design §3.3, §12 B3 exit: "no route can bypass requireSession").
+ *
+ * Two halves, both needed:
+ * 1. Structural — every route the running server registers under /api/ must be in the
+ *    explicit public allowlist (health, credentials) or the session-gated list. A new
+ *    endpoint added without declaring it fails this test instead of silently shipping
+ *    as "public because nobody looked".
+ * 2. Behavioural — every session-gated route denies anonymous and forged callers with
+ *    401, and no gated route is a 404 pretending to exist.
+ *
+ * This file replaces the B1/B2 placeholder test, which asserted those same paths denied
+ * *everyone* because authorization did not exist yet. That invariant is necessarily
+ * superseded by B3; the replacement is stricter, not looser.
  */
-const PRIVATE_ROUTES: { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; url: string }[] = [
-  { method: 'GET', url: '/api/catalog' },
-  { method: 'GET', url: '/api/experiments/math.functions' },
-  { method: 'GET', url: '/api/me/favorites' },
-  { method: 'PUT', url: '/api/me/favorites/math.functions' },
-  { method: 'DELETE', url: '/api/me/favorites/math.functions' },
-  { method: 'GET', url: '/api/me/recent' },
-  { method: 'POST', url: '/api/me/recent' },
-  { method: 'GET', url: '/api/me/saved-state/math.functions' },
-  { method: 'PUT', url: '/api/me/saved-state/math.functions' },
-  { method: 'DELETE', url: '/api/me/saved-state/math.functions' },
-  { method: 'POST', url: '/api/events' },
-  { method: 'POST', url: '/api/feedback' },
-];
 
-describe('private API placeholders', () => {
-  it.each(PRIVATE_ROUTES)('$method $url is denied with 401 unauthenticated', async ({ method, url }) => {
+let harness: AuthHarness | null = null;
+
+afterEach(async () => {
+  await harness?.cleanup();
+  harness = null;
+});
+
+async function start(): Promise<AuthHarness> {
+  harness = await startAuthHarness();
+  return harness;
+}
+
+function apiRoutes(entries: readonly RouteEntry[]): RouteEntry[] {
+  return entries.filter((entry) => entry.url === '/api' || entry.url.startsWith('/api/'));
+}
+
+/** Turns `/api/me/favorites/:experimentId` into a requestable URL. */
+function requestUrl(url: string): string {
+  return url.replace(/:[A-Za-z]+/g, 'math.functions');
+}
+
+describe('API route inventory', () => {
+  it('registers only classified API routes', async () => {
     const server = await start();
 
-    const response = await server.inject({ method, url });
+    const unclassified = apiRoutes(server.app.routeInventory).filter(
+      (entry) => !isPublicApiRoute(entry) && !isPrivateApiRoute(entry),
+    );
 
-    expect(response.statusCode).toBe(401);
-    expect(response.headers['content-type']).toMatch(/^application\/json/);
-    expect(response.headers['cache-control']).toBe('no-store');
-    expect(response.json()).toEqual({
-      error: {
-        code: 'unauthenticated',
-        message: expect.stringContaining('not implemented'),
-      },
-    });
+    expect(unclassified.map((entry) => `${entry.method} ${entry.url}`)).toEqual([]);
   });
 
-  it('denies even when the client forges a session cookie (there is no session layer yet)', async () => {
+  it('exposes the credential routes as public and the resource routes as private', async () => {
     const server = await start();
+    const routes = apiRoutes(server.app.routeInventory);
 
-    const response = await server.inject({
-      method: 'GET',
-      url: '/api/catalog',
-      headers: { cookie: 'oel_sid=forged-token' },
-    });
+    const publicRoutes = routes
+      .filter(isPublicApiRoute)
+      .map((entry) => `${entry.method} ${entry.url}`);
+    expect(publicRoutes).toContain('POST /api/auth/register');
+    expect(publicRoutes).toContain('POST /api/auth/login');
+    expect(publicRoutes).toContain('POST /api/auth/logout');
+    expect(publicRoutes).toContain('GET /api/auth/session');
+    expect(publicRoutes).toContain('GET /api/healthz');
 
-    expect(response.statusCode).toBe(401);
+    const privateRoutes = routes
+      .filter(isPrivateApiRoute)
+      .map((entry) => `${entry.method} ${entry.url}`);
+    expect(privateRoutes).toContain('GET /api/catalog');
+    expect(privateRoutes).toContain('GET /api/experiments/:experimentId');
+    // Not implemented yet (B4/B5): they must not exist as fake endpoints either.
+    expect(routes.some((entry) => entry.url.startsWith('/api/me/'))).toBe(false);
+    expect(routes.some((entry) => entry.url === '/api/events')).toBe(false);
+    expect(routes.some((entry) => entry.url === '/api/feedback')).toBe(false);
+  });
+
+  it('denies anonymous and forged callers on every private route', async () => {
+    const server = await start();
+    const routes = apiRoutes(server.app.routeInventory).filter(isPrivateApiRoute);
+    expect(routes.length).toBeGreaterThan(0);
+
+    for (const entry of routes) {
+      const method = entry.method as 'GET' | 'POST' | 'PUT' | 'DELETE';
+      const anonymous = await api(server.app, { method, url: requestUrl(entry.url) });
+      expect(
+        anonymous.status,
+        `${entry.method} ${entry.url} must deny anonymous callers`,
+      ).toBe(401);
+      expect(errorCode(anonymous)).toBe('unauthenticated');
+
+      const forged = await api(server.app, {
+        method,
+        url: requestUrl(entry.url),
+        headers: { cookie: `${SESSION_COOKIE}=${'z'.repeat(43)}` },
+      });
+      expect(forged.status, `${entry.method} ${entry.url} must deny a forged cookie`).toBe(401);
+    }
   });
 
   it('does not expose an operator channel while no operator token is configured', async () => {
     const server = await start();
 
-    for (const url of ['/api/internal/overview', '/api/internal/export/events.csv']) {
-      const response = await server.inject({ method: 'GET', url });
-      expect(response.statusCode).toBe(404);
-      expect(response.json()).toEqual({
-        error: { code: 'not_found', message: expect.any(String) },
-      });
+    for (const url of [
+      '/api/internal/overview',
+      '/api/internal/export/events.csv',
+      '/api/internal/accounts/any/timeline',
+    ]) {
+      const response = await api(server.app, { method: 'GET', url });
+      expect(response.status).toBe(404);
+      expect(errorCode(response)).toBe('not_found');
     }
   });
 
-  /**
-   * Superseded by B2: while no session layer existed, this route had to be a plain 404
-   * so nobody could mistake a stub for a session. B2 now mounts the real endpoint, so the
-   * assertion becomes: it answers honestly ("not authenticated"), never a fake session.
-   */
-  it('serves /api/auth/session as an honest unauthenticated answer after B2', async () => {
+  it('answers unknown API paths with JSON 404, never the SPA shell', async () => {
     const server = await start();
 
-    const response = await server.inject({ method: 'GET', url: '/api/auth/session' });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ authenticated: false });
-    expect(response.headers['cache-control']).toBe('no-store');
-  });
-
-  it('returns JSON 404 for unknown API routes and never the SPA shell', async () => {
-    const server = await start();
-
-    const response = await server.inject({
+    const response = await api(server.app, {
       method: 'GET',
       url: '/api/does-not-exist',
       headers: { accept: 'text/html' },
     });
 
-    expect(response.statusCode).toBe(404);
+    expect(response.status).toBe(404);
     expect(response.headers['content-type']).toMatch(/^application\/json/);
-    expect(response.json().error.code).toBe('not_found');
+    expect(errorCode(response)).toBe('not_found');
   });
 });

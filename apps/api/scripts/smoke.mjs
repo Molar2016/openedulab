@@ -57,6 +57,7 @@ function serverEnv({ port, databasePath, migrations }) {
     OEL_DATABASE_PATH: databasePath,
     OEL_STATIC_DIR: staticDir,
     OEL_MIGRATIONS_DIR: migrations,
+    OEL_CONTENT_DIR: path.join(repoRoot, 'experiments'),
     OEL_LOG_LEVEL: 'warn',
   };
 }
@@ -149,31 +150,46 @@ async function main() {
       JSON.stringify(health.database),
     );
 
-    process.stdout.write('\n## 3. same-origin SPA hosting\n');
+    process.stdout.write('\n## 3. same-origin hosting and the anonymous deep-link gate\n');
     const deepLink = await fetch(`${baseUrl}/experiments/math.functions`, {
       headers: { accept: 'text/html,application/xhtml+xml' },
+      redirect: 'manual',
     });
-    const deepLinkBody = await deepLink.text();
-    check('deep link is 200', deepLink.status === 200, `status=${deepLink.status}`);
     check(
-      'deep link serves the built index.html',
-      deepLinkBody.includes('<div id="root">') && deepLinkBody.includes('src="/assets/'),
-      `bytes=${deepLinkBody.length}`,
+      'anonymous deep link is a 302 to the login page',
+      deepLink.status === 302 &&
+        deepLink.headers.get('location') === '/login?next=%2Fexperiments%2Fmath.functions',
+      `status=${deepLink.status} location=${deepLink.headers.get('location')}`,
     );
     check(
-      'deep link html is not cached',
-      deepLink.headers.get('cache-control') === 'no-cache',
-      deepLink.headers.get('cache-control') ?? 'none',
+      'the redirect does not serve the app shell',
+      !(await deepLink.text()).includes('<div id="root">'),
     );
 
-    const assetPath = /src="(\/assets\/[^"]+)"/.exec(deepLinkBody)?.[1];
+    const loginPage = await fetch(`${baseUrl}/login`, {
+      headers: { accept: 'text/html,application/xhtml+xml' },
+    });
+    const loginBody = await loginPage.text();
+    check('the public login page is 200', loginPage.status === 200, `status=${loginPage.status}`);
+    check(
+      'the login page serves the built index.html',
+      loginBody.includes('<div id="root">') && loginBody.includes('src="/assets/'),
+      `bytes=${loginBody.length}`,
+    );
+    check(
+      'html is not cached',
+      loginPage.headers.get('cache-control') === 'no-cache',
+      loginPage.headers.get('cache-control') ?? 'none',
+    );
+
+    const assetPath = /src="(\/assets\/[^"]+)"/.exec(loginBody)?.[1];
     const asset = await fetch(`${baseUrl}${assetPath}`);
     const assetBody = await asset.text();
     check('built asset is served', asset.status === 200, `${assetPath} ${asset.headers.get('content-type')}`);
     check('built asset is larger than 10 kB', assetBody.length > 10_000, `${assetBody.length} bytes`);
 
-    process.stdout.write('\n## 4. private API placeholders deny anonymous callers\n');
-    for (const route of ['/api/catalog', '/api/me/favorites', '/api/me/recent', '/api/experiments/math.functions']) {
+    process.stdout.write('\n## 4. private API refuses anonymous callers (B3 gate)\n');
+    for (const route of ['/api/catalog', '/api/experiments/math.functions']) {
       const response = await fetch(`${baseUrl}${route}`);
       const body = await response.json();
       check(
@@ -184,6 +200,24 @@ async function main() {
     }
     const forged = await fetch(`${baseUrl}/api/catalog`, { headers: { cookie: 'oel_sid=forged' } });
     check('forged cookie is still 401', forged.status === 401, `status=${forged.status}`);
+    const anonymousHtmlApi = await fetch(`${baseUrl}/api/catalog`, {
+      headers: { accept: 'text/html' },
+      redirect: 'manual',
+    });
+    check(
+      'an API call that accepts HTML is not redirected to the login page',
+      anonymousHtmlApi.status === 401 && anonymousHtmlApi.headers.get('location') === null,
+      `status=${anonymousHtmlApi.status}`,
+    );
+    for (const route of ['/api/me/favorites', '/api/me/recent', '/api/events', '/api/feedback']) {
+      const response = await fetch(`${baseUrl}${route}`, { method: route === '/api/events' || route === '/api/feedback' ? 'POST' : 'GET' });
+      const body = await response.json();
+      check(
+        `${route} is honestly absent (404, not a fake 401 endpoint)`,
+        response.status === 404 && body.error?.code === 'not_found',
+        `status=${response.status} code=${body.error?.code}`,
+      );
+    }
 
     const unknownApi = await fetch(`${baseUrl}/api/does-not-exist`, { headers: { accept: 'text/html' } });
     check(
@@ -337,6 +371,55 @@ async function main() {
     check(
       'the new session is authenticated',
       (await sessionWith(liveCookie)).json.authenticated === true,
+    );
+
+    process.stdout.write('\n## 6b. authenticated access to protected resources (B3)\n');
+    const authed = (route) => fetch(`${baseUrl}${route}`, { headers: { cookie: liveCookie } });
+    const catalogResponse = await authed('/api/catalog?locale=en');
+    const catalogBody = await catalogResponse.json();
+    check(
+      'catalog is 200 with a live session',
+      catalogResponse.status === 200,
+      `status=${catalogResponse.status}`,
+    );
+    check(
+      'catalog lists the shipped experiment with a content version',
+      Array.isArray(catalogBody.items) &&
+        catalogBody.items.some(
+          (item) => item.id === 'math.functions' && /^\d+\.\d+\.\d+$/.test(item.contentVersion),
+        ),
+      JSON.stringify(catalogBody.items?.map((item) => `${item.id}@${item.contentVersion}`)),
+    );
+    check(
+      'catalog response is not cached',
+      catalogResponse.headers.get('cache-control') === 'no-store',
+      catalogResponse.headers.get('cache-control') ?? 'none',
+    );
+
+    const detailResponse = await authed('/api/experiments/math.functions?locale=zh-CN');
+    const detailBody = await detailResponse.json();
+    check('experiment detail is 200', detailResponse.status === 200, `status=${detailResponse.status}`);
+    check(
+      'experiment detail carries localized title, contentVersion and sdk range',
+      typeof detailBody.title === 'string' &&
+        detailBody.title.length > 0 &&
+        typeof detailBody.contentVersion === 'string' &&
+        /^\^1\./.test(detailBody.sdkVersionRange),
+      `${detailBody.title} ${detailBody.contentVersion} ${detailBody.sdkVersionRange}`,
+    );
+    check(
+      'experiment detail exposes no filesystem path',
+      !JSON.stringify(detailBody).includes('manifest.json'),
+    );
+    const unknownExperiment = await authed('/api/experiments/physics.nope');
+    check('unknown experiment id is 404', unknownExperiment.status === 404, `status=${unknownExperiment.status}`);
+    const authedDeepLink = await fetch(`${baseUrl}/experiments/math.functions`, {
+      headers: { accept: 'text/html', cookie: liveCookie },
+    });
+    check(
+      'an authenticated deep link serves the app shell',
+      authedDeepLink.status === 200 && (await authedDeepLink.text()).includes('<div id="root">'),
+      `status=${authedDeepLink.status}`,
     );
 
     const authRows = (databasePath) => {
