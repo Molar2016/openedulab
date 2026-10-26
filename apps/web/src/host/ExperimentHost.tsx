@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import type { ExperimentServices, Locale } from '../experiment/contract';
+import type { ExperimentServices, ExperimentStateBridge, Locale } from '../experiment/contract';
 import { textFor, type RegistryEntry } from '../experiment/registry';
+import { canonicalStatePayload } from '../experiment/state-schema';
 import type { I18n } from '../i18n';
 import { ExperimentErrorBoundary } from './ErrorBoundary';
 import { FeedbackDialog } from './FeedbackDialog';
@@ -10,6 +11,19 @@ interface FavoriteControl {
   readonly busy: boolean;
   readonly error: boolean;
   readonly onToggle: () => void;
+}
+
+/**
+ * Saved-parameter state owned by the app (design §7.5). The host only renders and reports
+ * intent: `status` mirrors what the server said, `values` is what a restore would apply.
+ */
+export interface SavedStateControl {
+  readonly status: 'none' | 'saved' | 'incompatible' | 'error';
+  readonly values?: Readonly<Record<string, number | string>>;
+  readonly busy: boolean;
+  readonly error: 'none' | 'save' | 'delete';
+  readonly onSave: (values: Readonly<Record<string, number | string>>) => void;
+  readonly onDelete: () => void;
 }
 
 interface Props {
@@ -22,6 +36,8 @@ interface Props {
   reviewedStatus: 'draft' | 'verified';
   /** Optional: supplied by the app when the viewer is signed in. */
   favorite?: FavoriteControl;
+  /** Optional: supplied when the experiment declares a `state-schema.json`. */
+  savedState?: SavedStateControl;
   /** Build version reported with diagnostics and feedback. */
   appVersion: string;
   /** Sends a feedback report; resolves when the server stored it. */
@@ -47,6 +63,7 @@ export function ExperimentHost({
   contentVersion,
   reviewedStatus,
   favorite,
+  savedState,
   appVersion,
   onSubmitFeedback,
   onBack,
@@ -59,9 +76,57 @@ export function ExperimentHost({
   const fullscreenState = useRef(false);
   const trackedOpen = useRef<string | null>(null);
 
-  const View = useMemo(() => lazy(entry.loadView), [entry]);
+  // Saved parameters (design §7.5): the bridge is a hand-off, not a subscription — the host
+  // reads the experiment's current values only inside the save click handler.
+  const stateBridge = useRef<ExperimentStateBridge>({});
+  const [appliedState, setAppliedState] = useState<Readonly<Record<string, number | string>> | undefined>(undefined);
+  const [viewKey, setViewKey] = useState(0);
+  const [saveRejected, setSaveRejected] = useState(false);
+
+  const stateSchema = entry.stateSchema;
+  const showStateControls = savedState !== undefined && stateSchema !== null;
 
   const t = (key: string): string => i18n.t(key);
+
+  const handleSaveState = (): void => {
+    if (savedState === undefined || stateSchema === null) return;
+    const current: unknown = stateBridge.current.read?.();
+    const payload = canonicalStatePayload(stateSchema, current);
+    if (payload === null) {
+      // The experiment reported something the schema does not allow: refuse here rather
+      // than send a value the server would reject, and say so.
+      setSaveRejected(true);
+      return;
+    }
+    setSaveRejected(false);
+    savedState.onSave(JSON.parse(payload) as Readonly<Record<string, number | string>>);
+  };
+
+  const handleRestoreState = (): void => {
+    if (savedState?.values === undefined) return;
+    // Restoring remounts the experiment with the stored parameters. It is deliberately not
+    // automatic: opening a page must never apply old settings on its own.
+    setAppliedState(savedState.values);
+    setViewKey((key) => key + 1);
+  };
+
+  const handleDeleteState = (): void => {
+    if (savedState === undefined) return;
+    savedState.onDelete();
+  };
+
+  const stateNotice = ((): { tone: string; text: string } | null => {
+    if (savedState === undefined) return null;
+    if (savedState.error === 'save') return { tone: 'error', text: t('state.notSaved') };
+    if (savedState.error === 'delete') return { tone: 'error', text: t('state.notRemoved') };
+    if (saveRejected) return { tone: 'error', text: t('state.rejected') };
+    if (savedState.status === 'incompatible') return { tone: 'warning', text: t('state.incompatible') };
+    if (savedState.status === 'saved') return { tone: 'ok', text: t('state.saved') };
+    if (savedState.status === 'error') return { tone: 'error', text: t('state.unavailable') };
+    return null;
+  })();
+
+  const View = useMemo(() => lazy(entry.loadView), [entry]);
 
   const track = (event: Parameters<ExperimentServices['analytics']['track']>[0]): void => {
     services.analytics.track(event);
@@ -162,6 +227,41 @@ export function ExperimentHost({
               {t('favorite.failed')}
             </span>
           ) : null}
+          {showStateControls ? (
+            <>
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={handleSaveState}
+                disabled={savedState?.busy === true}
+                data-testid="save-state-button"
+              >
+                {t('state.save')}
+              </button>
+              {savedState?.status === 'saved' ? (
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={handleRestoreState}
+                  disabled={savedState.busy}
+                  data-testid="restore-state-button"
+                >
+                  {t('state.restore')}
+                </button>
+              ) : null}
+              {savedState?.status === 'saved' || savedState?.status === 'incompatible' ? (
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={handleDeleteState}
+                  disabled={savedState.busy}
+                  data-testid="delete-state-button"
+                >
+                  {t('state.delete')}
+                </button>
+              ) : null}
+            </>
+          ) : null}
           <button type="button" className="button button--ghost" onClick={handleReset} data-testid="reset-button">
             {t('experiment.reset')}
           </button>
@@ -222,10 +322,27 @@ export function ExperimentHost({
               code: i18n.t('experiment.error.code', { code: 'render_error' }),
             }}
           >
-            <View locale={locale} resetToken={resetToken} services={services} />
+            <View
+              key={`apply-${String(viewKey)}`}
+              locale={locale}
+              resetToken={resetToken}
+              services={services}
+              initialState={appliedState}
+              stateBridge={stateBridge.current}
+            />
           </ExperimentErrorBoundary>
         </Suspense>
       )}
+
+      {stateNotice !== null ? (
+        <p
+          className={`small ${stateNotice.tone === 'error' ? 'auth__error' : 'muted'}`}
+          role={stateNotice.tone === 'error' ? 'alert' : 'status'}
+          data-testid="saved-state-notice"
+        >
+          {stateNotice.text}
+        </p>
+      ) : null}
 
       {feedbackOpen ? (
         <FeedbackDialog

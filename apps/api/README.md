@@ -19,9 +19,12 @@ server-side content index and the SPA login flow.**
   `/about` are the only public pages.
 - **Not protected by a login, by design:** the built JS/CSS bundle. Anyone can fetch a
   static file; the boundary is the API and the HTML redirect, as stated in the design §2.
-- **Not implemented yet (B4/B5):** `/api/me/favorites`, `/api/me/recent`,
-  `/api/me/saved-state/:id`, `/api/events`, `/api/feedback` — these return `404`, not a
-  fake `401` endpoint. `/api/internal/*` is also `404` until its Bearer token exists.
+- **Personal data (B4/B7):** `/api/me/favorites`, `/api/me/recent` and
+  `/api/me/saved-state/:experimentId` are mounted behind the same gate, and every SQL
+  statement is scoped by the account derived from the session. A saved-parameter snapshot is
+  written **only** by an explicit `PUT`; the allowed keys, bounds and byte budget come from
+  the experiment's `state-schema.json`, which the content index validates at startup.
+  `/api/internal/*` is `404` until its Bearer token exists (by design, not a fake endpoint).
 - Sessions are stored in the database and survive a restart; the rate limiter is
   in-process, so it resets on restart and assumes a single instance (design D14/Q6).
 - `Secure` + `__Host-oel_sid` are used only when `OEL_ENV=production`. Any HTTPS

@@ -67,10 +67,18 @@ event (no text, no back-reference to the feedback id).
 `target_type`, `target_id` (account id or window), `reason`, `row_count`, `created_at`.
 It records the access, not the content: what an operator read is never copied here.
 
-### `saved_state` — reserved, never written
+### `saved_state` — written only when the user presses save (B7)
 
-The table exists from `0001_init.sql` so the baseline is fixed, but the B7 feature is not
-implemented and no endpoint writes it. No parameter snapshot is stored today.
+One row per (account, experiment): `content_version`, `state_schema_version`, a canonical
+JSON `payload` of the experiment's own whitelisted parameters (≤4096 bytes), `updated_at`.
+Rows appear **only** after an explicit "save my settings" click — dragging a slider writes
+nothing (asserted in `tests/e2e/saved-state.spec.ts` and `tests/host-saved-state.test.tsx`).
+The parameters never leave the personal-data side: they are not in `event`, not in
+`feedback`, not in any CSV export, and no diagnostic query can reach them. Deleting the
+snapshot is self-service (the "delete saved settings" button on the experiment page), and
+`ON DELETE CASCADE` from `account` already covers it when account deletion exists. There is
+no per-snapshot history and no retention window of its own: a snapshot lives until the user
+deletes it or the account goes away.
 
 ## 2. Who can read what
 
@@ -78,7 +86,7 @@ implemented and no endpoint writes it. No parameter snapshot is stored today.
 |---|---|---|---|
 | Masked identifier | yes | via per-account timeline / exports | no |
 | Full identifier | no (only the masked hint) | no API path returns it | no |
-| Own favorites / recent use | yes | no (not part of the operator channel) | no |
+| Own favorites / recent use / saved parameters | yes | no (not part of the operator channel) | no |
 | Own events | no | aggregates; single account only with `reason` + label, audited | no |
 | Own feedback | no list view | CSV export, audited | no |
 | Other accounts' anything | no (structurally: every SQL is scoped by session account) | per-account, audited | no |
@@ -103,7 +111,7 @@ granted to a normal user, and when it is unset those routes are not mounted at a
 | `feedback` | 180 days | same |
 | `internal_audit` | 365 days | same |
 | ended `session` rows | 30 days after revoke/expiry | same |
-| `account`, `favorite`, `recent_use` | until account deletion exists | see below |
+| `account`, `favorite`, `recent_use`, `saved_state` | until the user deletes it, or account deletion exists | the snapshot has its own delete button; everything else waits for account deletion |
 
 There is **no self-service account deletion** and no data export for the individual yet
 (design Q4). That is a blocker for public launch, not for local verification. When it is
@@ -123,4 +131,5 @@ apart on purpose (`docs/architecture/A-stage-design.md` §6.3).
 - "Data is deleted on request" — there is no deletion flow yet.
 
 The in-app privacy text (`about.privacyBody` in both locales) is aligned with this map as of
-commit `B8`; if a table or a field changes, this file and that copy change together.
+B7 (`saved_state` is mentioned as "one set of parameters per experiment, only when you press
+save"); if a table or a field changes, this file and that copy change together.

@@ -1,0 +1,304 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:18328) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m test/state-validator.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/saved-state.test.ts [2m([22m[2m26 tests[22m[2m | [22m[31m23 failed[39m[2m)[22m[33m 8626[2mms[22m[39m
+[31m   [31m×[31m saved state requires a session[2m > [22m'GET' '/api/me/saved-state/math.functions' denies anonymous callers[33m 380[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m saved state requires a session[2m > [22m'PUT' '/api/me/saved-state/math.functions' denies anonymous callers[90m 63[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m saved state requires a session[2m > [22m'DELETE' '/api/me/saved-state/math.functions' denies anonymous callers[90m 55[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m saved state requires a session[2m > [22mdenies a forged session cookie[90m 53[2mms[22m[31m[39m
+[31m     → expected 404 to be 401 // Object.is equality[39m
+[31m   [31m×[31m saved state lifecycle[2m > [22mreports 404 before anything is saved, and saving writes exactly one row[33m 352[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m saved state lifecycle[2m > [22mreads back from a second process on the same database (not from memory)[33m 359[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m saved state lifecycle[2m > [22moverwrites the single snapshot instead of accumulating versions[33m 366[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m saved state lifecycle[2m > [22mdeletes the snapshot, is idempotent, and reports 404 afterwards[33m 376[2mms[22m[31m[39m
+[31m     → expected 404 to be 204 // Object.is equality[39m
+[31m   [31m×[31m saved state is account-scoped[2m > [22mis invisible to another account, which cannot delete it either[33m 637[2mms[22m[31m[39m
+[31m     → expected 404 to be 200 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'an unknown key' and stores nothing[33m 356[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a missing key' and stores nothing[33m 352[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a value above the declared maximum' and stores nothing[33m 355[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a value off the declared step' and stores nothing[33m 339[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a number sent as a string' and stores nothing[33m 373[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'an enum value outside the whitelist' and stores nothing[33m 335[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a values payload that is an array' and stores nothing[33m 357[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'an extra top-level field' and stores nothing[33m 358[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a missing stateSchemaVersion' and stores nothing[33m 357[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects 'a string stateSchemaVersion' and stores nothing[33m 361[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state validation[2m > [22mrefuses a snapshot whose schema version the running server does not know[33m 337[2mms[22m[31m[39m
+[31m     → expected 404 to be 409 // Object.is equality[39m
+   [33m[2m✓[22m[39m saved state validation[2m > [22mrejects an experiment that is not in the content index [33m341[2mms[22m[39m
+[31m   [31m×[31m saved state validation[2m > [22mrejects a malformed experiment id before touching the database[33m 325[2mms[22m[31m[39m
+[31m     → expected 404 to be 400 // Object.is equality[39m
+[31m   [31m×[31m saved state honours the cross-site and rate-limit guards[2m > [22mrejects a write with no Origin header and with a non-JSON content type[33m 358[2mms[22m[31m[39m
+[31m     → expected 404 to be 403 // Object.is equality[39m
+[31m   [31m×[31m saved state honours the cross-site and rate-limit guards[2m > [22mrate-limits repeated saves with Retry-After and keeps the last good snapshot[33m 379[2mms[22m[31m[39m
+[31m     → expected null not to be null[39m
+   [33m[2m✓[22m[39m saved state stays out of diagnostics[2m > [22mwrites no event when a snapshot is saved, read or deleted [33m341[2mms[22m[39m
+   [33m[2m✓[22m[39m saved state stays out of diagnostics[2m > [22mnever stores the values in the event table even when a batch is sent [33m360[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/state-validator.test.ts[2m [ test/state-validator.test.ts ][22m
+[31m[1mError[22m: Failed to load url ../src/domain/state-validator.js (resolved id: ../src/domain/state-validator.js) in G:/hermes/projects/openedulab/apps/api/test/state-validator.test.ts. Does the file exist?[39m
+[90m [2m❯[22m loadAndTransform ../../node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m51969:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/24]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 23 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state requires a session[2m > [22m'GET' '/api/me/saved-state/math.functions' denies anonymous callers
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state requires a session[2m > [22m'PUT' '/api/me/saved-state/math.functions' denies anonymous callers
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state requires a session[2m > [22m'DELETE' '/api/me/saved-state/math.functions' denies anonymous callers
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m123:29[22m[39m
+    [90m121| [39m    })[33m;[39m
+    [90m122| [39m
+    [90m123| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m124| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'unauthenticated'[39m)[33m;[39m
+    [90m125| [39m    [34mexpect[39m(response[33m.[39mheaders[[32m'cache-control'[39m])[33m.[39m[34mtoBe[39m([32m'no-store'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state requires a session[2m > [22mdenies a forged session cookie
+[31m[1mAssertionError[22m: expected 404 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m136:29[22m[39m
+    [90m134| [39m      headers[33m:[39m { cookie[33m:[39m [32m'oel_sid=forged'[39m }[33m,[39m
+    [90m135| [39m    })[33m;[39m
+    [90m136| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m137| [39m  })[33m;[39m
+    [90m138| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state lifecycle[2m > [22mreports 404 before anything is saved, and saving writes exactly one row
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m150:26[22m[39m
+    [90m148| [39m
+    [90m149| [39m    [35mconst[39m saved [33m=[39m [35mawait[39m [34mput[39m(server[33m,[39m cookie[33m,[39m { stateSchemaVersion[33m:[39m [34m1[39m[33m,[39m v…
+    [90m150| [39m    [34mexpect[39m(saved[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m151| [39m    [34mexpect[39m(saved[33m.[39mbody[33m.[39mexperimentId)[33m.[39m[34mtoBe[39m([32m'math.functions'[39m)[33m;[39m
+    [90m152| [39m    [34mexpect[39m(saved[33m.[39mbody[33m.[39mcontentVersion)[33m.[39m[34mtoBe[39m([32m'1.0.0'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state lifecycle[2m > [22mreads back from a second process on the same database (not from memory)
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m179:29[22m[39m
+    [90m177| [39m    [35mtry[39m {
+    [90m178| [39m      [35mconst[39m reread [33m=[39m [35mawait[39m [35mget[39m({ [33m...[39mserver[33m,[39m app[33m:[39m restarted }[33m,[39m cookie)[33m;[39m
+    [90m179| [39m      [34mexpect[39m(reread[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m180| [39m      [34mexpect[39m(reread[33m.[39mbody[33m.[39mvalues)[33m.[39m[34mtoEqual[39m([33mVALID_VALUES[39m)[33m;[39m
+    [90m181| [39m    } [35mfinally[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state lifecycle[2m > [22moverwrites the single snapshot instead of accumulating versions
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m195:27[22m[39m
+    [90m193| [39m    })[33m;[39m
+    [90m194| [39m
+    [90m195| [39m    [34mexpect[39m(second[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m196| [39m    [34mexpect[39m(second[33m.[39mbody[33m.[39mvalues)[33m.[39m[34mtoEqual[39m({ mode[33m:[39m [32m'quadratic'[39m[33m,[39m a[33m:[39m [33m-[39m[34m1[39m[33m,[39m b[33m:[39m …
+    [90m197| [39m    [34mexpect[39m([34mrows[39m(server[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state lifecycle[2m > [22mdeletes the snapshot, is idempotent, and reports 404 afterwards
+[31m[1mAssertionError[22m: expected 404 to be 204 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 204[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m207:26[22m[39m
+    [90m205| [39m
+    [90m206| [39m    [35mconst[39m first [33m=[39m [35mawait[39m [34mremove[39m(server[33m,[39m cookie)[33m;[39m
+    [90m207| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m204[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m208| [39m    [34mexpect[39m([34mrows[39m(server[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+    [90m209| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state is account-scoped[2m > [22mis invisible to another account, which cannot delete it either
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m230:26[22m[39m
+    [90m228| [39m
+    [90m229| [39m    [35mconst[39m saved [33m=[39m [35mawait[39m [34mput[39m(harness[33m,[39m ownerCookie[33m,[39m { stateSchemaVersion…
+    [90m230| [39m    [34mexpect[39m(saved[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m231| [39m
+    [90m232| [39m    [35mconst[39m otherRead [33m=[39m [35mawait[39m [35mget[39m(harness[33m,[39m otherCookie)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'an unknown key' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a missing key' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a value above the declared maximum' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a value off the declared step' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a number sent as a string' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'an enum value outside the whitelist' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a values payload that is an array' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'an extra top-level field' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a missing stateSchemaVersion' and stores nothing
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects 'a string stateSchemaVersion' and stores nothing
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m302:29[22m[39m
+    [90m300| [39m    [35mconst[39m response [33m=[39m [35mawait[39m [34mput[39m(server[33m,[39m cookie[33m,[39m payload)[33m;[39m
+    [90m301| [39m
+    [90m302| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m303| [39m    [34mexpect[39m(response[33m.[39mcode)[33m.[39m[34mtoBe[39m(code)[33m;[39m
+    [90m304| [39m    [34mexpect[39m([34mrows[39m(server[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrefuses a snapshot whose schema version the running server does not know
+[31m[1mAssertionError[22m: expected 404 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m315:26[22m[39m
+    [90m313| [39m    [35mconst[39m stale [33m=[39m [35mawait[39m [34mput[39m(server[33m,[39m cookie[33m,[39m { stateSchemaVersion[33m:[39m [34m2[39m[33m,[39m v…
+    [90m314| [39m
+    [90m315| [39m    [34mexpect[39m(stale[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m316| [39m    [34mexpect[39m(stale[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m'state_schema_incompatible'[39m)[33m;[39m
+    [90m317| [39m    [34mexpect[39m([34mrows[39m(server[33m.[39mdatabasePath))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state validation[2m > [22mrejects a malformed experiment id before touching the database
+[31m[1mAssertionError[22m: expected 404 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m338:29[22m[39m
+    [90m336| [39m      headers[33m:[39m cookie[33m,[39m
+    [90m337| [39m    })[33m;[39m
+    [90m338| [39m    [34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m339| [39m    [34mexpect[39m([34merrorCode[39m(response))[33m.[39m[34mtoBe[39m([32m'validation_failed'[39m)[33m;[39m
+    [90m340| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state honours the cross-site and rate-limit guards[2m > [22mrejects a write with no Origin header and with a non-JSON content type
+[31m[1mAssertionError[22m: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m test/saved-state.test.ts:[2m354:29[22m[39m
+    [90m352| [39m      origin[33m:[39m [35mnull[39m[33m,[39m
+    [90m353| [39m    })[33m;[39m
+    [90m354| [39m    [34mexpect[39m(noOrigin[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m355| [39m
+    [90m356| [39m    [35mconst[39m formPost [33m=[39m [35mawait[39m [34mapi[39m(server[33m.[39mapp[33m,[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/24]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m test/saved-state.test.ts[2m > [22msaved state honours the cross-site and rate-limit guards[2m > [22mrate-limits repeated saves with Retry-After and keeps the last good snapshot
+[31m[1mAssertionError[22m: expected null not to be null[39m
+[36m [2m❯[22m test/saved-state.test.ts:[2m379:25[22m[39m
+    [90m377| [39m    }
+    [90m378| [39m
+    [90m379| [39m    [34mexpect[39m(limited)[33m.[39mnot[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m380| [39m    [34mexpect[39m(limited[33m?.[39mcode)[33m.[39m[34mtoBe[39m([32m'rate_limited'[39m)[33m;[39m
+    [90m381| [39m    [34mexpect[39m([33mNumber[39m(limited[33m?.[39mheaders[[32m'retry-after'[39m]))[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/24]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m23 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 23:43:46
+[2m   Duration [22m 9.90s[2m (transform 263ms, setup 0ms, collect 488ms, tests 8.63s, environment 0ms, prepare 224ms)[22m
+

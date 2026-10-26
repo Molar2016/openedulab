@@ -12,7 +12,7 @@
 **B5（诊断与运维）已完成**（本轮）：事件契约按设计 §10 变更（`experiment_complete` 移除、拆成 `first_interaction` + `control_used`、全屏方向进 `control_group`、增 `contentVersion`），`POST /api/events` 只接受白名单枚举并以服务端时间/账号/去重键落库，`POST /api/feedback` 是唯一自由文本入口（只进 `feedback` 表），`/api/internal/*` 用环境变量 Bearer 令牌（未配置即 404）+ 强制“用途 + 运维标识”+ `internal_audit` 落账，`dataGaps` 把“事件关闭”的窗口标成未知而不是 0。关闭诊断端点后实验、收藏、最近使用照常（有浏览器级故障注入用例）。
 **B6（端到端验收）已完成**（本轮）：三视口（390×844 / 1280×720 / 1024×768）完整流程、跨账号隔离、登出与异地撤销、断网与 503 故障注入、键盘可用性、`VACUUM INTO` 备份恢复检查；真实日志、截图、录屏与备份报告在 `docs/evidence/b6/`。
 **本机已可完成需求 §4 的全部六条场景**（注册/登录/目录/实验/收藏与最近使用/内部诊断/失败路径），取证见 `docs/evidence/b3`–`b6`，B8 的复核实测见 `docs/evidence/b8/`。**仍不可称 M1 完成、不可部署、无公网 URL**：源码已在公开仓库且 CI 在 GitHub 上真实运行通过（2026-10-26 起）；没有找回密码、账号删除/个人数据导出、标识归属验证；留存清理只有 CLI（无 HTTP 入口）；没有真实服务器与域名，公网相关事项仍待授权。**公开仓库只有源码，没有可访问的应用地址**（详见「R1」一节）。
-**历史说明（仅描述 B1/B2 当时的形态，已被 B3–B8 取代，勿据此判断当前行为）**：B1 时 `/api/auth/*` 未挂载（404），需登录的路由一律 401 占位，`/api/internal/*` 404，SPA 深链接返回公开构建产物；B2 挂载认证；B3 用 `requireSession()` 取代占位并把深链接改为 302；B4 落地 `/api/me/*`，B5 落地 `/api/events`、`/api/feedback` 与 `/api/internal/*`。**当前仍然成立的两条不变事实**：①`/api/me/saved-state/*` 不存在（B7 未做，返回 404，不挂假端点）；②静态 JS/CSS 包本身无法用登录保护（设计要求 §2 已声明）。
+**历史说明（仅描述 B1/B2 当时的形态，已被 B3–B8 取代，勿据此判断当前行为）**：B1 时 `/api/auth/*` 未挂载（404），需登录的路由一律 401 占位，`/api/internal/*` 404，SPA 深链接返回公开构建产物；B2 挂载认证；B3 用 `requireSession()` 取代占位并把深链接改为 302；B4 落地 `/api/me/*`，B5 落地 `/api/events`、`/api/feedback` 与 `/api/internal/*`。**不变事实**：①静态 JS/CSS 包本身无法用登录保护（设计要求 §2 已声明）；②`/api/me/saved-state/*` 自 R2（B7）起**存在且受门禁**，不再是"不挂假端点"的 404 状态（历史句子保留，勿据此判断当前行为）。
 原免登录原型（`apps/web` 的旧页面 + `experiments/math-functions`）已在 B3 改造为登录后使用：目录来自 `/api/catalog`，实验页先取 `/api/experiments/:id` 再渲染。
 
 ## B0 本轮做了什么（根因修复，非打补丁）
@@ -65,7 +65,7 @@
 - **E2E 改为打真实产物**：`scripts/e2e-server.mjs` 现场构建并启动 **真实 Fastify 进程**（同源托管真实 `dist`，端口 3220，临时数据库每次重建），Playwright 用 `auth.setup` 注册共享账号并保存会话；`gate.spec.ts` 用**无 Cookie 上下文**验证 302/401/伪造 Cookie/登出后重放旧 Cookie 仍 401；`app.spec.ts` 是原 `m1.spec.ts` 的登录版（改名保留全部行为断言，新增“生产包不含调试钩子”“`contentVersion` 来自服务器”）。
 - **未新增迁移**：B3 只需 `GET` 与索引，`0001_init.sql` 未改动（校验和仍 `289c27d35781…`）。
 
-**未做的事（刻意）**：没有收藏/最近使用（B4）、没有事件/反馈/运维查询（B5）、没有参数快照（B7 可选）、没有找回密码/改绑/号码验证、没有多实例共享限速、没有部署或公网 URL。因此本轮**不能**声称需求 §4.3（收藏与最近使用）或 §4.4（按账号诊断）已满足。
+**未做的事（刻意，当时）**：没有收藏/最近使用（B4）、没有事件/反馈/运维查询（B5）、没有参数快照（B7，已在 R2 落地）。当轮**不能**声称需求 §4.3 或 §4.4 已满足。
 
 ## B4 本轮做了什么（个人数据，TDD；不含诊断）
 先写 `test/favorites.test.ts`(13) 与 `test/recent.test.ts`(9) 再写实现：把三条 `/api/me` 路由从 app 上摘掉时 **22/27 断言失败**（`docs/evidence/b4/tests-red.txt`），装回后全绿。
@@ -77,7 +77,7 @@
 - **前端**：实验页收藏开关（`aria-pressed`，失败时显示“收藏没有更新成功”且不改状态），`/me` 页并列“我的收藏 / 最近使用”，最近一次打开时间按 locale 格式化；最近使用写入失败只显示一条非阻断提示，不影响实验。
 - **取代的旧断言**：`private-routes.test.ts` 里“`/api/me/*` 不得存在”改为“五条 me 路由必须已挂载且匿名一律 401”。
 
-**未做的事（刻意）**：没有参数快照（B7 可选）、没有“打开次数”统计（需求不要求）、没有用事件表反推最近使用（设计明令禁止）。
+**未做的事（刻意，当时）**：没有参数快照（B7 已在 R2 落地）、没有“打开次数”统计（需求不要求）、没有用事件表反推最近使用（设计明令禁止）。
 
 ## B5 本轮做了什么（诊断、反馈、运维通道，TDD）
 先写 `events.test.ts`(24)、`feedback.test.ts`(11)、`internal.test.ts`(17) 再写实现；实现过程中发现并修正三处**测试自身**的问题（客户端 id 短于 8 字符、跨账号共用 `visit_id`、把同一分钟的时序当有序），没有放宽任何生产约束。契约变更的影响分析先落盘：`docs/architecture/impact-B5-event-contract.md`。
@@ -114,7 +114,7 @@
 
 **5) 文档**：新增根 `README.md`、`docs/ops/runbook.md`、`docs/ops/rollback.md`、`docs/privacy/data-map.md`、`docs/third-party.md`（只列实际用到的 4 个运行时依赖 + 18 个开发依赖及其真实版本/许可，不展开素材审查）、`docs/architecture/review-B8.md`；修正设计文档两处与实现不符之处；`PROJECT_STATE` 重写自相矛盾段（B1/B2 的历史形态被明确标注为历史）。
 
-**未做（刻意）**：B7 参数快照（可选，`saved_state` 表仍为空）、生产部署/域名/HTTPS、异机备份复制、账号删除与个人数据导出、标识归属验证、找回密码、图形化运维后台。
+**未做（刻意，B8 当时）**：B7 参数快照（R2 已落地）、生产部署/域名/HTTPS、异机备份复制、账号删除与个人数据导出、标识归属验证、找回密码、图形化运维后台。
 
 ## R1（远端落地与真实 CI，本轮）
 
@@ -134,6 +134,27 @@
 **文档断代清理**：README 的「no remote / CI not running / nothing has been pushed anywhere」、`PROJECT_STATE` 的「没有远端仓库，因此从未在 GitHub 上运行过」「无远端、未推送」「GitHub CI 从未运行」等句子已改为当前事实，并在原处标注为**历史**；同时明确写出**公开仓库只有源码，没有可访问的应用地址**（无部署、无域名），以及**尚无许可证文件**（不得据此认为已开源授权）。
 
 **未做**：未开启 Dependabot、未配置 code scanning、未升级 actions 版本（三者都记录为待办，任一都不影响"CI 在 GitHub 上真实通过"这一结论）。
+
+## R2（B7 参数快照，本轮）
+
+**做了什么**：给用户一个**显式**的“保存当前设置 / 恢复我保存的设置 / 删除已保存的设置”，全部落在既有 `saved_state` 表里，**没有新增迁移**（`0001_init.sql` 校验和仍 `289c27d35781…`，`schema_migrations` 仍只有 1 行）。
+
+- **契约**：参数白名单是**数据**，不是代码——`experiments/math-functions/state-schema.json`（`schemaVersion: 1`；`mode` 枚举、`a/b/c` 数值 −10..10 step 0.1，默认值与 `model.ts` 的 `DEFAULT_COEFFICIENTS` 一致）。服务器启动时读入并校验（缺失=该实验不支持保存；存在但非法=拒绝启动），浏览器用同一个文件。两条实现（`apps/api/src/domain/state-validator.ts`、`apps/web/src/experiment/state-schema.ts`）由 `tests/state-schema.test.ts` 用**同一张用例表**逐条比对，防漂移。
+- **API**：`GET/PUT/DELETE /api/me/saved-state/:experimentId`。GET 200 / 无快照 404；PUT 200 并回规范化值；DELETE 204 幂等。**保存 30 次/分钟/账号**、写路由走既有 CSRF 守卫、三条路由都登记进 `route-inventory.ts` 受控清单（匿名 401）。新增两个错误码：`state_invalid`(400) 与 `state_schema_incompatible`(409)。
+- **校验**：未知键**拒绝**（不静默剥离）、缺键拒绝、类型/范围/步长（含浮点噪声容差 1e-6）全查、`payload` ≤4096 字节且键排序后落库（同一份设置=同一串字节）。`stateSchemaVersion` 用 `preValidation` 严肃数字判断，绕开 Fastify AJV 的 `"1"→1` 强制转换（这条是被测试逼出来的：先写成 handler 内判断，却被 AJV 先转换掉了）。
+- **UI**：实验页工具栏在实验声明了 schema 时出现三个按钮；拖动滑块**不写任何东西**；恢复是**用户点击**才发生（兼容的旧快照不会自动套用），实现方式是带 `initialState` 重挂载视图；版本不兼容时只显示“来自旧版本，已使用默认值”并只给删除按钮；保存失败明说“没有保存成功”。
+- **不进诊断**：保存/读取/删除都不写 `event`，参数值不进事件表（`saved-state.test.ts` 直接查库断言事件表里没有 `"mode"`/`linear`/参数值；smoke 用事件计数前后相等断言）。
+- **顺带加固**：`scripts/backup-check.mjs` 与 `scripts/restore-check.mjs` 的表清单补上 `saved_state`——原先只数 7 张表，B7 开始写第 8 张，不补就是漏检。
+
+**RED（先写测试，记录在 `docs/evidence/b7/`）**：`tests-red-api.txt` = 2 个文件失败（`state-validator.test.ts` 0 个测试可运行；`saved-state.test.ts` 26 个里 23 个失败，路由全 404）；`tests-red-web.txt` = 2 个文件失败（`state-schema.test.ts` 0 个测试；`host-saved-state.test.tsx` 11 个里 8 个失败，`save-state-button` 不存在）。
+
+**实测（非推断）**：
+- `npm run check` **退出码 0**（`docs/evidence/b7/check-b7.txt`）：web **10 文件 / 122 测试**（B8 的 90 + 状态 schema 21 + host 保存 11）；API **23 文件 / 330 测试**（B8 的 274 + 校验器 25 + 路由/隔离/限速/事件 28 + 索引 schema 2）；`validate-content` OK；两个构建成功；无新迁移。
+- **真实进程 smoke：108/108**（`smoke.txt`，B8 的 90 + 保存快照 18 条；含匿名三方法 401、规范化落库、未知键/越界 400、旧 schema 409、跨账号 404/204、事件计数不变、删后 404）。
+- **真实浏览器 E2E：78 通过 / 52 条件跳过 / 0 失败**（`e2e-b7.txt`，4 个 project；新增 `saved-state.spec.ts` 6 通过）。实测路径：拖 20 次→`y = 3x²`→API 仍 404（无显式保存=无落库）→点保存→`GET` 200 且 `values.a≈3`→刷新回默认且出现“恢复”→点恢复→`y = 3x²`、滑块回到 3→删除→404；另一账号看不到（404）、其删除是 204 而本人快照仍在；手机视口无横向滚动。截图 5 张在 `docs/evidence/b7/`（`saved-state-{saved,offered,restored,owner,mobile}.png`）。
+- **备份/恢复**：`check:backup` PASS（快照 180224 字节、`integrity_check=ok`、**八张表**含 `saved_state:1`）；`check:restore` PASS（恢复库里 `saved_state:1` 仍在、`healthz=ok`、`writeProbe=201`）；`retention --dry-run` 0 行。
+
+**未做（刻意）**：`saved_state` 没有自己的留存期限（跟随账号，删除按钮是自助入口）；不做多份快照/版本历史；快照损坏（JSON 解不开）时返回 409 让用户覆盖，不做自动修复；未把参数写进任何导出/运维视图（也没有这样的视图）。
 
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 同源模块化单体（Fastify + 静态 SPA，无 CORS）；服务端会话（DB 存 token 哈希，HttpOnly Cookie，非 JWT）；scrypt 口令哈希；私有 API 一律从会话派生 `account_id`（不接受请求体/路径传账号）；个人数据与诊断事件物理分表、分路由、分一致性等级；运维权限用环境变量 Bearer token，未配置时 404；本地开发 SQLite（`node:sqlite`），生产候选 PostgreSQL 但**不承诺可切换**；迁移用编号 SQL + 校验和 + 单事务且只允许两库共同子集；备份 `VACUUM INTO`/`pg_dump -Fc` + 异机复制 + 每月恢复演练。
@@ -228,10 +249,10 @@
 5. ~~**B4（个人数据）**：收藏/取消收藏 + 按资源去重的最近使用，跨会话回读，事件端点关闭时独立可用。~~ **已完成（本轮）**：API 207 测试、smoke 78/78、E2E 35 通过；跨账号隔离与幂等有断言。
 6. ~~**B5（诊断与运维）**：白名单事件、反馈、`/api/internal/*` + 审计 + `dataGaps`，关闭诊断仍可实验。~~ **已完成（本轮）**：API 253 测试、smoke 90/90、E2E 42 通过；契约变更的影响分析先于代码落盘。
 7. ~~**B6（端到端验收）**：三视口完整流程、跨账号隔离、过期与登出、故障注入、无障碍、构建/迁移/备份恢复检查。~~ **已完成（本轮）**：4 个 project 的 E2E 74 通过/0 失败、备份恢复 PASS、截图/录屏/日志齐全。
-8. **B7（可选，不阻塞主闭环）**：参数快照 `saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。当前**未实现**，`/api/me/saved-state/*` 是 404（smoke 已断言），需求 §4.5 因此未满足。
+8. ~~**B7（参数快照）**：`saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。~~ **已完成（R2）**：三条路由受门禁/CSRF/限速约束，schema 由实验目录 `state-schema.json` 声明并在启动时校验，保存是唯一写入路径，需求 §4.5 因此满足。
 9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。（B8 当时仍不可称 CI 绿色，因无远端仓库；R1 已完成远端落地并实测 CI 通过。）、B8 当时不可部署。
 10. **下一关（需用户选择，二者都需要新的授权）**：
-    - **B7（可选）**：参数快照 `saved_state`（一资源一份、版本不兼容回退、无显式保存则不写）。入口：`apps/api/migrations/` 已建好该表但从未写入；按设计 §7.5/§10 加 `/api/me/saved-state/:experimentId` + 路由清单登记 + 实验模块 `stateSchema`，按 R-17/R-18 补测试。
+    - ~~**B7（参数快照）**~~ **已完成（R2）**：`GET/PUT/DELETE /api/me/saved-state/:experimentId` + 路由清单登记 + 实验目录 `state-schema.json` + R-17/R-18 用例（含"拖动不落库"与"不兼容回默认"）。
     - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与未成年人政策（Q3）、账号删除与数据导出的取舍（Q4）、远端仓库与 CI 真实运行、异机备份复制方案。
 
 ## 停止点与恢复命令（本次任务到此为止）
@@ -277,7 +298,7 @@ OEL_ENV=development OEL_HOST=127.0.0.1 OEL_PORT=3220 OEL_PUBLIC_ORIGIN=http://12
 - 留存清理若要真删，必须 `--apply --confirm-database <同一路径>`（runbook §7）。
 - 恢复演练会临时启动 3321 端口的一个 API 进程并在结束时停掉；若 3321 被占用脚本会失败，先查占用。
 
-**下一关（B7，可选）的入口**：`saved_state` 表已建好但从未写入。实现时新增 `/api/me/saved-state/:experimentId` 的 GET/PUT/DELETE + 在 `route-inventory.ts` 登记（同时更新 `PRIVATE_API_ROUTES`）+ 实验模块声明 `stateSchema`（设计 §10），并按 R-17/R-18 补测试（版本不兼容回退默认、无显式保存则不持久化）。
+**B7（参数快照）的现状与入口**：已实现（R2）。`/api/me/saved-state/:experimentId` 的 GET/PUT/DELETE 已挂载并登记在受控清单里，参数白名单来自 `experiments/<folder>/state-schema.json`（服务器启动时校验，非法即拒绝启动）。给新实验加保存能力 = 加一个 `state-schema.json` 并在视图里读写 `initialState` / `stateBridge`；服务端不需要改代码。
 
 ## 阻塞与未决
 - 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出是否前置（Q4）、多实例与共享限速（Q6）、**远端仓库与 CI 真实运行**、**生产备份异机复制（需服务器确认，未做未验证）**。

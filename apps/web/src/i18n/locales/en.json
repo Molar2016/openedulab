@@ -111,7 +111,7 @@
   "about.heading": "About this service",
   "about.body": "OpenEduLab is an open teaching tool. Experiments, favorites and recent use need an account; the content itself is original to this project.",
   "about.privacyHeading": "What is stored",
-  "about.privacyBody": "Your account keeps the email address or phone number you registered with (for sign-in only; the page shows a masked version), a password hash, your favorites and which experiments you opened. Usage events are a fixed list of categories — never slider values, typed text or page URLs. No student records and no advertising trackers.",
+  "about.privacyBody": "Your account keeps the email address or phone number you registered with (for sign-in only; the page shows a masked version), a password hash, your favorites, which experiments you opened, and — only when you press save — one set of parameters per experiment. Usage events are a fixed list of categories — never slider values, typed text or page URLs. No student records and no advertising trackers.",
   "about.unverified": "Registering an email address or phone number does not prove that you own it, so no self-service recovery is offered yet.",
   "about.licensePending": "Code and content licences are not final.",
   "tag.subject.math": "Mathematics",
@@ -123,5 +123,14 @@
   "feedback.send": "Send report",
   "feedback.sending": "Sending…",
   "feedback.sent": "Thank you — the report was saved.",
-  "feedback.sendFailed": "The report was not saved. Check your connection and try again."
+  "feedback.sendFailed": "The report was not saved. Check your connection and try again.",
+  "state.save": "Save my settings",
+  "state.restore": "Restore my settings",
+  "state.delete": "Delete saved settings",
+  "state.saved": "Your settings are saved.",
+  "state.notSaved": "Your settings were not saved.",
+  "state.notRemoved": "The saved settings were not removed.",
+  "state.incompatible": "The saved settings come from an older version of this experiment, so the default values are in use.",
+  "state.unavailable": "Your saved settings could not be read.",
+  "state.rejected": "These settings cannot be saved because a value is outside the allowed range."
 }

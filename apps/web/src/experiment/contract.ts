@@ -90,6 +90,22 @@ export interface ExperimentProps {
   /** Host increments this to ask the experiment to restore its documented defaults. */
   resetToken: number;
   services: ExperimentServices;
+  /**
+   * Parameters the host decided to apply (a snapshot the user asked to restore, design
+   * §7.5). Absent means "use the documented defaults". The experiment must validate these
+   * against its own schema before using them.
+   */
+  initialState?: Readonly<Record<string, number | string>>;
+  /**
+   * Mutable hand-off for explicit saving: the experiment assigns `read` so the host can ask
+   * "what are the current parameters?" **only** when the user clicks save. Nothing is
+   * polled, tracked or transmitted from this without that click.
+   */
+  stateBridge?: ExperimentStateBridge;
+}
+
+export interface ExperimentStateBridge {
+  read?: () => unknown;
 }
 
 /** Returns a stable bucket so raw interaction counts never leave the browser. */

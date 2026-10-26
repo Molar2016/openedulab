@@ -228,12 +228,24 @@ async function main() {
         `status=${response.status} code=${body.error?.code}`,
       );
     }
-    const savedState = await fetch(`${baseUrl}/api/me/saved-state/math.functions`);
-    check(
-      '/api/me/saved-state is honestly absent (404; B7 optional feature)',
-      savedState.status === 404,
-      `status=${savedState.status}`,
-    );
+    // B7: the endpoint exists and is gated like every other personal-data route.
+    for (const method of ['GET', 'PUT', 'DELETE']) {
+      const response = await fetch(`${baseUrl}/api/me/saved-state/math.functions`, {
+        method,
+        ...(method === 'PUT'
+          ? {
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ stateSchemaVersion: 1, values: {} }),
+            }
+          : {}),
+      });
+      const body = await response.json().catch(() => ({}));
+      check(
+        `${method} /api/me/saved-state -> 401 unauthenticated`,
+        response.status === 401 && body.error?.code === 'unauthenticated',
+        `status=${response.status} code=${body.error?.code}`,
+      );
+    }
 
     const unknownApi = await fetch(`${baseUrl}/api/does-not-exist`, { headers: { accept: 'text/html' } });
     check(
@@ -676,6 +688,130 @@ async function main() {
           createHash('sha256').update(liveCookie.split('=')[1]).digest('hex'),
       ),
     );
+
+    process.stdout.write('\n## 6e. saved parameter snapshots (B7)\n');
+    const savedRow = () => {
+      const db = new DatabaseSync(databasePath);
+      try {
+        return db
+          .prepare('SELECT content_version, state_schema_version, payload FROM saved_state')
+          .all();
+      } finally {
+        db.close();
+      }
+    };
+    const eventCount = () => {
+      const db = new DatabaseSync(databasePath);
+      try {
+        return db.prepare('SELECT COUNT(*) AS n FROM event').get().n;
+      } finally {
+        db.close();
+      }
+    };
+    const deleteState = async (cookie = liveCookie) => {
+      const response = await fetch(`${baseUrl}/api/me/saved-state/math.functions`, {
+        method: 'DELETE',
+        headers: { origin, cookie },
+      });
+      return response.status;
+    };
+
+    const beforeSave = await authed('/api/me/saved-state/math.functions');
+    check(
+      'GET saved-state before anything is saved -> 404',
+      beforeSave.status === 404,
+      `status=${beforeSave.status}`,
+    );
+
+    const eventsBeforeSave = eventCount();
+    const CANONICAL = '{"a":3,"b":-2,"c":0.5,"mode":"linear"}';
+    const saved = await putJson('/api/me/saved-state/math.functions', {
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 3, b: -2, c: 0.5 },
+    });
+    check(
+      'PUT saved-state -> 200 with the current content + schema version',
+      saved.status === 200 && saved.json.contentVersion === '1.0.0' && saved.json.stateSchemaVersion === 1,
+      `${saved.status} content=${saved.json.contentVersion} schema=${saved.json.stateSchemaVersion}`,
+    );
+    check(
+      'PUT saved-state returns the canonical whitelisted values',
+      JSON.stringify(saved.json.values) === CANONICAL,
+      JSON.stringify(saved.json.values),
+    );
+
+    const readBack = await authed('/api/me/saved-state/math.functions');
+    const readBackBody = await readBack.json();
+    check(
+      'GET saved-state -> the same values',
+      readBack.status === 200 && JSON.stringify(readBackBody.values) === CANONICAL,
+      `${readBack.status} ${JSON.stringify(readBackBody.values)}`,
+    );
+
+    const savedRows = savedRow();
+    check(
+      'the database stores one canonical row keyed by content version',
+      savedRows.length === 1 &&
+        savedRows[0].payload === CANONICAL &&
+        savedRows[0].content_version === '1.0.0',
+      `${savedRows.length} rows payload=${savedRows[0]?.payload}`,
+    );
+
+    const unknownKey = await putJson('/api/me/saved-state/math.functions', {
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 3, b: -2, c: 0.5, d: 1 },
+    });
+    check(
+      'PUT with an unknown parameter -> 400 state_invalid',
+      unknownKey.status === 400 && unknownKey.json.error?.code === 'state_invalid',
+      `${unknownKey.status} ${unknownKey.json.error?.code}`,
+    );
+    const outOfRange = await putJson('/api/me/saved-state/math.functions', {
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 10.1, b: -2, c: 0.5 },
+    });
+    check(
+      'PUT with an out-of-range value -> 400 state_invalid',
+      outOfRange.status === 400 && outOfRange.json.error?.code === 'state_invalid',
+      `${outOfRange.status} ${outOfRange.json.error?.code}`,
+    );
+    const staleVersion = await putJson('/api/me/saved-state/math.functions', {
+      stateSchemaVersion: 2,
+      values: { mode: 'linear', a: 1, b: 0, c: 0 },
+    });
+    check(
+      'PUT for an unknown schema version -> 409 state_schema_incompatible',
+      staleVersion.status === 409 && staleVersion.json.error?.code === 'state_schema_incompatible',
+      `${staleVersion.status} ${staleVersion.json.error?.code}`,
+    );
+    const unchanged = await authed('/api/me/saved-state/math.functions');
+    check(
+      'rejected saves leave the stored snapshot untouched',
+      unchanged.status === 200 && JSON.stringify((await unchanged.json()).values) === CANONICAL,
+    );
+
+    const foreignRead = await fetch(`${baseUrl}/api/me/saved-state/math.functions`, {
+      headers: { cookie: secondCookie },
+    });
+    check(
+      'another account sees no snapshot (404)',
+      foreignRead.status === 404,
+      `status=${foreignRead.status}`,
+    );
+    check('another account delete is 204 (idempotent)', (await deleteState(secondCookie)) === 204);
+    const stillThere = await authed('/api/me/saved-state/math.functions');
+    check('the owner still has the snapshot afterwards', stillThere.status === 200);
+
+    check(
+      'saving parameters wrote no diagnostic event',
+      eventCount() === eventsBeforeSave,
+      `${eventsBeforeSave} -> ${eventCount()}`,
+    );
+
+    check('DELETE saved-state -> 204', (await deleteState()) === 204);
+    check('DELETE again -> 204 (idempotent)', (await deleteState()) === 204);
+    const gone = await authed('/api/me/saved-state/math.functions');
+    check('GET after delete -> 404', gone.status === 404, `status=${gone.status}`);
 
     process.stdout.write('\n## 7. registration rate limit over a real socket\n');
     let limited = null;

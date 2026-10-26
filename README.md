@@ -28,7 +28,7 @@ is deliberately absent, the evidence paths and the exact commit for each stage.
 | Whitelisted diagnostics, feedback, operator channel with audit | working | `apps/api/test/events.test.ts`, `feedback.test.ts`, `internal.test.ts` |
 | Three-viewport end-to-end (phone / projector / tablet) | working | `tests/e2e/full-flow.spec.ts`, `docs/evidence/b6/` |
 | Backup snapshot + restore drill + retention purge | working (local SQLite) | `scripts/backup-check.mjs`, `scripts/restore-check.mjs`, `scripts/retention-purge.mjs` |
-| Saved parameter snapshots (B7) | **not implemented** | `/api/me/saved-state/*` does not exist |
+| Saved parameter snapshots (B7) | working: explicit save / restore / delete, one snapshot per account+experiment, version mismatch falls back to the documented defaults | `apps/api/test/saved-state.test.ts`, `tests/host-saved-state.test.tsx`, `tests/e2e/saved-state.spec.ts` |
 | Password reset, account deletion, identifier verification | **not implemented** | — |
 | CI running on GitHub | **running** (both jobs green on `main`) | run [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703) |
 
@@ -88,6 +88,7 @@ apps/api/            Fastify API: config, migrations, db access, domain, http
 apps/api/migrations  0001_init.sql — the only migration so far
 apps/web/            React SPA (session-aware routes, catalog, experiment host, /me)
 experiments/         Content: <folder>/manifest.json + locales/{zh-CN,en}.json
+                     optional <folder>/state-schema.json declares the savable parameters
 scripts/             e2e-server, content validation, backup/restore, retention, status
 tests/               web unit tests (vitest) + browser E2E (Playwright)
 docs/               requirements, architecture, ops, privacy, evidence per stage

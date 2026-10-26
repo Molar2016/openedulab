@@ -14,6 +14,7 @@ import {
   type ExperimentProps,
   type Locale,
 } from './contract';
+import { parseStateSchema, type ExperimentStateSchema } from './state-schema';
 
 export type ExperimentDictionary = Record<string, string>;
 
@@ -26,6 +27,11 @@ export interface RegistryEntry extends ManifestEntry {
   compatible: boolean;
   issues: string[];
   locales: Partial<Record<Locale, ExperimentDictionary>>;
+  /**
+   * Declared parameter-snapshot schema (design §7.5), or `null` when this experiment does
+   * not offer saved settings. Parsed from the same file the server validates.
+   */
+  stateSchema: ExperimentStateSchema | null;
   loadView: () => Promise<{ default: ComponentType<ExperimentProps> }>;
 }
 
@@ -41,6 +47,10 @@ const viewModules = import.meta.glob<{ default: ComponentType<ExperimentProps> }
 );
 const localeModules = import.meta.glob<LocaleModule>(
   '../../../../experiments/*/locales/*.json',
+  { eager: true },
+);
+const stateSchemaModules = import.meta.glob<{ default: unknown }>(
+  '../../../../experiments/*/state-schema.json',
   { eager: true },
 );
 
@@ -170,12 +180,28 @@ function buildRegistry(hostVersion: string): RegistryEntry[] {
     .map(({ folder, manifest }) => {
       const ownIssues = issues.filter((issue) => issue.startsWith(`[${folder}]`));
       if (!loaders.has(folder)) ownIssues.push(`[${folder}] view.tsx not found`);
+
+      // Optional: an experiment without saved settings simply has no state-schema.json.
+      let stateSchema: ExperimentStateSchema | null = null;
+      const schemaModule = stateSchemaModules[`../../../../experiments/${folder}/state-schema.json`];
+      if (schemaModule !== undefined) {
+        const parsed = parseStateSchema(schemaModule.default);
+        if (parsed.ok) {
+          stateSchema = parsed.schema;
+        } else {
+          for (const issue of parsed.issues) {
+            ownIssues.push(`[${folder}] state-schema.json: ${issue}`);
+          }
+        }
+      }
+
       return {
         folder,
         manifest,
         compatible: isSdkCompatible(manifest.sdkVersionRange ?? '', hostVersion),
         issues: ownIssues,
         locales: locales.get(folder) ?? {},
+        stateSchema,
         loadView: loaders.get(folder) ?? (() => Promise.reject(new Error(`[${folder}] view.tsx not found`))),
       };
     })

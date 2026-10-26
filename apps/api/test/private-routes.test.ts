@@ -81,8 +81,10 @@ describe('API route inventory', () => {
     expect(privateRoutes).toContain('POST /api/me/recent');
     expect(privateRoutes).toContain('POST /api/events');
     expect(privateRoutes).toContain('POST /api/feedback');
-    // Saved state is B7 (optional) and must not exist as a fake endpoint before then.
-    expect(routes.some((entry) => entry.url === '/api/me/saved-state/:experimentId')).toBe(false);
+    // B7: parameter snapshots are mounted and gated like every other personal-data route.
+    expect(privateRoutes).toContain('GET /api/me/saved-state/:experimentId');
+    expect(privateRoutes).toContain('PUT /api/me/saved-state/:experimentId');
+    expect(privateRoutes).toContain('DELETE /api/me/saved-state/:experimentId');
     // Without an operator token the channel is not mounted (see the test below).
     expect(routes.some((entry) => isOperatorApiRoute(entry))).toBe(false);
   });

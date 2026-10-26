@@ -25,6 +25,27 @@ const dictionaries: Record<string, Record<string, string>> = {
 
 const PLOT = { width: 640, height: 420, left: 48, right: 18, top: 20, bottom: 40 };
 const GRAPH_ID = 'math-functions-graph-title';
+/** The range the controls can actually show; `state-schema.json` declares the same bounds. */
+export const SLIDER = { min: -10, max: 10, step: 0.1 } as const;
+
+/**
+ * Parameters handed over by the host (a restored snapshot). Anything the controls cannot show
+ * falls back to the documented default for that field, so a tampered or stale payload can
+ * never put the view in a state the UI cannot represent.
+ */
+function coefficientsFromState(input?: Readonly<Record<string, number | string>>): Coefficients {
+  const next: Coefficients = { ...DEFAULT_COEFFICIENTS };
+  if (input === undefined) return next;
+  const mode = input.mode;
+  if (mode === 'linear' || mode === 'quadratic') next.mode = mode;
+  for (const field of ['a', 'b', 'c'] as const) {
+    const value = input[field];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= SLIDER.min && value <= SLIDER.max) {
+      next[field] = value;
+    }
+  }
+  return next;
+}
 
 function translate(locale: string, key: string): string {
   return dictionaries[locale]?.[key] ?? dictionaries.en[key] ?? key;
@@ -177,9 +198,9 @@ function CoefficientControl({ id, label, value, disabled, onChange }: ControlPro
         <input
           id={id}
           type="range"
-          min={-10}
-          max={10}
-          step={0.1}
+          min={SLIDER.min}
+          max={SLIDER.max}
+          step={SLIDER.step}
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(Number(event.target.value))}
@@ -196,12 +217,28 @@ function warningText(warning: ModelWarning, locale: string): string {
   return translate(locale, `warning.${warning}`);
 }
 
-export default function MathFunctionsExperiment({ locale, resetToken, services }: ExperimentProps): JSX.Element {
-  const [coefficients, setCoefficients] = useState<Coefficients>({ ...DEFAULT_COEFFICIENTS });
+export default function MathFunctionsExperiment({
+  locale,
+  resetToken,
+  services,
+  initialState,
+  stateBridge,
+}: ExperimentProps): JSX.Element {
+  const [coefficients, setCoefficients] = useState<Coefficients>(() => coefficientsFromState(initialState));
   const interactCount = useRef(0);
   const lastReset = useRef(resetToken);
 
   const t = (key: string): string => translate(locale, key);
+
+  /**
+   * The only way the host can learn the current parameters: it calls `read()` when the user
+   * clicks save. Nothing is pushed, polled or timed here, so a drag can never become a
+   * stored or transmitted parameter stream.
+   */
+  useEffect(() => {
+    if (stateBridge === undefined) return;
+    stateBridge.read = () => ({ ...coefficients });
+  }, [coefficients, stateBridge]);
 
   useEffect(() => {
     if (resetToken === lastReset.current) return;

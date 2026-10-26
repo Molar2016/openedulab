@@ -239,7 +239,7 @@ scripts/                  # backup / restore-check / retention-purge
 主键 `(account_id, experiment_id)`；写为 `ON CONFLICT ... DO UPDATE SET last_opened_at=excluded.last_opened_at`（**已实测可用**，见 §8.2）。
 不存次数、不存参数、不存进入/离开明细。索引 `(account_id, last_opened_at DESC)`。
 
-### 5.5 `saved_state`（条件功能，可延后）
+### 5.5 `saved_state`（B7 已实现；表在 `0001_init.sql` 里，B7 未新增迁移）
 
 | 列 | 类型 | 约束 |
 |---|---|---|
@@ -400,15 +400,24 @@ scripts/                  # backup / restore-check / retention-purge
 
 **何时调用**：实验模块挂载成功后调用一次；失败时仅在实验页显示非阻断提示“最近使用未记录”，不影响操作。参数值一律不传。
 
-### 7.5 参数快照（条件功能）
+### 7.5 参数快照（B7 已实现）
 
 | 方法 路径 | 语义 |
 |---|---|
-| `GET /api/me/saved-state/:experimentId` | 200 `{contentVersion, stateSchemaVersion, values:object}` / 404 无快照 |
-| `PUT /api/me/saved-state/:experimentId` `{stateSchemaVersion, values}` | 服务端用实验 schema 校验：仅白名单键、数值范围、总字节 ≤4096；存当前 `content_version`；`200` |
-| `DELETE /api/me/saved-state/:experimentId` | `204` |
+| `GET /api/me/saved-state/:experimentId` | 200 `{experimentId, contentVersion, stateSchemaVersion, values:object, updatedAt}` / 404 `not_found`（无快照，或实验未收录）/ 409 `state_schema_incompatible`（库内快照无法解析） |
+| `PUT /api/me/saved-state/:experimentId` `{stateSchemaVersion, values}` | 服务端用实验 schema 校验：仅白名单键、键集必须完全一致、数值范围与步长、总字节 ≤4096；存当前 `content_version`；200 同 GET 体 |
+| `DELETE /api/me/saved-state/:experimentId` | `204`（幂等；从未保存过也返回 204，避免用它探测他人数据） |
 
-恢复规则（B 阶段若实现必须测）：`content_version` 或 `state_schema_version` 不匹配 → 不恢复、回退教学默认值，并显示“该设置来自旧版本，已恢复默认”。重置按钮**只**恢复默认值，不等于“恢复我保存的设置”。
+**实现细节（B7 落地时确定，均为实测行为）**：
+- 参数白名单的唯一来源是实验目录里的 `state-schema.json`（`schemaVersion` + 每个字段 `number{min,max,step,default}` 或 `enum{values,default}`）。服务端在**启动时**读入并校验；文件存在但非法 → 进程拒绝启动（与 manifest 同级严厉）。文件缺失 → 该实验不提供保存，`PUT` 返回 409。
+- 校验拒绝的分类（`400 state_invalid`，报文只说哪个字段、不复述用户值）：`not_an_object` / `unknown_key` / `missing_key` / `invalid_number` / `out_of_range` / `off_step` / `invalid_enum` / `too_large`。未知键**不静默丢弃**：静默修补会让“恢复”变成谎话。
+- `stateSchemaVersion` 不是当前版本 → `409 state_schema_incompatible`（老页面必须刷新，而不是悄悄按新 schema 写入）。该字段在 `preValidation` 阶段做严格数字判断，绕开 AJV 的 `"1" → 1` 强制转换。
+- 落库的是**规范化 JSON**（键排序），因此“同一份设置”是字节比较；`payload` 上限 4096 字节。
+- 限速：保存/删除 30 次/分钟/账号，429 带 `Retry-After`；写路由走同一个 CSRF 守卫（缺 `Origin` 或非 JSON 内容类型 403）；三条路由都在 `route-inventory.ts` 的受控清单里，匿名一律 401。
+- 客户端与服务端各有一份校验实现（不同构建，无法共享代码），`tests/state-schema.test.ts` 用同一张用例表跑两边，防止漂移。
+- **不写入诊断**：保存/读取/删除都不写 `event`；参数值不进入事件表，也不由事件表反推（用例断言两侧）。
+
+恢复规则（B7 已测）：`content_version` 或 `state_schema_version` 不匹配 → 不恢复、回退教学默认值，并显示“已保存的设置来自该实验的旧版本，已使用默认值”，同时只提供“删除已保存的设置”。**恢复永远由用户点击触发**：页面加载时即使快照兼容也只显示“恢复”按钮，绝不自动套用。重置按钮**只**恢复默认值，不等于“恢复我保存的设置”。
 
 ### 7.6 诊断事件
 
@@ -531,7 +540,7 @@ scripts/                  # backup / restore-check / retention-purge
 | 移除 `experiment_complete` | 探索性工具无可靠“完成”语义，会制造伪指标 | 契约枚举减一；旧测试若断言则调整 |
 | 拆 `experiment_interact` → `experiment_first_interaction` + `experiment_control_used` | v2.1 要求“首次实质交互”与“控件类别”分开，才能算转化与控件分布 | 事件类型 +2；需要 `visit_id` |
 | 全屏方向用 `control_group='fullscreen_enter'|'fullscreen_exit'` | 不新增列，保持白名单 | UI 统一走宿主 |
-| 新增可选 `serializeState()/restoreState(schema)` + `stateSchema`（参数白名单/范围/默认值） | 需求 §4.5 显式快照 | 实验模块需声明 schema，宿主与 API 共用同一份校验 |
+| 新增可选 `serializeState()/restoreState(schema)` + `stateSchema`（参数白名单/范围/默认值） | 需求 §4.5 显式快照 | 实验模块需声明 schema，宿主与 API 共用同一份校验。**B7 落地形态**：schema 是数据文件 `experiments/<folder>/state-schema.json`（宿主与服务器各自解析，行为由同一张用例表对齐）；宿主→实验传 `initialState`（可选的已恢复参数），实验→宿主用 `stateBridge.read()` 交回当前参数，**只在用户点“保存”时读一次**，不存在订阅/轮询/定时上报 |
 | 事件字段新增 `contentVersion`（= `moduleVersion` 的内容版本） | 版本回归需要区分内容版本与 app 版本 | manifest 增 `contentVersion`，构建期注入 |
 | 明确“无 SDK 直连网络/DB” | 原有约束不变，补：实验不得自行 `fetch` 事件端点 | 由宿主 adapter 统一发送 |
 
@@ -559,8 +568,8 @@ scripts/                  # backup / restore-check / retention-purge
 | R-14 | 事件按账号可导出/查询 | `overview 计数正确；CSV 行数=插入数-去重；缺 GAP 标记正确` | API 集成 | `apps/api/test/internal.test.ts` |
 | R-15 | 跨账号隔离 | `账号 B 读不到 A 的收藏/历史/事件；internal 无 token 404` | API 集成 + E2E | `apps/api/test/authorization.test.ts`、`tests/e2e/isolation.spec.ts` |
 | R-16 | 分析通道故障不影响实验与收藏历史 | `事件端点 503/断网 → 收藏/最近使用仍成功；UI 无阻断` | E2E | `tests/e2e/resilience.spec.ts`（`/api/events` 503 注入） |
-| R-17 | 快照保存/恢复/版本不兼容回退 | `保存→刷新恢复；contentVersion 变更→回默认+提示` | API + E2E | 未实现（B7 可选，未做）：`saved_state` 表为空，`/api/me/saved-state/*` 返回 404 |
-| R-18 | 无显式保存则不持久化参数 | `拖动后无快照行；localStorage 无参数项` | API + E2E | 未实现（B7 未做）；当前没有任何参数持久化路径，`recent_use` 响应键集由 `recent.test.ts` 断言 |
+| R-17 | 快照保存/恢复/版本不兼容回退 | `保存→刷新恢复；contentVersion 变更→回默认+提示` | API + E2E | 已实现（B7）：`apps/api/test/saved-state.test.ts`（生命周期、跨账号、校验、限速、版本 409）、`tests/host-saved-state.test.tsx`（显式恢复、不兼容提示）、`tests/e2e/saved-state.spec.ts`（保存→刷新→恢复→删除的真实浏览器流程） |
+| R-18 | 无显式保存则不持久化参数 | `拖动后无快照行；localStorage 无参数项` | API + E2E | 已实现（B7）：`tests/e2e/saved-state.spec.ts` 先拖 20 步再查 API 得 404；`tests/host-saved-state.test.tsx` 断言拖动不触发 `onSave`；`saved-state.test.ts` 断言保存不写 `event`。表单值只存在于内存，无 localStorage/cookie 参数 |
 | R-19 | 口令存储/会话/最小化测试与证据 | `哈希串非明文、含参数；事件白名单拒绝自由字段；证据目录齐全` | 单元 + 集成 | `apps/api/test/auth.security.test.ts`、`docs/evidence/b2/` |
 | R-20 | 维护者权限独立 | `普通账号带 Cookie 访问 internal → 404；仅 Bearer 通过` | API 集成 | `apps/api/test/internal.test.ts`（`the operator channel is closed to everyone else`） |
 | R-21 | 未验证标识不宣称真实身份 | `UI 文案与隐私页无“已验证/实名”；API 只回掩码` | 文案检查 + E2E | `tests/e2e/app.spec.ts`（页面文案与可访问名）+ `tests/i18n.test.ts`（键集一致） |
@@ -582,7 +591,7 @@ scripts/                  # backup / restore-check / retention-purge
 | **B4** | 个人数据：收藏 + 最近使用（含 upsert 去重、失败提示） | R-11..R-13 全绿；断开事件端点仍通过；无参数键出现在响应 |
 | **B5** | 诊断链路：事件批量 + 服务端校验/去重/限速 + internal overview/timeline/export + 审计 + dataGaps | R-14、R-22、R-23 全绿；伪造 version 被丢弃；导出无 UA/`received_at`；`internal_audit` 有行 |
 | **B6** | 纵向切片端到端：注册→目录→实验→收藏/历史→后台查询，三视口截图 + 短录屏 + 断网降级 | 全量 e2e 绿；证据落 `docs/evidence/b6/`；R-10、R-16、R-21 全绿 |
-| **B7** | 可选：参数快照（若切片验证认为必要） | R-17、R-18 全绿；不兼容回退演示；未实现则项目状态明确写“未实现” |
+| **B7** | 参数快照（已实现，R-17/R-18 全绿） | 保存→刷新→显式恢复→删除；版本不兼容回默认并提示；无显式保存不留痕 |
 | **B8** | 收口：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、备份恢复演练报告、`PROJECT_STATE` 与 ADR 更新 | CI 全绿且有运行记录；恢复演练 JSON 存在；无“假登录/假数据/未验证 URL” |
 
 顺序理由：B0 先恢复门禁可信度（否则后面所有“绿”都不可信）；B1 先立迁移与配置，避免边写边改表；B2/B3 是安全边界，必须在有个人数据前完成；B5 放在个人数据之后，确保事件无法顺手污染“我的”；B7 明确可延期，不挡主闭环。

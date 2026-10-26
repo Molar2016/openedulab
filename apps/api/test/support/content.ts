@@ -24,6 +24,8 @@ export interface ContentFixtureEntry {
   /** Raw override, used to write deliberately invalid manifests. */
   readonly manifestOverride?: Record<string, unknown>;
   readonly omitLocales?: boolean;
+  /** Written verbatim as `state-schema.json`; used to exercise saved-parameter validation. */
+  readonly stateSchema?: Record<string, unknown>;
 }
 
 const DEFAULTS = {
@@ -66,6 +68,13 @@ export async function writeContentDir(
       `${JSON.stringify(manifest, null, 2)}\n`,
       'utf8',
     );
+    if (entry.stateSchema !== undefined) {
+      await writeFile(
+        path.join(folder, 'state-schema.json'),
+        JSON.stringify(entry.stateSchema, null, 2),
+        'utf8',
+      );
+    }
     if (entry.omitLocales === true) {
       continue;
     }

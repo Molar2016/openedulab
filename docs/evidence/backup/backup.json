@@ -1,16 +1,17 @@
 {
-  "checkedAt": "2026-10-26T14:52:25.618Z",
+  "checkedAt": "2026-10-26T16:01:32.086Z",
   "source": "sqlite",
   "databasePath": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite",
   "ok": true,
   "integrity": "ok",
-  "backupBytes": 176128,
+  "backupBytes": 180224,
   "counts": {
     "account": 4,
     "session": 15,
     "favorite": 0,
-    "recent_use": 1,
-    "event": 60,
+    "recent_use": 2,
+    "saved_state": 1,
+    "event": 68,
     "feedback": 5,
     "internal_audit": 3
   },

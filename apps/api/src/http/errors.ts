@@ -8,6 +8,8 @@ export type ApiErrorCode =
   | 'already_authenticated'
   | 'rate_limited'
   | 'payload_too_large'
+  | 'state_invalid'
+  | 'state_schema_incompatible'
   | 'server_error';
 
 export interface ApiErrorBody {

@@ -1,0 +1,14 @@
+
+> openedulab@0.1.0-m1 check:backup
+> node scripts/backup-check.mjs
+
+(node:23416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS backup/restore check
+  source:    G:\hermes\projects\openedulab\test-results\e2e\app.sqlite
+  snapshot:  180224 bytes
+  integrity: ok
+  counts:    {"account":4,"session":15,"favorite":0,"recent_use":2,"saved_state":1,"event":68,"feedback":5,"internal_audit":3}
+  migrations:["0001"]
+  canary:    {"readBack":"ok","remaining":0}
+  report:    G:\hermes\projects\openedulab\docs\evidence\backup\backup.json

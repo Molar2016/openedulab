@@ -34,7 +34,16 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SERVER_ENTRY = path.join(REPO_ROOT, 'apps', 'api', 'dist', 'index.js');
 const PORT = 3321;
-const TABLES = ['account', 'session', 'favorite', 'recent_use', 'event', 'feedback', 'internal_audit'];
+const TABLES = [
+  'account',
+  'session',
+  'favorite',
+  'recent_use',
+  'saved_state',
+  'event',
+  'feedback',
+  'internal_audit',
+];
 
 function argValue(flag, fallback) {
   const index = process.argv.indexOf(flag);

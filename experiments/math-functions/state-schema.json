@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "fields": {
+    "mode": { "kind": "enum", "values": ["linear", "quadratic"], "default": "quadratic" },
+    "a": { "kind": "number", "min": -10, "max": 10, "step": 0.1, "default": 1 },
+    "b": { "kind": "number", "min": -10, "max": 10, "step": 0.1, "default": 0 },
+    "c": { "kind": "number", "min": -10, "max": 10, "step": 0.1, "default": 0 }
+  }
+}

@@ -1,6 +1,8 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { parseStateSchema, type StateSchema } from './state-validator.js';
+
 /**
  * Server-side content index (design §7.2, D10).
  *
@@ -43,6 +45,11 @@ export interface ContentExperiment {
   /** Manifest file mtime: lets a client tell that content changed without a version bump. */
   readonly updatedAt: number;
   readonly texts: Readonly<Record<ContentLocale, ContentText>>;
+  /**
+   * Declared parameter-snapshot schema (design §7.5), or `null` when the experiment does
+   * not offer saved settings. Validated at startup like everything else in the index.
+   */
+  readonly stateSchema: StateSchema | null;
   /** The validated manifest as shipped, for the experiment detail endpoint. */
   readonly manifest: Readonly<Record<string, unknown>>;
 }
@@ -170,6 +177,40 @@ function readTexts(
 }
 
 /**
+ * Reads `<folder>/state-schema.json` when present. Absence is legitimate (an experiment
+ * without saved settings); a present-but-invalid file is a startup error, because silently
+ * disabling the feature would look to a teacher like "my settings disappeared".
+ */
+function readStateSchema(
+  contentDir: string,
+  folder: string,
+  issues: string[],
+): StateSchema | null {
+  const path = join(contentDir, folder, 'state-schema.json');
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf8');
+  } catch {
+    return null;
+  }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch (error) {
+    issues.push(`[${folder}] state-schema.json is not valid JSON (${(error as Error).message})`);
+    return null;
+  }
+  const parsed = parseStateSchema(raw);
+  if (!parsed.ok) {
+    for (const issue of parsed.issues) {
+      issues.push(`[${folder}] state-schema.json: ${issue}`);
+    }
+    return null;
+  }
+  return parsed.schema;
+}
+
+/**
  * Loads and validates every manifest under `contentDir`. Throws ContentIndexError with
  * the full list of problems rather than returning a partial catalog.
  */
@@ -272,6 +313,11 @@ export function loadContentIndex(
       continue;
     }
 
+    const stateSchema = readStateSchema(contentDir, folder, issues);
+    if (issues.some((issue) => issue.startsWith(`[${folder}]`))) {
+      continue;
+    }
+
     experiments.push({
       id,
       slug,
@@ -286,6 +332,7 @@ export function loadContentIndex(
       offlineSupport: manifest.offlineSupport as boolean,
       updatedAt,
       texts,
+      stateSchema,
       manifest: Object.freeze({ ...manifest }),
     });
   }

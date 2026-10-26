@@ -65,6 +65,14 @@ type ExperimentState =
   | { readonly kind: 'error' }
   | { readonly kind: 'ready'; readonly detail: ExperimentDetail };
 
+/** What the server says about this account's saved parameters (design §7.5). */
+type SavedView =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'none' }
+  | { readonly kind: 'saved'; readonly values: Readonly<Record<string, number | string>> }
+  | { readonly kind: 'incompatible' }
+  | { readonly kind: 'error' };
+
 /**
  * One experiment route: metadata is fetched from `GET /api/experiments/:id` before the
  * experiment renders, so the page itself is a protected resource rather than a local
@@ -89,6 +97,9 @@ function ExperimentRoute({
     { kind: 'unknown', busy: false, error: false },
   );
   const [recentFailed, setRecentFailed] = useState(false);
+  const [savedView, setSavedView] = useState<SavedView>({ kind: 'loading' });
+  const [savedBusy, setSavedBusy] = useState(false);
+  const [savedError, setSavedError] = useState<'none' | 'save' | 'delete'>('none');
   const experimentId = entry.manifest.id;
 
   useEffect(() => {
@@ -114,6 +125,8 @@ function ExperimentRoute({
    * the server. It is a convenience: if it fails the experiment still works and the page
    * says the list was not updated. Nothing about the parameters is sent.
    */
+  const readyContentVersion = state.kind === 'ready' ? state.detail.contentVersion : '';
+
   useEffect(() => {
     if (state.kind !== 'ready') return;
     let cancelled = false;
@@ -135,10 +148,37 @@ function ExperimentRoute({
       .catch(() => {
         if (!cancelled) setFavorite({ kind: 'unknown', busy: false, error: true });
       });
+
+    /**
+     * Saved parameters are compared against the version this page is running, not against
+     * whatever the server happens to hold: a snapshot from an older content or schema
+     * version must not be applied, and the UI says so instead of guessing (design §7.5).
+     */
+    services.api
+      .savedState(experimentId)
+      .then((snapshot) => {
+        if (cancelled) return;
+        if (snapshot === null) {
+          setSavedView({ kind: 'none' });
+          return;
+        }
+        const schemaVersion = entry.stateSchema?.version;
+        const compatible =
+          schemaVersion !== undefined &&
+          snapshot.stateSchemaVersion === schemaVersion &&
+          snapshot.contentVersion === readyContentVersion;
+        setSavedView(
+          compatible ? { kind: 'saved', values: snapshot.values } : { kind: 'incompatible' },
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSavedView({ kind: 'error' });
+      });
+
     return () => {
       cancelled = true;
     };
-  }, [state.kind, services, experimentId]);
+  }, [state.kind, services, experimentId, entry.stateSchema, readyContentVersion]);
 
   const toggleFavorite = useCallback((): void => {
     const adding = favorite.kind !== 'on';
@@ -150,6 +190,36 @@ function ExperimentRoute({
       .then(() => setFavorite({ kind: adding ? 'on' : 'off', busy: false, error: false }))
       .catch(() => setFavorite((previous) => ({ ...previous, busy: false, error: true })));
   }, [favorite.kind, services, experimentId]);
+
+  /**
+   * Saving is an explicit user action with a real failure mode: a failed write is reported
+   * as "not saved" and the previously stored snapshot is left alone (the server only
+   * overwrites on a successful, validated write).
+   */
+  const saveSettings = useCallback(
+    (values: Readonly<Record<string, number | string>>): void => {
+      const schema = entry.stateSchema;
+      if (schema === null) return;
+      setSavedBusy(true);
+      setSavedError('none');
+      services.api
+        .saveState(experimentId, { stateSchemaVersion: schema.version, values })
+        .then((snapshot) => setSavedView({ kind: 'saved', values: snapshot.values }))
+        .catch(() => setSavedError('save'))
+        .finally(() => setSavedBusy(false));
+    },
+    [entry.stateSchema, experimentId, services],
+  );
+
+  const deleteSettings = useCallback((): void => {
+    setSavedBusy(true);
+    setSavedError('none');
+    services.api
+      .deleteState(experimentId)
+      .then(() => setSavedView({ kind: 'none' }))
+      .catch(() => setSavedError('delete'))
+      .finally(() => setSavedBusy(false));
+  }, [experimentId, services]);
 
   if (state.kind === 'loading') {
     return (
@@ -196,6 +266,18 @@ function ExperimentRoute({
                 busy: favorite.busy,
                 error: favorite.error,
                 onToggle: toggleFavorite,
+              },
+            })}
+        {...(savedView.kind === 'loading'
+          ? {}
+          : {
+              savedState: {
+                status: savedView.kind,
+                ...(savedView.kind === 'saved' ? { values: savedView.values } : {}),
+                busy: savedBusy,
+                error: savedError,
+                onSave: saveSettings,
+                onDelete: deleteSettings,
               },
             })}
         onBack={onBack}

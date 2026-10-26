@@ -36,6 +36,9 @@ export const PRIVATE_API_ROUTES: readonly RouteEntry[] = Object.freeze([
   { method: 'DELETE', url: '/api/me/favorites/:experimentId' },
   { method: 'GET', url: '/api/me/recent' },
   { method: 'POST', url: '/api/me/recent' },
+  { method: 'GET', url: '/api/me/saved-state/:experimentId' },
+  { method: 'PUT', url: '/api/me/saved-state/:experimentId' },
+  { method: 'DELETE', url: '/api/me/saved-state/:experimentId' },
   { method: 'POST', url: '/api/events' },
   { method: 'POST', url: '/api/feedback' },
 ]);

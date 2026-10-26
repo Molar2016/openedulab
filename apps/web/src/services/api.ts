@@ -54,6 +54,8 @@ export type ApiErrorCode =
   | 'already_authenticated'
   | 'rate_limited'
   | 'payload_too_large'
+  | 'state_invalid'
+  | 'state_schema_incompatible'
   | 'server_error'
   | 'network_error';
 
@@ -90,6 +92,15 @@ export interface RecentItem {
   readonly lastOpenedAt: number;
 }
 
+/** One saved parameter snapshot (design §7.5). Values are whitelisted by the experiment schema. */
+export interface SavedStateSnapshot {
+  readonly experimentId: string;
+  readonly contentVersion: string;
+  readonly stateSchemaVersion: number;
+  readonly values: Readonly<Record<string, number | string>>;
+  readonly updatedAt: number;
+}
+
 /** Wire shape of a diagnostic event (design §7.6). No free text, no values. */
 export interface DiagnosticEvent {
   readonly clientEventId: string;
@@ -123,6 +134,13 @@ export interface ApiClient {
   removeFavorite(experimentId: string): Promise<void>;
   recent(limit?: number): Promise<readonly RecentItem[]>;
   recordRecent(experimentId: string): Promise<void>;
+  /** `null` means the server has no snapshot for this account and experiment. */
+  savedState(experimentId: string): Promise<SavedStateSnapshot | null>;
+  saveState(
+    experimentId: string,
+    input: { readonly stateSchemaVersion: number; readonly values: Readonly<Record<string, number | string>> },
+  ): Promise<SavedStateSnapshot>;
+  deleteState(experimentId: string): Promise<void>;
   /** Diagnostic batch. Best effort: the caller decides what a failure means. */
   postEvents(input: {
     visitId: string;
@@ -149,6 +167,8 @@ const KNOWN_CODES: readonly ApiErrorCode[] = [
   'already_authenticated',
   'rate_limited',
   'payload_too_large',
+  'state_invalid',
+  'state_schema_incompatible',
   'server_error',
 ];
 
@@ -282,6 +302,30 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       request<void>('/api/me/recent', {
         method: 'POST',
         body: JSON.stringify({ experimentId }),
+      }),
+
+    async savedState(experimentId) {
+      try {
+        return await request<SavedStateSnapshot>(
+          `/api/me/saved-state/${encodeURIComponent(experimentId)}`,
+        );
+      } catch (error) {
+        // 404 is the normal "nothing saved yet" answer, not a failure: the page must not
+        // show an error for a user who has never pressed save.
+        if (error instanceof ApiError && error.code === 'not_found') return null;
+        throw error;
+      }
+    },
+
+    saveState: (experimentId, input) =>
+      request<SavedStateSnapshot>(`/api/me/saved-state/${encodeURIComponent(experimentId)}`, {
+        method: 'PUT',
+        body: JSON.stringify(input),
+      }),
+
+    deleteState: (experimentId) =>
+      request<void>(`/api/me/saved-state/${encodeURIComponent(experimentId)}`, {
+        method: 'DELETE',
       }),
 
     postEvents: (input) =>

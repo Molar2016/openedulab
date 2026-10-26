@@ -1,18 +1,19 @@
 {
-  "checkedAt": "2026-10-26T14:52:26.271Z",
+  "checkedAt": "2026-10-26T16:01:33.308Z",
   "step": "done",
   "source": {
     "kind": "live",
     "path": "G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite"
   },
-  "restoredBytes": 176128,
+  "restoredBytes": 180224,
   "integrity": "ok",
   "counts": {
     "account": 4,
     "session": 15,
     "favorite": 0,
-    "recent_use": 1,
-    "event": 60,
+    "recent_use": 2,
+    "saved_state": 1,
+    "event": 68,
     "feedback": 5,
     "internal_audit": 3
   },

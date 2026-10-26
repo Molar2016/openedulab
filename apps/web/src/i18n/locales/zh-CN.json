@@ -111,7 +111,7 @@
   "about.heading": "关于本服务",
   "about.body": "OpenEduLab 是开源教学工具。实验、收藏与最近使用需要账号；内容均为本项目原创。",
   "about.privacyHeading": "保存了哪些数据",
-  "about.privacyBody": "账号保存你注册时使用的邮箱或手机号（仅用于登录，页面上只显示掩码版本）、密码哈希、你的收藏，以及你打开过哪些实验。使用事件只有固定的类别列表，绝不含滑块数值、输入文字或页面网址。没有学生档案，也没有广告跟踪。",
+  "about.privacyBody": "账号保存你注册时使用的邮箱或手机号（仅用于登录，页面上只显示掩码版本）、密码哈希、你的收藏、你打开过哪些实验，以及——仅在你点击“保存”时——每个实验一份参数快照。使用事件只有固定的类别列表，绝不含滑块数值、输入文字或页面网址。没有学生档案，也没有广告跟踪。",
   "about.unverified": "注册邮箱或手机号并不证明你拥有它，因此本版本不提供自助找回。",
   "about.licensePending": "代码与内容许可尚未最终确定。",
   "tag.subject.math": "数学",
@@ -123,5 +123,14 @@
   "feedback.send": "发送反馈",
   "feedback.sending": "正在发送……",
   "feedback.sent": "已收到，反馈已保存。",
-  "feedback.sendFailed": "反馈没有保存成功，请检查网络后重试。"
+  "feedback.sendFailed": "反馈没有保存成功，请检查网络后重试。",
+  "state.save": "保存当前设置",
+  "state.restore": "恢复我保存的设置",
+  "state.delete": "删除已保存的设置",
+  "state.saved": "设置已保存。",
+  "state.notSaved": "设置没有保存成功。",
+  "state.notRemoved": "已保存的设置没有被删除。",
+  "state.incompatible": "已保存的设置来自该实验的旧版本，已使用默认值。",
+  "state.unavailable": "未能读取已保存的设置。",
+  "state.rejected": "当前设置无法保存：有数值超出允许范围。"
 }
