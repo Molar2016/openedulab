@@ -24,7 +24,8 @@
     "prestart:api": "npm run build:api",
     "start:api": "node apps/api/dist/index.js",
     "smoke:api": "node apps/api/scripts/smoke.mjs",
-    "check": "npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run test:api && npm run validate:content && npm run build && npm run build:api"
+    "check": "npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run test:api && npm run validate:content && npm run build && npm run build:api",
+    "check:backup": "node scripts/backup-check.mjs"
   },
   "dependencies": {
     "@fastify/static": "^10.1.7",

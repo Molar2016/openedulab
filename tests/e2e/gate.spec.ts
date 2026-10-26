@@ -19,7 +19,7 @@ test.beforeEach(({}, testInfo) => {
   test.skip(!ALLOWED_PROJECTS.has(testInfo.project.name), 'registration budget: desktop + mobile');
 });
 
-const STAGE = 'b3';
+const STAGE = 'b6';
 
 test.describe('a visitor without a session', () => {
   test('is redirected from the root to the login page', async ({ page }) => {

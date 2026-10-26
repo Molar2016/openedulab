@@ -1,14 +1,17 @@
 # PROJECT_STATE
 
-最后更新：2026-10-26 21:30（B3 完成：统一 `requireSession` 门禁 + 服务端内容索引 + SPA 登录/注册 + 深链接 302；后端 185 测试、前端 76 测试、真实进程 smoke 64/64、真实浏览器 E2E 31 通过/2 条件跳过；**仍不含**收藏/最近使用/事件/运维通道，B4/B5 才做）；buildVersion：`0.1.0-m1`（脚手架版本号，尚未对应已验收里程碑）。
+最后更新：2026-10-26 22:20（B4/B5/B6 本轮推进：收藏与最近使用、白名单诊断 + 反馈 + 运维通道、三视口端到端与备份恢复检查；B3 的门禁仍是最底层保证）；buildVersion：`0.1.0-m1`。
 
 ## 当前状态
 需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与去重最近使用、内部按账号诊断事件、参数仅显式保存一份快照。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
 **B0（工程地基修复 + 版本控制）已完成**，`npm run check` 与 `npm run test:e2e` 均退出码 0（实测输出见下）。
 **B1（服务端骨架）已完成**：`apps/api` 可启动、配置缺失即退出 1、迁移带校验和且按序单事务、`/api/healthz` 返回版本与迁移状态、构建后的 SPA 由同一进程同源托管；`npm run check` 退出码 0，API 测试 68 个全绿，真实进程 smoke 25/25 通过（证据见 `docs/evidence/b1/`）。
 **B2（认证闭环）已完成**：`POST /api/auth/register|login|logout` 与 `GET /api/auth/session` 已真实可用（scrypt 口令哈希、服务端可撤销会话、HttpOnly Cookie、CSRF Origin+JSON 守卫、进程内限速、429 带 `Retry-After`）。
-**B3（授权门禁）已完成**（本轮）：`requireSession()` 是唯一授权点（Cookie → sha256 → `session` 行 → `account.status`，逐请求判定，`onRequest` 阶段早于任何解析）；`/api/catalog`、`/api/experiments/:id` 由**启动时校验的内容索引**提供服务且只对有会话的请求返回；匿名访问 `/`、`/experiments/:slug` 一律 302 `/login?next=`，仅 `/login`、`/register`、`/about` 公开；SPA 有真实登录/注册页与会话感知路由。**B3 仍不含**：收藏/最近使用（B4）、事件/反馈/运维查询（B5）、参数快照（B7 可选）。`/api/me/*`、`/api/events`、`/api/feedback`、`/api/internal/*` 当前是 **404**（不挂假端点），B4/B5 逐个落地。
-**仍未按需求 v2.1 验收，不可称 M1 完成，不可部署，无公网 URL。** 本机已可运行完整登录 → 目录 → 实验闭环（真实浏览器验证，见 `docs/evidence/b3/`），但“收藏/最近使用/按账号诊断”尚未实现，因此需求 §4.3/§4.4 未满足。
+**B3（授权门禁）已完成**（本轮）：`requireSession()` 是唯一授权点（Cookie → sha256 → `session` 行 → `account.status`，逐请求判定，`onRequest` 阶段早于任何解析）；`/api/catalog`、`/api/experiments/:id` 由**启动时校验的内容索引**提供服务且只对有会话的请求返回；匿名访问 `/`、`/experiments/:slug` 一律 302 `/login?next=`，仅 `/login`、`/register`、`/about` 公开；SPA 有真实登录/注册页与会话感知路由。**B3 仍不含**：收藏/最近使用（B4）、事件/反馈/运维查询（B5）、参数快照（B7 可选）。B3 交付时 `/api/me/*`、`/api/events`、`/api/feedback`、`/api/internal/*` 一律 **404**（不挂假端点），随后由 B4/B5 逐个落地。
+**B4（个人数据）已完成**（本轮）：`/api/me/favorites`（GET/PUT/DELETE，幂等）与 `/api/me/recent`（GET/POST，按资源去重 upsert）在 `requireSession` 之后、CSRF 守卫之下工作，SQL 逐条按会话派生的 `account_id` 限定；实验页有收藏开关（失败不谎报成功），`/me` 页展示“我的收藏”与“最近使用”，最近使用只存“哪个资源、最近一次何时”，重启与换会话后仍可回读。
+**B5（诊断与运维）已完成**（本轮）：事件契约按设计 §10 变更（`experiment_complete` 移除、拆成 `first_interaction` + `control_used`、全屏方向进 `control_group`、增 `contentVersion`），`POST /api/events` 只接受白名单枚举并以服务端时间/账号/去重键落库，`POST /api/feedback` 是唯一自由文本入口（只进 `feedback` 表），`/api/internal/*` 用环境变量 Bearer 令牌（未配置即 404）+ 强制“用途 + 运维标识”+ `internal_audit` 落账，`dataGaps` 把“事件关闭”的窗口标成未知而不是 0。关闭诊断端点后实验、收藏、最近使用照常（有浏览器级故障注入用例）。
+**B6（端到端验收）已完成**（本轮）：三视口（390×844 / 1280×720 / 1024×768）完整流程、跨账号隔离、登出与异地撤销、断网与 503 故障注入、键盘可用性、`VACUUM INTO` 备份恢复检查；真实日志、截图、录屏与备份报告在 `docs/evidence/b6/`。
+**本机已可完成需求 §4 的全部六条场景**（注册/登录/目录/实验/收藏与最近使用/内部诊断/失败路径），取证见 `docs/evidence/b3`–`b6`。**但仍不可称 M1 完成、不可部署、无公网 URL**：没有 CI（B8）、没有参数快照（B7，可选且已明示未做）、没有找回密码/账号删除/留存清理、没有真实服务器与域名，公网相关事项仍待授权。
 **历史说明（B1 时期的事实，已被 B3 取代）**：B1 时 `/api/auth/*` 未挂载（404），所有需登录的路由一律 401 占位，`/api/internal/*` 404，SPA 深链接返回公开构建产物。B2 挂载了认证；B3 用 `requireSession()` 取代了占位并把深链接改为 302。现存的不变事实是：**`/api/me/*`、`/api/events`、`/api/feedback`、`/api/internal/*` 尚未实现，一律 404**（不挂假端点）；静态 JS/CSS 包本身无法用登录保护（设计要求 §2 已声明）。
 原免登录原型（`apps/web` 的旧页面 + `experiments/math-functions`）已在 B3 改造为登录后使用：目录来自 `/api/catalog`，实验页先取 `/api/experiments/:id` 再渲染。
 
@@ -64,6 +67,37 @@
 
 **未做的事（刻意）**：没有收藏/最近使用（B4）、没有事件/反馈/运维查询（B5）、没有参数快照（B7 可选）、没有找回密码/改绑/号码验证、没有多实例共享限速、没有部署或公网 URL。因此本轮**不能**声称需求 §4.3（收藏与最近使用）或 §4.4（按账号诊断）已满足。
 
+## B4 本轮做了什么（个人数据，TDD；不含诊断）
+先写 `test/favorites.test.ts`(13) 与 `test/recent.test.ts`(9) 再写实现：把三条 `/api/me` 路由从 app 上摘掉时 **22/27 断言失败**（`docs/evidence/b4/tests-red.txt`），装回后全绿。
+- **表已存在，无新迁移**：`0001_init.sql` 的 `favorite`（PK `account_id+experiment_id`）与 `recent_use`（同 PK + `ON CONFLICT DO UPDATE`）就是为这一步准备的；校验和未变。
+- **收藏**：`PUT` 幂等（重复 PUT 返回原 `created_at`，不重排列表），实验不在索引内 404、id 格式非法 400；`DELETE` 幂等 204（**不是** 404，避免用它探测别人是否收藏）；`GET` 按 `created_at DESC`。
+- **最近使用**：`POST {experimentId}` → 204，主键去重（A→B→A 得到 2 行且 A 最新）；`GET?limit=`（1–50，默认 20）；响应只有 `experimentId` + 时间，**没有任何参数键**（用例断言键集恰为两个）。
+- **隔离是结构性的**：每条 SQL 都带 `account_id = ctx.accountId`，代码里不存在“按传入 id 取行”的路径；用例覆盖“B 看不到 A 的收藏”“B 删除‘同一个’收藏对 A 无效”。
+- **限速**：收藏写 60/分钟/账号、最近使用写 120/分钟/账号，429 带 `Retry-After`，且已被拒绝的写入不会回滚已存在的数据（用例）。
+- **前端**：实验页收藏开关（`aria-pressed`，失败时显示“收藏没有更新成功”且不改状态），`/me` 页并列“我的收藏 / 最近使用”，最近一次打开时间按 locale 格式化；最近使用写入失败只显示一条非阻断提示，不影响实验。
+- **取代的旧断言**：`private-routes.test.ts` 里“`/api/me/*` 不得存在”改为“五条 me 路由必须已挂载且匿名一律 401”。
+
+**未做的事（刻意）**：没有参数快照（B7 可选）、没有“打开次数”统计（需求不要求）、没有用事件表反推最近使用（设计明令禁止）。
+
+## B5 本轮做了什么（诊断、反馈、运维通道，TDD）
+先写 `events.test.ts`(24)、`feedback.test.ts`(11)、`internal.test.ts`(17) 再写实现；实现过程中发现并修正三处**测试自身**的问题（客户端 id 短于 8 字符、跨账号共用 `visit_id`、把同一分钟的时序当有序），没有放宽任何生产约束。契约变更的影响分析先落盘：`docs/architecture/impact-B5-event-contract.md`。
+- **契约 v2**：`EVENT_TYPES` = open / first_interaction / control_used / reset / fullscreen / client_error（`feedback_submitted` 由服务端产生）；`CONTROL_GROUPS` 增加 `fullscreen_enter|exit` 并禁止 `control_used` 使用它们；`ERROR_CODES` 5 值；每条事件带 `contentVersion`。
+- **`POST /api/events`**：批量 ≤20、体 ≤8 KB（路由级 `bodyLimit`）、envelope 未知字段 400、单条非法**丢弃并计数**（`accepted/dropped`），`experimentId` 必须在索引内且 `contentVersion` 必须一致（不一致丢弃，防伪造版本污染回归分析），时间 `occurred_at_min` 由服务端向下取整、`received_at` 仅内部用，`device_class` 由 UA 粗分（**不存 UA 原文**），`dedupe_key` 由服务端生成（一次性事件每 visit 一条，重置/全屏可重复），重复 `clientEventId` 计入 dropped 而非 500。限速 120/分钟/账号、3000/天/账号；`OEL_EVENTS_ENABLED=false` 时返回 `202 {accepted:0}` 且**不落库**。
+- **`POST /api/feedback`**：唯一接受自由文本的接口，只写 `feedback` 表（去控制字符、≤2000 截断、分类枚举），同时写一条只含类别的 `feedback_submitted` 事件；5/小时/账号；正文不会出现在事件表（用例断言）。
+- **`/api/internal/*`**：`OEL_OPERATOR_TOKEN`（未配置 → **不挂载**，一律 404）+ `Authorization: Bearer`（sha256 + `timingSafeEqual`）+ 60/分钟；`overview`（按资源的账号数/访问数/首次交互转化/重置比/全屏比/错误率）、`experiments/:id/funnel`（各步计数 + 控件分布）、`accounts/:id/timeline`（≤500 行，需 `reason`≥8 字符 + `X-Operator-Label`，写审计）、`export/events.csv`（无 `received_at`、无 UA）+ `export/feedback.csv`；窗口 ≤180 天、行数上限 50000；CSV 对 `=+-@` 前缀做防注入；`dataGaps` 在事件关闭时给出 `events_disabled`。
+- **审计**：单账号时间线与两个导出各写一条 `internal_audit`（operator_label / action / target / reason / row_count），**不记录被查内容**；缺 `reason` 或缺少运维标识时 400 且**不**写审计（用例）。
+- **前端**：adapter 派生 `first_interaction`（每访问一次）并按控件类别去重，批量发送（10 条或 400ms）、失败重试一次即丢弃；`FeedbackDialog` 先预览再发送，失败明说“没有保存”，成功后显示“已收到”；`main.tsx` 在 `pagehide` 时冲洗队列；生产包仍不含调试钩子。
+
+**未做的事（刻意）**：没有日粒度汇总表（因此 90 天清理后不可再聚合，设计 §9.4 已接受）、没有图形化运维后台（设计允许只有导出/查询）、没有 `ingest_error` 型 dataGaps（只实现了 `events_disabled`）、没有留存清理 CLI。
+
+## B6 本轮做了什么（端到端验收）
+- **三视口完整流程**（`tests/e2e/full-flow.spec.ts`，390×844 / 1280×720 / 1024×768）：访客被 302 到登录页并记住 `next` → 表单登录直达深链接 → 目录 → 实验（`y = 2x² − 4x`、顶点 (1, −2)）→ 收藏 → `/me` 两列表 → 刷新仍在 → 登出后受保护页再次 302 → 收尾清理收藏；每步断言视口无横向滚动并截图。
+- **跨账号隔离**（`isolation.spec.ts`）：两个真实账号两个上下文，B 的 `/me` 为空、`GET /api/me/favorites` 返回空数组、B 删除“同一个”收藏是 204 且 A 的仍在；A 的账号提示只显示掩码。
+- **失效与故障**：异地撤销后刷新即 302 回登录页且 `GET /api/me/favorites` 401（`resilience.spec.ts`）；`/api/catalog` 被中止时目录显示错误与“重试”，恢复后重试成功；`/api/events` 返回 503 时实验、收藏、最近使用全部照常且界面无错误。
+- **可访问性**：每页按钮/链接有可访问名、每个输入有 label、无重复 id（app.spec）+ 登录表单可纯键盘完成（resilience.spec）。
+- **构建/迁移/备份**：`scripts/backup-check.mjs` 对真实 SQLite 做 `VACUUM INTO` 快照、独立打开、`integrity_check`、七张表计数、canary 写入/读回/删除、迁移基线比对，报告写 `docs/evidence/b6/backup.json`（只含计数，不含账号数据）。
+- **本机真实 URL**：`http://127.0.0.1:3220`（`node scripts/e2e-server.mjs` 现场构建 + 启动；`/api/healthz` 可查）。公网/生产仍未授权、未部署。
+
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 同源模块化单体（Fastify + 静态 SPA，无 CORS）；服务端会话（DB 存 token 哈希，HttpOnly Cookie，非 JWT）；scrypt 口令哈希；私有 API 一律从会话派生 `account_id`（不接受请求体/路径传账号）；个人数据与诊断事件物理分表、分路由、分一致性等级；运维权限用环境变量 Bearer token，未配置时 404；本地开发 SQLite（`node:sqlite`），生产候选 PostgreSQL 但**不承诺可切换**；迁移用编号 SQL + 校验和 + 单事务且只允许两库共同子集；备份 `VACUUM INTO`/`pg_dump -Fc` + 异机复制 + 每月恢复演练。
 
@@ -76,6 +110,9 @@
 - **B1 修复提交**：`9e8d1cde2e46f00aaf597f0c3542c99447541b90`（`9e8d1cd`），把 `@fastify/static` 从有 4 条高危穿越公告的 `8.3.0` 升到修复版 `10.1.7`，适配 v10 的 `setHeaders(reply, path)` 签名，并把穿越用例从 3 个扩到 8 个编码载荷；该提交后 `npm audit --omit=dev` 为 0 漏洞。
 - **B2 提交**：`21b052541f799105da89a2999ed5abc9dc50a666`（`21b0525`），32 个文件变更（+4779/−27）：新增 `src/security/*`(5)、`src/db/{account,session}-repository.ts`、`src/domain/auth-service.ts`、`src/http/{auth-routes,csrf}.ts`、6 个认证测试文件 + `test/support/auth-app.ts`、`docs/evidence/b2/`(7)；改动 `src/app.ts`、`src/http/errors.ts`、`test/private-routes.test.ts`（仅替换那条"session 必须 404"的占位断言）、`vitest.config.ts`（超时）、`scripts/smoke.mjs`、`apps/api/README.md`、`.env.example`、`package.json`。**无新迁移**：`0001_init.sql` 未改动，校验和仍为 `289c27d35781…`；提交用逐路径 `git add`（未用 `-A`），`apps/api/dist`、`apps/api/data`、`*.sqlite*` 仍被忽略，未推送。
 - **B3 提交**：`0c8fd507e01df2ad2befc130b8e59d8650ce6fba`（`0c8fd50`），67 个文件变更（+5112/−432）：新增 `src/domain/content-index.ts`、`src/http/{auth-context,content-routes,route-inventory,spa-gate}.ts`、`src/app.ts` 重写、`apps/api/test/{authorization,catalog,experiments,spa-gate}.test.ts`、`test/support/content.ts`、`apps/web/src/services/api.ts`、`apps/web/src/app/LoginPage.tsx`、`scripts/e2e-server.mjs`、`tests/e2e/{app,gate,auth.setup,support}.ts`、`tests/{api-client,router}.test.ts`、`docs/evidence/b3/`(21)；删除 `src/http/private-routes.ts`；`tests/e2e/m1.spec.ts` 被 `app.spec.ts` 取代（git 记为 rename）；改动 `config.ts`（新增必填 `OEL_CONTENT_DIR`）、`auth-routes.ts`（接受共享 `AuthService`）、`static.ts`（导出 `looksLikeAsset`）、`App/CatalogPage/router/ExperimentHost/contract/registry/locales/styles.css`、`experiments/math-functions/manifest.json`（新增 `contentVersion: 1.0.0`）、`playwright.config.ts`、`scripts/validate-content.mjs`、`apps/api/README.md`、`.env.example`、`package.json`。**无新迁移**：`0001_init.sql` 未改动（校验和仍 `289c27d35781…`）；逐路径 `git add`，未用 `-A`。
+- **B4 提交**：`4dbc87d`，19 个文件变更：新增 `src/db/{favorite,recent}-repository.ts`、`src/http/me-routes.ts`、`apps/api/test/{favorites,recent}.test.ts`、`apps/web/src/app/MePage.tsx`、`docs/evidence/b4/`；改动 `app.ts`、`route-inventory.ts`（+5 条受控路由）、`private-routes.test.ts`、`App/router/api.ts/ExperimentHost/i18n/styles`、`smoke.mjs`、`tests/{api-client,e2e/app}`。**无新迁移**。
+- **B5 提交**：`51e0499`，40 个文件变更：新增 `src/domain/events.ts`、`src/db/{event,feedback}-repository.ts`、`src/http/{event,internal}-routes.ts`、`apps/api/test/{events,feedback,internal}.test.ts`、`docs/architecture/impact-B5-event-contract.md`、`docs/evidence/b5/`；改动 `contract.ts`（v2）、`services/{analytics,api,index}.ts`、`FeedbackDialog`、`ExperimentHost`、`experiments/math-functions/{view.tsx,locales}`、`main.tsx`、`config.ts`（`OEL_OPERATOR_TOKEN`/`OEL_EVENTS_ENABLED`）、`smoke.mjs`、`tests/{analytics,host,registry,e2e/app,e2e/internal}`。**无新迁移**。
+- **仓库里另有一条不是本任务产生的提交**：`293a7ba ops: add bounded background progress watcher`（作者 `molar`，只加 `scripts/status_watch.py`，用 PROJECT_STATE 与进程存活情况生成飞书进度文本）。它不是本任务书某一关的产物，未被本轮验收；本轮未修改它、也未改写历史。
 - 无远端、未推送、未部署、未发布；无 `AGENTS.md`（未获用户同意）。
 
 ## 已核事实（B0/B1/B2 实测，非推断）
@@ -110,15 +147,39 @@
 - **真实进程 smoke：64/64 通过**（`smoke.txt`；B2 的 51 条断言只有 2 条因门禁上线而改写，其余保留）。真 socket 上新增实测：匿名 `/experiments/math.functions`（Accept text/html）→ **302 `location=/login?next=%2Fexperiments%2Fmath.functions`** 且响应体不含 `<div id="root">`；`/login` → 200 且返回构建 index.html（`cache-control: no-cache`）；`/api/catalog`、`/api/experiments/math.functions` 匿名 → 401 `unauthenticated`（伪造 `oel_sid` 仍 401；带 `Accept: text/html` 也**不**被重定向）；`/api/me/favorites`、`/api/me/recent`、`/api/events`、`/api/feedback` → **404 `not_found`**（无假端点）；登录后 `/api/catalog?locale=en` → 200 且列出 `math.functions@1.0.0`、`no-store`；实验详情 → 200 含本地化标题/`contentVersion`/`sdkVersionRange ^1.x`、无 `manifest.json` 字样；未收录 id → 404；**登录后**深链接 → 200 返回壳子；重启后会话仍有效、撤销仍失效；篡改迁移仍拒绝启动。
 - **真实浏览器 E2E：31 通过 / 2 条件跳过 / 0 失败**（`e2e-b3.txt`；打的是 `scripts/e2e-server.mjs` 起的真实 Fastify + 真实 `dist`，端口 3220）。实测路径：注册（`/register` → 目录）→ 目录搜索/筛选/计数 → 中英切换 → 打开实验（页首显示服务器内容版本 1.0.0）→ 调参/重置/线性模式 → 退化告警 → 反馈预览 → 全屏进出 → 无跨源请求且**生产包无 `window.__openedulab`** → 三处可访问性检查 → 手机视口无横向滚动；匿名上下文：`/` → `/login?`、深链接 → 保留 `next`、错口令显示“Wrong identifier or password.”且不跳转、正确口令后直达该深链接、`page.request` 直取 API 全 401、`/about` 公开可读、登出后刷新仍回登录页且**旧 Cookie 重放 401**、`/api/internal/*` 对匿名与普通账号均 404。截图与 `walkthrough.webm` 存 `docs/evidence/b3/`。
 - 已知取舍（写在源码里，不是遗漏）：① 编码/控制字符的路径不参与 302 门禁（交给静态层 400/403/404），因此带 `%xx` 的导航能拿到公开壳子——壳子无数据，API 仍 401；② 静态 JS/CSS 本身不可登录保护（设计要求 §2 已声明，验收口径只测 API 与 HTML 门禁）；③ E2E 用一份共享会话（注册 5/小时/IP 是刻意不放宽的限制），登出/重放测试另注册独立账号。
+### B4 实测（本轮，非推断；原文在 `docs/evidence/b4/`）
+- **RED**：把三条 `/api/me` 路由从 `app.ts` 摘掉后跑 `test/{favorites,recent,private-routes}.test.ts` → **3 文件失败，22/27 断言失败**（`tests-red.txt`）。
+- **`npm run check`：退出码 0**（`check-b4.txt`）：web 8 文件 / **78 测试**；API **17 文件 / 207 测试**（B3 的 185 + B4 的 22：favorites 13、recent 9，路由清单同步扩充）；`validate-content` OK；两个构建成功。
+- **反证**：把 `GET /api/me/favorites` 上的 `requireSession` 换成空钩子 → favorites+recent+路由清单 **9 条失败**（`mutation-me-gate-off.txt`），随后从备份恢复。
+- **真实进程 smoke：78/78 通过**（`smoke.txt`）。新增实测：`PUT` 收藏 201、重复 `PUT` 200 且 `createdAt` 不变、未收录实验 404；`GET` 收藏只含 `createdAt,experimentId`；`POST /api/me/recent` 连续两次都 204 且列表仍 1 行；另一账号列表为空、其 `DELETE` 对第一个账号无影响；`DELETE` 两次都 204 且列表清空。
+- **真实浏览器 E2E：35 通过 / 2 条件跳过 / 0 失败**（`e2e-b4.txt`，当时的 3 个 project）。实测路径：实验页加入收藏 → `aria-pressed=true` → `/me` 出现该收藏 → 取消收藏 → 回实验页按钮变回“加入收藏”；两次打开同一实验后 `/me` 的 `recent-list` 仍只有 1 条，且文本不含任何参数名/值。
+
+### B5 实测（本轮，非推断；原文在 `docs/evidence/b5/`）
+- **`npm run check`：退出码 0**（`check-b5.txt`）：web 8 文件 / **90 测试**（analytics 16、host 10、api-client 11、router 21 等）；API **20 文件 / 253 测试**（B5 新增 events 24、feedback 11、internal 17，并扩充 config/private-routes）；`validate-content` OK；构建成功。
+- **反证**：删掉 `normalizeEvents` 里的 `contentVersion` 一致性检查 → `events.test.ts` 的“版本不一致必须丢弃”用例失败（1 失败 / 17 通过，`mutation-version-check-off.txt`），随后恢复。
+- **真实进程 smoke：90/90 通过**（`smoke.txt`）。真 socket 上实测：合法批次 202 且 `accepted=4`；含“未收录实验 + 已移除事件类型”的批次 202 且 `accepted=0, dropped=2`；重放同批次 202 且 `accepted=0`（去重）；反馈 201；`/api/internal/overview`（Bearer + label）200 且 `openAccounts=1, opens=1, interactedVisits=1`、`dataGaps=[]`；无 `reason` 的导出 400；`events.csv` 首行为约定的 11 列、无 `received_at`、无 `Mozilla`；`feedback.csv` 含正文与账号 id；两次导出留下 **2 行 `internal_audit`**；无 token 与“普通会话”访问运维通道均 404。
+- **真实浏览器 E2E：42 通过 / 5 条件跳过 / 0 失败**（`e2e-b5.txt`，当时 3 个 project）。实测：浏览器真的操作实验（`y = 2x²` + 重置）后，运维通道能查到 `openAccounts≥1`、`interactedVisits≥1`、控件类别含 `a`，且 funnel 响应不含 `coef`/`slider`/数值；`events.csv` 含表头且不含 `HeadlessChrome`/`Mozilla`；普通会话与匿名访客访问 `/api/internal/*` 均 404；浏览器内提交的反馈出现在 `feedback.csv` 且账号列是内部 id；`/api/events` 被注入 503 后实验、收藏、最近使用照常且界面无错误。
+
+### B6 实测（本轮，非推断；原文在 `docs/evidence/b6/`）
+- **`npm run check`：退出码 0**（`check-b6.txt`）：web **90/90**；API **253/253**；lint 与 typecheck 无输出；`validate-content` OK；`vite build` 与 `build:api` 成功；**无新迁移**（校验和仍 `289c27d35781…`）。
+- **真实进程 smoke：90/90 通过**（`smoke.txt`，与 B5 同一套断言，包含重启后会话仍有效、撤销仍失效、篡改迁移拒绝启动）。
+- **真实浏览器 E2E：74 通过 / 40 条件跳过 / 0 失败**（`e2e-b6.txt`，**4 个 project**：desktop 1440×950、mobile 390×844、projector 1280×720、tablet 1024×768）。跳过项全部是显式 `test.skip(project…)`（例如“手机布局只在手机 project 跑”“一次提交只跑一次”“注册预算只给 desktop+mobile”），不是失败的掩盖。
+- **三视口完整流程**：`mobile-chromium-390x844-*`、`projector-chromium-1280x720-*`、`tablet-chromium-1024x768-*` 各 5 张截图（gate / catalog / experiment / my-library / signed-out），每步都断言无横向滚动。
+- **跨账号隔离**（`isolation-*.png`）：第二账号 `/me` 为空、`GET /api/me/favorites` 为 `[]`、其 `DELETE` 为 204 而第一账号仍有收藏。
+- **失效与故障**：异地撤销后刷新即回登录页且 `GET /api/me/favorites` 401；目录请求被中止时显示错误与重试、恢复后成功；`/api/events` 503 时核心功能不受影响；登录表单可纯键盘完成。
+- **备份恢复**：`npm run check:backup` → **PASS**（`backup.json`）：快照 176128 字节、`integrity_check=ok`、七张表计数（account 4 / session 15 / favorite 0 / recent_use 1 / event 60 / feedback 5 / internal_audit 3）、canary 写入读回删除成功、迁移基线 `["0001"]`。
+- **本机 URL**：`http://127.0.0.1:3220`（由 `node scripts/e2e-server.mjs` 现场构建并启动，`/api/healthz` 可核）。该进程只在测试期间存在；**没有常驻服务、没有公网 URL、没有部署**。
+
 ## 下一步（严格按序）
 1. ~~**B0**：修 typecheck 根因（唯一共享 `debug-hook` 类型，两侧引用，不删测试）→ `npm run check` 退出码 0；`git init` + 首次提交。~~ **已完成（本轮）**。
 2. ~~**B1**：`apps/api` 骨架 + 启动配置校验（缺项即退出、不静默降级）+ `migrations/0001_init.sql` + 迁移运行器（编号 + 校验和 + 单事务）+ `GET /api/healthz` + 由 API 同源托管构建后的 SPA。~~ **已完成（本轮）**：`npm run check` 退出码 0；API 测试 68/68；真实进程 smoke 25/25；深链接返回 index.html；私有路由占位一律 401。注意：**401 是占位拒绝，不是访问控制**。
 3. ~~**B2（认证闭环）**：注册/登录/登出/会话与限速（scrypt、`timingSafeEqual`、HttpOnly Cookie、CSRF Origin+JSON、429 + `Retry-After`）。~~ **已完成（本轮）**：R-01..R-04、R-06 在 API 集成层全绿（`apps/api/test/auth.register|auth.login|session|auth.security|csrf|rate-limit.test.ts`）；哈希格式、`timingSafeEqual`、Cookie 属性、生产 `__Host-`+`Secure`、禁用账号、过期/空闲/撤销、伪造 Cookie、重复标识、重复尝试锁定都有断言；真实进程 smoke 51/51。**B2 不含授权**：占位 401 仍在，持有效会话访问 `/api/catalog` 依旧 401。
 4. ~~**B3（授权门禁）**：`requireSession()` + 目录/实验 API + SPA 深链接 302 + 登录/注册页 + 路由清单。~~ **已完成（本轮）**：占位 401 与“公开深链接”两条旧断言被取代；真实浏览器注册→目录→实验通过；E2E 31 通过/2 条件跳过；mutation 反证两次。
-5. **B4（下一道闸门）**：`/api/me/favorites`（GET/PUT/DELETE，幂等）+ `/api/me/recent`（GET/POST，主键去重 upsert）+ 实验页收藏按钮 + “我的收藏/最近使用”页面（跨会话回读、取消收藏生效、响应无参数键）；事件端点关闭时收藏与最近使用仍独立可用；把这三条路由加进 `route-inventory` 清单；跨账号隔离用例（他人点不开我的收藏）。
-6. **B5**：`/api/events`（白名单 7 类 + 服务端二次校验/去重/限速 + `occurred_at_min` 服务端时间）、`/api/feedback`、`/api/internal/*`（Bearer + `X-Operator-Label` + `reason` + `internal_audit`）、`dataGaps`；事件契约按设计 §10 变更（`experiment_complete` 移除、拆成 `first_interaction` + `control_used`）需先写影响分析 `docs/architecture/impact-B5-event-contract.md` 再改代码。
-7. **B6**：三视口完整流程 E2E + 跨账号隔离 + 过期/登出 + 故障注入（断网/事件端点 503）+ 无障碍 + 构建/迁移/备份恢复基础检查；本机测试服务器 URL 真实可测，公网/生产仍不授权。
-8. **B7** 参数快照（可选，不阻塞主闭环）；**B8** CI、备份演练、状态锚收口。
+5. ~~**B4（个人数据）**：收藏/取消收藏 + 按资源去重的最近使用，跨会话回读，事件端点关闭时独立可用。~~ **已完成（本轮）**：API 207 测试、smoke 78/78、E2E 35 通过；跨账号隔离与幂等有断言。
+6. ~~**B5（诊断与运维）**：白名单事件、反馈、`/api/internal/*` + 审计 + `dataGaps`，关闭诊断仍可实验。~~ **已完成（本轮）**：API 253 测试、smoke 90/90、E2E 42 通过；契约变更的影响分析先于代码落盘。
+7. ~~**B6（端到端验收）**：三视口完整流程、跨账号隔离、过期与登出、故障注入、无障碍、构建/迁移/备份恢复检查。~~ **已完成（本轮）**：4 个 project 的 E2E 74 通过/0 失败、备份恢复 PASS、截图/录屏/日志齐全。
+8. **B7（可选，不阻塞主闭环）**：参数快照 `saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。当前**未实现**，`/api/me/saved-state/*` 是 404（smoke 已断言），需求 §4.5 因此未满足。
+9. **B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新；之后才是 D/E 阶段的只读侦察与部署审批。
 
 ## 阻塞与未决
 - 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出是否前置（Q4）、多实例与共享限速（Q6）。

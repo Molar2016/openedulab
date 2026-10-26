@@ -1,0 +1,142 @@
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build
+[WebServer] > tsc --noEmit && vite build
+[WebServer] 
+[WebServer] vite v5.4.21 building for production...
+[WebServer] transforming...
+[WebServer] ✓ 53 modules transformed.
+[WebServer] rendering chunks...
+[WebServer] computing gzip size...
+[WebServer] dist/index.html                   1.24 kB │ gzip:  0.75 kB
+[WebServer] dist/assets/index-B0DsNRDj.css   11.63 kB │ gzip:  3.11 kB
+[WebServer] dist/assets/view-DONaTVZj.js     10.66 kB │ gzip:  3.88 kB
+[WebServer] dist/assets/index-n1gCldWr.js   197.51 kB │ gzip: 64.30 kB
+[WebServer] ✓ built in 844ms
+[WebServer] 
+[WebServer] > openedulab@0.1.0-m1 build:api
+[WebServer] > tsc -p apps/api/tsconfig.json
+[WebServer] 
+[WebServer] (node:17464) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [openedulab-api] listening on http://127.0.0.1:3220
+[WebServer] [openedulab-api] version 0.1.0-m1 config {"env":"test","host":"127.0.0.1","port":3220,"publicOrigin":"http://127.0.0.1:3220","databasePath":"G:\\hermes\\projects\\openedulab\\test-results\\e2e\\app.sqlite","migrationsDir":"G:\\hermes\\projects\\openedulab\\apps\\api\\migrations","staticDir":"G:\\hermes\\projects\\openedulab\\dist","contentDir":"G:\\hermes\\projects\\openedulab\\experiments","operatorChannel":"enabled","eventsEnabled":"true"}
+
+Running 114 tests using 1 worker
+
+  ok   1 [setup] › tests\e2e\auth.setup.ts:15:1 › register the shared teacher account (827ms)
+  ok   2 [setup] › tests\e2e\auth.setup.ts:30:1 › register a second account for isolation checks (687ms)
+  ok   3 [desktop-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (668ms)
+  ok   4 [desktop-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (533ms)
+  ok   5 [desktop-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (771ms)
+  ok   6 [desktop-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (472ms)
+  ok   7 [desktop-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (730ms)
+  ok   8 [desktop-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (619ms)
+  ok   9 [desktop-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (505ms)
+  ok  10 [desktop-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (681ms)
+  ok  11 [desktop-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (855ms)
+  ok  12 [desktop-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (681ms)
+  ok  13 [desktop-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (419ms)
+  -   14 [desktop-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  ok  15 [desktop-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in) (5.6s)
+  -   16 [desktop-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out
+  ok  17 [desktop-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page (305ms)
+  ok  18 [desktop-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.7s)
+  ok  19 [desktop-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (230ms)
+  ok  20 [desktop-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages (276ms)
+  ok  21 [desktop-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (837ms)
+  ok  22 [desktop-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (662ms)
+  ok  23 [desktop-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced (2.2s)
+  ok  24 [desktop-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (334ms)
+  ok  25 [desktop-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why (309ms)
+  ok  26 [desktop-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV (640ms)
+  ok  27 [desktop-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history (1.0s)
+  ok  28 [desktop-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers (538ms)
+  ok  29 [desktop-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation (630ms)
+  ok  30 [desktop-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone (601ms)
+  ok  31 [mobile-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (675ms)
+  ok  32 [mobile-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (528ms)
+  ok  33 [mobile-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (814ms)
+  ok  34 [mobile-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (400ms)
+  ok  35 [mobile-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (697ms)
+  ok  36 [mobile-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (559ms)
+  ok  37 [mobile-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (431ms)
+  ok  38 [mobile-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (640ms)
+  ok  39 [mobile-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (889ms)
+  ok  40 [mobile-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (689ms)
+  ok  41 [mobile-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (381ms)
+  ok  42 [mobile-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling (664ms)
+  -   43 [mobile-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok  44 [mobile-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (2.2s)
+  ok  45 [mobile-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page (292ms)
+  ok  46 [mobile-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment (1.2s)
+  ok  47 [mobile-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header (107ms)
+  ok  48 [mobile-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages (184ms)
+  ok  49 [mobile-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed (828ms)
+  ok  50 [mobile-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts (594ms)
+  -   51 [mobile-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok  52 [mobile-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (278ms)
+  -   53 [mobile-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -   54 [mobile-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -   55 [mobile-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -   56 [mobile-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -   57 [mobile-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -   58 [mobile-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+  ok  59 [projector-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (620ms)
+  ok  60 [projector-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (442ms)
+  ok  61 [projector-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (676ms)
+  ok  62 [projector-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (403ms)
+  ok  63 [projector-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (641ms)
+  ok  64 [projector-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (562ms)
+  ok  65 [projector-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (428ms)
+  ok  66 [projector-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (583ms)
+  ok  67 [projector-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (812ms)
+  ok  68 [projector-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (623ms)
+  ok  69 [projector-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (366ms)
+  -   70 [projector-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  -   71 [projector-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok  72 [projector-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (2.0s)
+  -   73 [projector-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page
+  -   74 [projector-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment
+  -   75 [projector-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header
+  -   76 [projector-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages
+  -   77 [projector-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed
+  -   78 [projector-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts
+  -   79 [projector-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok  80 [projector-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (299ms)
+  -   81 [projector-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -   82 [projector-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -   83 [projector-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -   84 [projector-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -   85 [projector-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -   86 [projector-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+  ok  87 [tablet-chromium] › tests\e2e\app.spec.ts:21:3 › catalog and search (signed in) › shows the account, finds the experiment by search and filter, and counts results (612ms)
+  ok  88 [tablet-chromium] › tests\e2e\app.spec.ts:43:3 › catalog and search (signed in) › switches to Chinese and keeps the URL shareable (449ms)
+  ok  89 [tablet-chromium] › tests\e2e\app.spec.ts:58:3 › experiment › loads server metadata, changes coefficients, resets and switches mode (641ms)
+  ok  90 [tablet-chromium] › tests\e2e\app.spec.ts:90:3 › experiment › shows the degenerate-quadratic warning for a = 0 (405ms)
+  ok  91 [tablet-chromium] › tests\e2e\app.spec.ts:99:3 › experiment › previews feedback, sends it on request and confirms a stored report (625ms)
+  ok  92 [tablet-chromium] › tests\e2e\app.spec.ts:119:3 › experiment › keeps working when the diagnostics endpoint is down (573ms)
+  ok  93 [tablet-chromium] › tests\e2e\app.spec.ts:144:3 › experiment › makes no cross-origin request and ships no debug sink (418ms)
+  ok  94 [tablet-chromium] › tests\e2e\app.spec.ts:160:3 › experiment › enters and exits full screen with consistent state (577ms)
+  ok  95 [tablet-chromium] › tests\e2e\app.spec.ts:177:3 › favorites and recent use (B4) › favorites from the experiment page, sees it in My library, then removes it (811ms)
+  ok  96 [tablet-chromium] › tests\e2e\app.spec.ts:209:3 › favorites and recent use (B4) › keeps one recent entry per resource and never shows parameter values (640ms)
+  ok  97 [tablet-chromium] › tests\e2e\app.spec.ts:236:3 › accessibility basics › every interactive control has an accessible name and a label (391ms)
+  -   98 [tablet-chromium] › tests\e2e\app.spec.ts:262:3 › mobile layout › catalog and experiment fit a phone without horizontal scrolling
+  -   99 [tablet-chromium] › tests\e2e\app.spec.ts:284:3 › recording › short classroom walkthrough (signed in)
+  ok 100 [tablet-chromium] › tests\e2e\full-flow.spec.ts:21:3 › full acceptance flow › sign in, experiment, favorite, my library, sign out (1.9s)
+  -  101 [tablet-chromium] › tests\e2e\gate.spec.ts:25:3 › a visitor without a session › is redirected from the root to the login page
+  -  102 [tablet-chromium] › tests\e2e\gate.spec.ts:34:3 › a visitor without a session › keeps the deep-link target, rejects a wrong password, then opens the experiment
+  -  103 [tablet-chromium] › tests\e2e\gate.spec.ts:51:3 › a visitor without a session › cannot read the API directly, not even with an HTML Accept header
+  -  104 [tablet-chromium] › tests\e2e\gate.spec.ts:67:3 › a visitor without a session › can read the public pages
+  -  105 [tablet-chromium] › tests\e2e\gate.spec.ts:75:3 › registration and sign-out › registers, signs out, and the captured cookie cannot be replayed
+  -  106 [tablet-chromium] › tests\e2e\gate.spec.ts:122:3 › the operator channel › is invisible to anonymous callers and to ordinary accounts
+  -  107 [tablet-chromium] › tests\e2e\internal.spec.ts:32:3 › operator channel › answers the product questions from events this browser produced
+  ok 108 [tablet-chromium] › tests\e2e\internal.spec.ts:98:3 › operator channel › is invisible to the signed-in teacher and to anonymous visitors (283ms)
+  -  109 [tablet-chromium] › tests\e2e\internal.spec.ts:109:3 › operator channel › records who exported what, and why
+  -  110 [tablet-chromium] › tests\e2e\internal.spec.ts:137:3 › feedback reaches the operator export › submits a report in the browser and finds it in the CSV
+  -  111 [tablet-chromium] › tests\e2e\isolation.spec.ts:14:3 › another ordinary account › cannot see, remove or infer the first account's favorites or history
+  -  112 [tablet-chromium] › tests\e2e\resilience.spec.ts:20:3 › resilience › a failed catalog call shows an error, and retry recovers
+  -  113 [tablet-chromium] › tests\e2e\resilience.spec.ts:36:3 › resilience › a session revoked elsewhere is rejected on the next navigation
+  -  114 [tablet-chromium] › tests\e2e\resilience.spec.ts:75:3 › resilience › the login form is usable with the keyboard alone
+
+  40 skipped
+  74 passed (1.2m)

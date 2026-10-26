@@ -1,0 +1,271 @@
+
+> openedulab@0.1.0-m1 check
+> npm run typecheck && npm run typecheck:api && npm run lint && npm run test && npm run test:api && npm run validate:content && npm run build && npm run build:api
+
+
+> openedulab@0.1.0-m1 typecheck
+> tsc --noEmit
+
+
+> openedulab@0.1.0-m1 typecheck:api
+> tsc -p apps/api/tsconfig.test.json
+
+
+> openedulab@0.1.0-m1 lint
+> eslint .
+
+
+> openedulab@0.1.0-m1 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab[39m
+
+ [32m✓[39m tests/router.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m experiments/math-functions/tests/model.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m tests/api-client.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m tests/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/analytics.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m tests/i18n.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m tests/registry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 361[2mms[22m[39m
+   [33m[2m✓[22m[39m manifest discovery[2m > [22mexposes a lazy view loader that resolves to a component [33m357[2mms[22m[39m
+ [32m✓[39m tests/host.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[33m 430[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m90 passed[39m[22m[90m (90)[39m
+[2m   Start at [22m 22:12:34
+[2m   Duration [22m 3.20s[2m (transform 823ms, setup 1.55s, collect 1.38s, tests 890ms, environment 9.30s, prepare 1.53s)[22m
+
+
+> openedulab@0.1.0-m1 test:api
+> vitest run --config apps/api/vitest.config.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mG:/hermes/projects/openedulab/apps/api[39m
+
+(node:21508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9504) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23768) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:24292) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7832) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23992) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18876) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19864) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20744) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21348) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22796) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/migrate.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 489[2mms[22m[39m
+(node:12292) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/recent.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 5724[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use requires a session[2m > [22m'GET' '/api/me/recent' denies anonymous callers [33m680[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mkeeps one row per experiment and moves it to the top [33m666[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mreturns only the resource id and the timestamp [33m655[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mhonours limit and rejects an invalid one [33m629[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrejects an experiment that is not in the index, and a malformed id [33m646[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrejects a body that tries to name an account [33m602[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mrequires the CSRF guard on the write [33m573[2mms[22m[39m
+   [33m[2m✓[22m[39m recent use is de-duplicated by resource[2m > [22mkeeps two accounts separate [33m1147[2mms[22m[39m
+(node:21400) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/authorization.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 6878[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/catalog answers 401 unauthenticated without a cookie [33m679[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/catalog ignores caller-supplied identity fields [33m600[2mms[22m[39m
+   [33m[2m✓[22m[39m private routes reject anonymous callers[2m > [22mGET /api/experiments/math.functions ignores caller-supplied identity fields [33m580[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mserves the catalog to the account that just registered [33m584[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mserves experiment metadata without leaking identity or filesystem paths [33m605[2mms[22m[39m
+   [33m[2m✓[22m[39m a live session grants access[2m > [22mkeeps the session working across requests and processes no account id in the body [33m608[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects the cookie after logout [33m563[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects an absolutely expired session [33m561[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects an idle-expired session even inside the absolute window [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects a session whose account was disabled [33m592[2mms[22m[39m
+   [33m[2m✓[22m[39m the gate follows server-side session state[2m > [22mrejects a session row deleted from the database [33m598[2mms[22m[39m
+ [32m✓[39m test/session.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 7072[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22manswers authenticated:false for an anonymous caller instead of faking a session [33m698[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mreports only a masked identity for a live session [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mdoes not accept a session token after logout and records the revocation [33m602[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session[2m > [22mrevokes only the session that logged out [33m1144[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session past its absolute 60-day expiry [33m531[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mrejects a session idle for more than 14 days but keeps a 13-day-old one [33m567[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session expiry (R-06)[2m > [22mdoes not extend the absolute expiry by activity [33m600[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/auth/session account status[2m > [22mstops honouring a live session as soon as the account is disabled [33m640[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22mis HttpOnly, SameSite=Lax, Path=/ and not Secure over local http [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m session cookie attributes[2m > [22muses the __Host- prefix with Secure in production [33m616[2mms[22m[39m
+ [32m✓[39m test/internal.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 7182[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22m/api/internal/overview is a 404 without a token [33m710[2mms[22m[39m
+   [33m[2m✓[22m[39m the operator channel is closed to everyone else[2m > [22mrejects a wrong token, a scheme confusion and a normal account session [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m overview answers the product questions[2m > [22mreports distinct accounts, visits, interaction conversion and error counts [33m1123[2mms[22m[39m
+   [33m[2m✓[22m[39m funnel and control distribution[2m > [22mcounts each step and the controls that were actually used [33m1132[2mms[22m[39m
+   [33m[2m✓[22m[39m single-account timeline is scoped and audited[2m > [22mreturns only that account's events and records the access [33m1051[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports events without user agents or receive timestamps, and audits it [33m1134[2mms[22m[39m
+   [33m[2m✓[22m[39m CSV export[2m > [22mexports feedback with the account id and the reported text [33m622[2mms[22m[39m
+ [32m✓[39m test/feedback.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 6542[2mms[22m[39m
+   [33m[2m✓[22m[39m feedback requires a session[2m > [22mdenies anonymous callers [33m533[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mstores the message in feedback only and records a category event [33m607[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22maccepts a category-only report with no message [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mstrips control characters and collapses an over-long message instead of failing [33m613[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unknown category [33m606[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a malformed experiment [33m574[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unpublished experiment [33m572[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a unknown field [33m589[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrejects a non-integer version [33m616[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mrequires the CSRF guard [33m607[2mms[22m[39m
+   [33m[2m✓[22m[39m accepting a report[2m > [22mlimits submissions per account [33m631[2mms[22m[39m
+ [32m✓[39m test/private-routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 934[2mms[22m[39m
+   [33m[2m✓[22m[39m API route inventory[2m > [22mregisters only classified API routes [33m494[2mms[22m[39m
+(node:22600) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23220) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20024) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/favorites.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 8010[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites require a session[2m > [22m'GET' '/api/me/favorites' denies anonymous callers [33m665[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22madds a favorite once and reports the same timestamp on repeat [33m606[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrejects an experiment that is not in the content index [33m622[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrejects a malformed experiment id [33m614[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mrequires the CSRF guard on writes [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m favoriting is idempotent and account-scoped[2m > [22mlists newest first [33m625[2mms[22m[39m
+   [33m[2m✓[22m[39m favorite writes are rate limited[2m > [22manswers 429 with Retry-After once the per-account budget is spent [33m590[2mms[22m[39m
+   [33m[2m✓[22m[39m removing a favorite[2m > [22mis idempotent and removes the row [33m561[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mis visible in a second session of the same account [33m1147[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mis invisible to another account, and its writes do not leak in [33m1139[2mms[22m[39m
+   [33m[2m✓[22m[39m favorites survive a new session and stay private[2m > [22mreturns no parameter or identity fields [33m611[2mms[22m[39m
+(node:20376) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/auth.security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 8226[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mstores a self-describing scrypt hash and never the plaintext [33m1258[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mverifies a stored hash with timingSafeEqual semantics and rejects corrupted input [33m2088[2mms[22m[39m
+   [33m[2m✓[22m[39m password storage (R-19)[2m > [22mupgrades the work factor on the next successful login [33m1284[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mstores only sha256(token) and keeps the raw token out of the database [33m594[2mms[22m[39m
+   [33m[2m✓[22m[39m session token storage (R-19)[2m > [22mdoes not leak the account id, token or password into auth responses [33m1171[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mignores an account_id smuggled through a query string [33m611[2mms[22m[39m
+   [33m[2m✓[22m[39m caller-supplied identity is never trusted[2m > [22mdoes not let a login body choose which account is signed in [33m1218[2mms[22m[39m
+ [32m✓[39m test/config.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 342[2mms[22m[39m
+(node:9852) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/auth.register.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 8821[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates an email account, starts a session and never echoes the full identifier [33m1246[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22mcreates a phone account and masks the middle digits [33m664[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register (R-01)[2m > [22massigns a server-generated UUIDv4 id and ignores caller-supplied account identity (R-19) [33m584[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats an email as taken regardless of case and surrounding spaces [33m1153[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mtreats a phone as taken regardless of separators [33m1166[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register identifier uniqueness (R-02)[2m > [22mkeeps phone and email namespaces independent [33m1131[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register validation[2m > [22mallows a password with spaces and unicode punctuation [33m634[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mreturns 409 already_authenticated instead of creating a second account [33m660[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/register when already signed in[2m > [22mstill allows registration when the presented cookie is not a real session [33m626[2mms[22m[39m
+(node:20048) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m test/catalog.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 9542[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mlists every indexed experiment sorted by id [33m1260[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mreturns localized title and description, plus the content version [33m655[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mdefaults to Chinese when no locale is requested [33m609[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog content[2m > [22mexposes exactly the catalog fields and no internal detail [33m615[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22mfilters by subject, grade and concept [33m641[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22msearches title, description, slug, id and concepts, case-insensitively [33m595[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog filtering and search[2m > [22mcaps the result set with limit [33m597[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=0 [33m618[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=51 [33m592[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?limit=abc [33m643[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?locale=fr [33m703[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?subject=math&unknown=1 [33m675[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22manswers 400 for ?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa [33m674[2mms[22m[39m
+   [33m[2m✓[22m[39m catalog rejects malformed input[2m > [22mrequires a session before any query is evaluated [33m609[2mms[22m[39m
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 724[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/healthz[2m > [22mreports the running version and applied migration state without authentication [33m494[2mms[22m[39m
+ [32m✓[39m test/static.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 1744[2mms[22m[39m
+   [33m[2m✓[22m[39m same-origin SPA hosting[2m > [22mredirects an anonymous navigation to the root instead of serving the shell [33m615[2mms[22m[39m
+ [32m✓[39m test/spa-gate.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2614[2mms[22m[39m
+   [33m[2m✓[22m[39m anonymous navigations are redirected to the login page[2m > [22mredirects the catalog root and keeps the target in next [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mserves the catalog root and the experiment deep link [33m534[2mms[22m[39m
+   [33m[2m✓[22m[39m authenticated navigations reach the app shell[2m > [22mredirects again once the session is revoked [33m519[2mms[22m[39m
+ [32m✓[39m test/events.test.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 10920[2mms[22m[39m
+   [33m[2m✓[22m[39m events require a session[2m > [22mdenies anonymous callers [33m668[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mstores a whitelisted open event with a server timestamp and account [33m656[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mderives the device class from the user agent instead of storing it [33m636[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mtreats reset and fullscreen as repeatable and the rest as once per visit [33m598[2mms[22m[39m
+   [33m[2m✓[22m[39m accepted events[2m > [22mdrops a repeated client event id instead of failing [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops free text, slider values, URLs and unknown fields without storing them [33m589[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a unknown type event [33m600[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a unknown experiment event [33m574[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a version mismatch event [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad control group event [33m591[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad interaction bucket event [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad error code event [33m612[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a missing error code event [33m637[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mdrops a bad locale event [33m634[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mrejects a malformed envelope outright [33m638[2mms[22m[39m
+   [33m[2m✓[22m[39m rejected event payloads[2m > [22mrefuses a batch larger than the body limit [33m534[2mms[22m[39m
+   [33m[2m✓[22m[39m event ingestion controls[2m > [22mrate limits per account and keeps what it already accepted [33m658[2mms[22m[39m
+   [33m[2m✓[22m[39m event ingestion controls[2m > [22maccepts the batch but stores nothing when events are disabled [33m466[2mms[22m[39m
+ [32m✓[39m test/csrf.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2985[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin JSON registration (baseline) [33m1076[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22maccepts a same-origin fetch hint [33m409[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mblocks a forged logout before it can revoke anything [33m365[2mms[22m[39m
+   [33m[2m✓[22m[39m CSRF guard on auth write routes (Origin + JSON)[2m > [22mallows a body-less same-origin logout (browser fetch sends no content type) [33m415[2mms[22m[39m
+ [32m✓[39m test/experiments.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 3424[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mreturns the indexed manifest, content version and localized text [33m1001[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 404 for an experiment that is not in the index [33m457[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id Math.Functions, never a filesystem lookup [33m409[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math, never a filesystem lookup [33m389[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math..functions, never a filesystem lookup [33m398[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22manswers 400 for malformed id math.functions%2F..%2Fetc, never a filesystem lookup [33m396[2mms[22m[39m
+   [33m[2m✓[22m[39m experiment metadata[2m > [22mrequires a session [33m373[2mms[22m[39m
+ [32m✓[39m test/auth.login.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 13385[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22maccepts the right password and issues a fresh session token [33m1757[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mnormalizes the identifier on login too [33m1089[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22manswers a wrong password and an unknown identifier with the same 401 body [33m1626[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mspends comparable work when the account does not exist (no early exit) [33m1644[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrefuses a disabled account with the same message as a wrong password [33m1719[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mrejects a login attempt that tries to name another account [33m672[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login (R-03)[2m > [22mreturns 409 already_authenticated when a valid session is already presented [33m595[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login failure accounting[2m > [22mdoes not lock the identifier after a correct password resets the streak [33m4280[2mms[22m[39m
+ [32m✓[39m test/rate-limit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 12360[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mallows five registrations per IP per hour and then answers 429 with Retry-After [33m3220[2mms[22m[39m
+   [33m[2m✓[22m[39m registration rate limiting[2m > [22mlimits repeated attempts against one identifier separately from the IP budget [33m1300[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mlocks an identifier after ten failed attempts and refuses even the right password [33m3569[2mms[22m[39m
+   [33m[2m✓[22m[39m login rate limiting and lockout[2m > [22mreleases the lock after the window passes [33m3518[2mms[22m[39m
+   [33m[2m✓[22m[39m rate limits do not change the authentication outcome by themselves[2m > [22mstill rejects a wrong password with 401 while the failure budget is open [33m649[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m      Tests [22m [1m[32m253 passed[39m[22m[90m (253)[39m
+[2m   Start at [22m 22:12:38
+[2m   Duration [22m 21.84s[2m (transform 1.09s, setup 0ms, collect 9.69s, tests 117.92s, environment 7ms, prepare 3.33s)[22m
+
+
+> openedulab@0.1.0-m1 validate:content
+> node scripts/validate-content.mjs
+
+Content validation OK
+ - experiments: math.functions (slug: math-functions, locales: zh-CN, en)
+ - UI dictionaries: zh-CN, en with 125 keys each
+ - host SDK: 1.0.0
+
+> openedulab@0.1.0-m1 build
+> tsc --noEmit && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 53 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.24 kB[22m[1m[22m[2m │ gzip:  0.75 kB[22m
+[2mdist/[22m[35massets/index-B0DsNRDj.css  [39m[1m[2m 11.63 kB[22m[1m[22m[2m │ gzip:  3.11 kB[22m
+[2mdist/[22m[36massets/view-DONaTVZj.js    [39m[1m[2m 10.66 kB[22m[1m[22m[2m │ gzip:  3.88 kB[22m
+[2mdist/[22m[36massets/index-n1gCldWr.js   [39m[1m[2m197.51 kB[22m[1m[22m[2m │ gzip: 64.30 kB[22m
+[32m✓ built in 803ms[39m
+
+> openedulab@0.1.0-m1 build:api
+> tsc -p apps/api/tsconfig.json
+

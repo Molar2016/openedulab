@@ -2,8 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Local E2E. The app under test is the real API process serving the real built SPA
- * (`scripts/e2e-server.mjs`), not the Vite dev server: B3 makes the session gate part of
- * the deliverable, so the browser must exercise it.
+ * (`scripts/e2e-server.mjs`), not the Vite dev server: the session gate, the resource
+ * gate and diagnostics are all part of the deliverable, so the browser must exercise
+ * them over the wire.
+ *
+ * Four browser profiles: a wide desktop, the phone the product must work on
+ * (390×844), a classroom projector (1280×720) and a 1024×768 classroom tablet.
  *
  * Specs write their own screenshots/video into docs/evidence/<stage>/; Playwright's
  * artefacts stay in test-results/.
@@ -37,7 +41,32 @@ export default defineConfig({
     },
     {
       name: 'mobile-chromium',
-      use: { ...devices['Pixel 7'], video: 'off', storageState: STATE },
+      use: {
+        ...devices['Pixel 7'],
+        viewport: { width: 390, height: 844 },
+        video: 'off',
+        storageState: STATE,
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'projector-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+        video: 'off',
+        storageState: STATE,
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'tablet-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1024, height: 768 },
+        video: 'off',
+        storageState: STATE,
+      },
       dependencies: ['setup'],
     },
   ],

@@ -13,7 +13,7 @@ import { openExperiment, TEACHER, shot } from './support';
  */
 const OPERATOR_TOKEN = 'e2e-local-operator-token-not-a-secret';
 const REASON = 'e2e verification of the diagnostics pipeline';
-const STAGE = 'b5';
+const STAGE = 'b6';
 
 function operator(extra: Record<string, string> = {}): Record<string, string> {
   return {

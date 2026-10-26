@@ -11,7 +11,7 @@ import { openExperiment, shot } from './support';
  * it can be observed, in the API tests and (B5) through the operator query.
  */
 
-const STAGE = 'b3';
+const STAGE = 'b6';
 
 async function noHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
