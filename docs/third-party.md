@@ -61,3 +61,35 @@ document §8.2.
    when the advisory is behavioural (this is what the `@fastify/static` traversal payloads
    in `apps/api/test/static.test.ts` are for).
 4. Record the change in `docs/PROJECT_STATE.md` with the commit SHA.
+
+## Known advisories (reviewed 2026-10-26, run 40350561703 baseline)
+
+`npm audit --omit=dev` → **0 vulnerabilities**: nothing in the shipped dependency set
+(`fastify`, `@fastify/static`, `react`, `react-dom`) is flagged.
+
+`npm audit` (devDependencies included) → **6**: 2 critical, 1 high, 3 moderate, all in the
+front-end dev toolchain and all fixed only by a major bump (`vite` 5→8, `vitest` 2→5):
+
+| Package | Severity | Direct | What it affects |
+|---|---|---|---|
+| `vitest` | critical | yes | Vitest UI/dev-server file read and mock-registration injection |
+| `tinypool` (via vitest) | critical | no | prototype-pollution → RCE inside the test worker |
+| `vite` | high | yes | dev-server path traversal, `server.fs.deny` bypass on Windows, launch-editor arg handling |
+| `@vitest/mocker`, `vite-node` | moderate | no | dev-server only |
+| `esbuild` (via vite) | moderate | no | dev-server request proxying |
+
+Why this is recorded rather than fixed tonight: every advisory is reachable only through a
+**development** server or the Vitest UI (`--ui` is never used), and `vite.config.ts` binds
+`127.0.0.1` only; the production artefact is static files plus the Fastify process, which
+do not run any of these. Fixing them means a major-version migration of the whole test
+harness, which is a separate, verifiable stage — not a change to slip into another gate.
+Do not read this as "the repository is clean": it is clean for runtime dependencies and
+has known dev-tool advisories, tracked here.
+
+GitHub-side alerting: **Dependabot alerts and Dependabot security updates are disabled** on
+the repository (checked via the API: HTTP 403 "Dependabot alerts are disabled"); secret
+scanning and push protection are enabled and currently report 0 alerts; code scanning is
+not configured ("no analysis found"). Enabling Dependabot is a repository-settings change
+that needs the owner's approval — until then GitHub is not watching dependencies, and this
+local audit is the evidence.
+

@@ -1,6 +1,6 @@
 # PROJECT_STATE
 
-最后更新：2026-10-26 23:10（B8 收口：独立审查并修复两处高危输入/授权缺陷、CI 文件与本机等效全流程、留存清理 CLI、备份恢复演练、README/运维/回滚/隐私数据地图/第三方清单、文档矛盾清理）；buildVersion：`0.1.0-m1`。B0–B7 的历史结论保留在下方各节，**以 B8 一节为当前声明**。
+最后更新：2026-10-27 00:10（R1 远端落地 + R2 B7 参数快照；B8 仍为上一关收口）。**当前声明以「R1」「R2」两节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；B0–B8 的历史结论保留在下方各节。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：仓库只有源码，没有部署、没有域名。
 
 ## 当前状态
 需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与去重最近使用、内部按账号诊断事件、参数仅显式保存一份快照。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
@@ -11,7 +11,7 @@
 **B4（个人数据）已完成**（本轮）：`/api/me/favorites`（GET/PUT/DELETE，幂等）与 `/api/me/recent`（GET/POST，按资源去重 upsert）在 `requireSession` 之后、CSRF 守卫之下工作，SQL 逐条按会话派生的 `account_id` 限定；实验页有收藏开关（失败不谎报成功），`/me` 页展示“我的收藏”与“最近使用”，最近使用只存“哪个资源、最近一次何时”，重启与换会话后仍可回读。
 **B5（诊断与运维）已完成**（本轮）：事件契约按设计 §10 变更（`experiment_complete` 移除、拆成 `first_interaction` + `control_used`、全屏方向进 `control_group`、增 `contentVersion`），`POST /api/events` 只接受白名单枚举并以服务端时间/账号/去重键落库，`POST /api/feedback` 是唯一自由文本入口（只进 `feedback` 表），`/api/internal/*` 用环境变量 Bearer 令牌（未配置即 404）+ 强制“用途 + 运维标识”+ `internal_audit` 落账，`dataGaps` 把“事件关闭”的窗口标成未知而不是 0。关闭诊断端点后实验、收藏、最近使用照常（有浏览器级故障注入用例）。
 **B6（端到端验收）已完成**（本轮）：三视口（390×844 / 1280×720 / 1024×768）完整流程、跨账号隔离、登出与异地撤销、断网与 503 故障注入、键盘可用性、`VACUUM INTO` 备份恢复检查；真实日志、截图、录屏与备份报告在 `docs/evidence/b6/`。
-**本机已可完成需求 §4 的全部六条场景**（注册/登录/目录/实验/收藏与最近使用/内部诊断/失败路径），取证见 `docs/evidence/b3`–`b6`，B8 的复核实测见 `docs/evidence/b8/`。**仍不可称 M1 完成、不可部署、无公网 URL**：CI 只有仓库内的工作流文件（**没有远端仓库，因此从未在 GitHub 上运行过**）；没有参数快照（B7，可选且已明示未做）；没有找回密码、账号删除/个人数据导出、标识归属验证；留存清理只有 CLI（无 HTTP 入口）；没有真实服务器与域名，公网相关事项仍待授权。
+**本机已可完成需求 §4 的全部六条场景**（注册/登录/目录/实验/收藏与最近使用/内部诊断/失败路径），取证见 `docs/evidence/b3`–`b6`，B8 的复核实测见 `docs/evidence/b8/`。**仍不可称 M1 完成、不可部署、无公网 URL**：源码已在公开仓库且 CI 在 GitHub 上真实运行通过（2026-10-26 起）；没有找回密码、账号删除/个人数据导出、标识归属验证；留存清理只有 CLI（无 HTTP 入口）；没有真实服务器与域名，公网相关事项仍待授权。**公开仓库只有源码，没有可访问的应用地址**（详见「R1」一节）。
 **历史说明（仅描述 B1/B2 当时的形态，已被 B3–B8 取代，勿据此判断当前行为）**：B1 时 `/api/auth/*` 未挂载（404），需登录的路由一律 401 占位，`/api/internal/*` 404，SPA 深链接返回公开构建产物；B2 挂载认证；B3 用 `requireSession()` 取代占位并把深链接改为 302；B4 落地 `/api/me/*`，B5 落地 `/api/events`、`/api/feedback` 与 `/api/internal/*`。**当前仍然成立的两条不变事实**：①`/api/me/saved-state/*` 不存在（B7 未做，返回 404，不挂假端点）；②静态 JS/CSS 包本身无法用登录保护（设计要求 §2 已声明）。
 原免登录原型（`apps/web` 的旧页面 + `experiments/math-functions`）已在 B3 改造为登录后使用：目录来自 `/api/catalog`，实验页先取 `/api/experiments/:id` 再渲染。
 
@@ -106,7 +106,7 @@
 - **文档/文案矛盾（已修）**：设计 §7.8 的 `POST /api/internal/retention/purge` 从未实现（删除只走 CLI），§11 需求追溯表指向 11 个**不存在**的测试文件路径；应用内隐私文案称“保存掩码后的标识”，而库里实际保存**完整规范化标识**（`account.normalized_login`），只有回包用掩码；`me-routes.ts` 注释写“四条路径”实际三条。均已改正（`docs/architecture/A-stage-design.md`、`apps/web/src/i18n/locales/{zh-CN,en}.json`、`me-routes.ts`）。
 - **反证（证明新用例是承重的）**：拿掉实验详情的 querystring schema → `experiments.test.ts` **6 失败**（`docs/evidence/b8/mutation-locale-schema-off.txt`）；把运维通道的 `preValidation` 改成 `preHandler` → `internal.test.ts` **3 失败**（`mutation-internal-ordering-off.txt`）。两次都从备份恢复，工作区无残留。**未删除、未放宽任何既有断言**。
 
-**2) CI 与发布前检查**：`.github/workflows/ci.yml` 两个 job——`checks`（Node 固定 `22.23.0`、`npm ci` 走 lockfile、web+API typecheck、lint、web 单测、API 单测、`validate-content`（manifest+i18n）、SPA 构建、真实进程 smoke）与 `e2e`（装 Chromium、四视口 Playwright、备份快照检查、恢复演练、留存 dry-run、上传报告）。**CI 内没有任何生产凭据**：所有 `OEL_*` 都由测试脚本自己生成，`OEL_OPERATOR_TOKEN` 是本机一次性测试串。新增 `npm run ci:local` 用同一顺序在本机跑完全部步骤（本机等效，不是 GitHub 结果）。**仓库没有远端、未推送，因此从未在 GitHub 上运行过任何一次；不得声称“CI 绿色”。**
+**2) CI 与发布前检查**：`.github/workflows/ci.yml` 两个 job——`checks`（Node 固定 `22.23.0`、`npm ci` 走 lockfile、web+API typecheck、lint、web 单测、API 单测、`validate-content`（manifest+i18n）、SPA 构建、真实进程 smoke）与 `e2e`（装 Chromium、四视口 Playwright、备份快照检查、恢复演练、留存 dry-run、上传报告）。**CI 内没有任何生产凭据**：所有 `OEL_*` 都由测试脚本自己生成，`OEL_OPERATOR_TOKEN` 是本机一次性测试串。新增 `npm run ci:local` 用同一顺序在本机跑完全部步骤。**（B8 当时的事实，保留为历史）仓库没有远端、未推送，因此从未在 GitHub 上运行过；R1 之后远端已建立，CI 在 GitHub 上真实运行并通过，见「R1」一节。**
 
 **3) 留存清理（CLI，非 HTTP）**：`apps/api/src/domain/retention.ts`（规则与单事务删除）+ `scripts/retention-purge.mjs`（默认 dry-run；`--apply` 必须 `--confirm-database` 重复同一路径；拒绝 `:memory:`；`--now` 可复现）。窗口沿用设计 §9.4：event 90 天、feedback 180 天、internal_audit 365 天、已撤销/已过期 session 30 天；边界用严格 `<`（恰好在边界上的行保留）。6 条测试覆盖：计划与执行一致、dry-run 不改数据、幂等、活动会话不死、**没有任何 HTTP 留存路由**、缺少/不匹配确认即拒绝。
 
@@ -116,13 +116,32 @@
 
 **未做（刻意）**：B7 参数快照（可选，`saved_state` 表仍为空）、生产部署/域名/HTTPS、异机备份复制、账号删除与个人数据导出、标识归属验证、找回密码、图形化运维后台。
 
+## R1（远端落地与真实 CI，本轮）
+
+**事实（实测，证据 `docs/evidence/r1/`）**：
+- `gh auth status` → 当前账号 **Molar2016**（scopes `gist, read:org, repo, workflow`）。
+- `gh repo view Molar2016/openedulab` → **`visibility: PUBLIC`**、`isPrivate: false`、默认分支 `main`、`https://github.com/Molar2016/openedulab`。
+- `git ls-remote origin main` → `caf2b759dc1a2e2bf3d6ac9a0347e2c6be627f39`，与本地 `HEAD` **逐字相同**。
+- **CI run [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703)**（push，`headSha=caf2b75`）：**conclusion `success`**，两个 job 均 success——`typecheck / lint / unit / api / content / build`（1m9s）、`browser E2E / backup+restore drill / retention dry-run`（1m35s）。这是**在 GitHub 上真实运行的结果**，不是本机等效。
+- 该 run 有一条**非阻断 annotation**：`actions/checkout@v4`、`actions/setup-node@v4` 声明的 Node 20 运行时已被 GitHub 强制改跑 Node 24（弃用警告，不影响结论）。是否升级到 v5 记为待办，不在本关改。
+
+**安全告警审查（不把未知说成绿）**：
+- `secret_scanning: enabled`、`secret_scanning_push_protection: enabled` → 告警数 **0**。
+- **Dependabot alerts / Dependabot security updates：`disabled`**（API 返回 403 "Dependabot alerts are disabled for this repository"）→ **GitHub 侧没有在替我们盯依赖**。开启属仓库设置变更，需所有者批准，本轮未改。
+- **Code scanning：未配置**（API 404 "no analysis found"）→ 无此类告警，不等于"扫描通过"。
+- 本机实际审计：`npm audit --omit=dev` → **0 漏洞**；`npm audit` → **6（2 critical / 1 high / 3 moderate）**，全部位于前端**开发**工具链（`vitest`/`tinypool`/`vite`/`@vitest/mocker`/`vite-node`/`esbuild`），只能靠 `vite` 5→8、`vitest` 2→5 的大版本升级修掉。已逐条写入 `docs/third-party.md`「Known advisories」并说明可达面（仅开发服务器/Vitest UI，`vite.config.ts` 只绑 `127.0.0.1`，生产产物是静态文件 + Fastify，不含这些）。
+
+**文档断代清理**：README 的「no remote / CI not running / nothing has been pushed anywhere」、`PROJECT_STATE` 的「没有远端仓库，因此从未在 GitHub 上运行过」「无远端、未推送」「GitHub CI 从未运行」等句子已改为当前事实，并在原处标注为**历史**；同时明确写出**公开仓库只有源码，没有可访问的应用地址**（无部署、无域名），以及**尚无许可证文件**（不得据此认为已开源授权）。
+
+**未做**：未开启 Dependabot、未配置 code scanning、未升级 actions 版本（三者都记录为待办，任一都不影响"CI 在 GitHub 上真实通过"这一结论）。
+
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 同源模块化单体（Fastify + 静态 SPA，无 CORS）；服务端会话（DB 存 token 哈希，HttpOnly Cookie，非 JWT）；scrypt 口令哈希；私有 API 一律从会话派生 `account_id`（不接受请求体/路径传账号）；个人数据与诊断事件物理分表、分路由、分一致性等级；运维权限用环境变量 Bearer token，未配置时 404；本地开发 SQLite（`node:sqlite`），生产候选 PostgreSQL 但**不承诺可切换**；迁移用编号 SQL + 校验和 + 单事务且只允许两库共同子集；备份 `VACUUM INTO`/`pg_dump -Fc` + 异机复制 + 每月恢复演练。
 
 ## 本轮遗留（不变的事实）
 前一次后台开发任务在用户叫停前已写入 React/Vite 代码、依赖、测试与截图/录屏等**免登录原型文件**；本轮已把它们纳入 git 以固定基线，但它们**未按需求 v2.1 验收**，不可称为已交付的 M1，也不可据此部署。`docs/CHARTER-v1.md` 是用户原件副本。`docs/architecture/ADR-000-foundation.md` 与 `docs/acceptance.md` 的旧方案标记已撤回；ADR-001 同属旧前提，须重审。
 
-## 版本控制（本地仓库，无远端）
+## 版本控制（本地仓库 + GitHub 远端）
 - 分支 `main`；**B0 首次提交**：`1bc20b2881e4e7833216277780971efe0a0b4fd9`（`1bc20b2`），61 个受跟踪文件，`node_modules/`(140M)、`dist/`、`test-results/`(1.3M)、`playwright-report/`(1.8M) 均由 `.gitignore` 排除。
 - **B1 提交**：`80c2f90532b02ac63c88c1799a68b539b5b18147`（`80c2f90`），34 个文件变更（+3556/−26），受跟踪文件总数 89；`apps/api/dist/`（tsc 产物）、`apps/api/data/`（本地 SQLite）、`*.sqlite*` 均被忽略，提交后用 `git check-ignore -v` 核对过。工作区只剩一个未跟踪文件 `docs/roadmap.md`（非本轮产出，**未**纳入提交）。
 - **B1 修复提交**：`9e8d1cde2e46f00aaf597f0c3542c99447541b90`（`9e8d1cd`），把 `@fastify/static` 从有 4 条高危穿越公告的 `8.3.0` 升到修复版 `10.1.7`，适配 v10 的 `setHeaders(reply, path)` 签名，并把穿越用例从 3 个扩到 8 个编码载荷；该提交后 `npm audit --omit=dev` 为 0 漏洞。
@@ -133,7 +152,7 @@
 - **B6 提交**：`e60fd8a`，43 个文件变更：新增 `tests/e2e/{full-flow,isolation,resilience}.spec.ts`、`scripts/backup-check.mjs`、`docs/evidence/b6/`（39 个文件，含 3 个视口各 5 张截图、`walkthrough.webm`、`backup.json`）；改动 `playwright.config.ts`（4 个 project）、`tests/e2e/{app,gate,internal}.spec.ts`（截图统一写 `b6`，b3–b5 证据保持冻结）、`package.json`（`check:backup`）、`docs/evidence/b5/{e2e-b5,smoke}.txt`（补正）、`docs/PROJECT_STATE.md`。
 - **B8 提交**：`19765beea62e8310e38e58e26af6fc7fb3b50075`（`19765be`），44 个文件变更（+3592/−63）：新增 `.github/workflows/ci.yml`、`README.md`、`apps/api/src/domain/retention.ts`、`apps/api/test/retention.test.ts`、`scripts/retention-purge.mjs`、`scripts/restore-check.mjs`、`docs/architecture/review-B8.md`、`docs/ops/{runbook,rollback}.md`、`docs/privacy/data-map.md`、`docs/third-party.md`、`docs/evidence/b8/`（13）、`docs/evidence/backup/`（2）；改动 `content-routes.ts`（实验详情 querystring schema）、`internal-routes.ts`（preValidation 门禁 + 猜测预算）、`me-routes.ts`（注释）、`experiments.test.ts`(+8)、`internal.test.ts`(+7)、两个 i18n 字典（隐私文案）、`package.json`（check 顺序、`ci:local`、retention/restore 脚本入口）、`backup-check.mjs`（默认报告目录）、`docs/architecture/A-stage-design.md`（§7.8/§11）、`docs/PROJECT_STATE.md`、以及 B8 的 E2E 重新生成的 `docs/evidence/b6/` 截图与录屏（7 个文件；规格里写死的输出路径，内容为当前构建）。**无新迁移**：`0001_init.sql` 校验和仍 `289c27d35781…`；逐路径 `git add`，未用 `-A`，未推送。
 - 仓库里另有两条不是本任务产生的提交：`293a7ba`、`c0b3936`（均为 `scripts/status_watch.py` 的运维看板改动，作者 `molar`），不属于 B0–B8 任一关的产物，本轮未修改、未改写历史。
-- 无远端、未推送、未部署、未发布；无 `AGENTS.md`（未获用户同意）。
+- **R1 之后**：远端 `origin` = `https://github.com/Molar2016/openedulab`（PUBLIC），`main` 与远端同步；**未部署、未发布、没有任何公网应用 URL**；无 `AGENTS.md`（未获用户同意，本轮亦未新增）。
 
 ## 已核事实（B0/B1/B2 实测，非推断）
 - 环境：Windows 10；Node v22.23.0、npm 10.9.8、Git 2.53.0.windows.3；Playwright 浏览器已安装（chromium-1248 等）；`node:sqlite` 此前实测可用（建表 + WAL、upsert、`VACUUM INTO` 一致快照可独立重开，启动有 experimental 警告）。
@@ -199,7 +218,7 @@
 - **恢复演练：PASS**（`restore-check.txt` / `restore.json`）：把快照拷到临时目录后独立打开校验，然后**用真实构建产物在该恢复库上启动 API**（127.0.0.1:3321），`/api/healthz` 返回 `ok` 且 `migrations.applied=1`，随后通过 HTTP 注册一次性账号得到 **201**（证明恢复库可写），进程用 SIGTERM 停掉。
 - **留存清理**：对 E2E 库 `--dry-run` 为 0 行（数据都是几分钟内的，符合预期，`retention.json`）；在**副本**上播种两条超窗数据后跑真实 CLI：dry-run 报 2 行 → `--apply` 删 2 行 → 再 `--apply` **删 0 行**（幂等），见 `retention-apply-drill.txt`。HTTP 侧没有任何留存端点（用例断言）。
 - **反证**：拿掉实验详情的 querystring schema → 6 条失败（`mutation-locale-schema-off.txt`）；`preValidation`→`preHandler` → 3 条失败（`mutation-internal-ordering-off.txt`）；均从备份恢复。
-- **本机 URL**：E2E 期间为 `http://127.0.0.1:3220`（由 `scripts/e2e-server.mjs` 现场构建并启停，每次重建临时库）；恢复演练临时占用 `127.0.0.1:3321`。**没有公网 URL、没有部署、没有推送**；GitHub CI **从未运行**（无远端仓库）。
+- **本机 URL**：E2E 期间为 `http://127.0.0.1:3220`（由 `scripts/e2e-server.mjs` 现场构建并启停，每次重建临时库）；恢复演练临时占用 `127.0.0.1:3321`。**没有公网 URL、没有部署**（B8 当时也未推送；推送发生在 R1，见上）。
 
 ## 下一步（严格按序）
 1. ~~**B0**：修 typecheck 根因（唯一共享 `debug-hook` 类型，两侧引用，不删测试）→ `npm run check` 退出码 0；`git init` + 首次提交。~~ **已完成（本轮）**。
@@ -210,14 +229,14 @@
 6. ~~**B5（诊断与运维）**：白名单事件、反馈、`/api/internal/*` + 审计 + `dataGaps`，关闭诊断仍可实验。~~ **已完成（本轮）**：API 253 测试、smoke 90/90、E2E 42 通过；契约变更的影响分析先于代码落盘。
 7. ~~**B6（端到端验收）**：三视口完整流程、跨账号隔离、过期与登出、故障注入、无障碍、构建/迁移/备份恢复检查。~~ **已完成（本轮）**：4 个 project 的 E2E 74 通过/0 失败、备份恢复 PASS、截图/录屏/日志齐全。
 8. **B7（可选，不阻塞主闭环）**：参数快照 `saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。当前**未实现**，`/api/me/saved-state/*` 是 404（smoke 已断言），需求 §4.5 因此未满足。
-9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。**仍不可称 CI 绿色**（无远端仓库）、不可部署。
+9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。（B8 当时仍不可称 CI 绿色，因无远端仓库；R1 已完成远端落地并实测 CI 通过。）、B8 当时不可部署。
 10. **下一关（需用户选择，二者都需要新的授权）**：
     - **B7（可选）**：参数快照 `saved_state`（一资源一份、版本不兼容回退、无显式保存则不写）。入口：`apps/api/migrations/` 已建好该表但从未写入；按设计 §7.5/§10 加 `/api/me/saved-state/:experimentId` + 路由清单登记 + 实验模块 `stateSchema`，按 R-17/R-18 补测试。
     - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与未成年人政策（Q3）、账号删除与数据导出的取舍（Q4）、远端仓库与 CI 真实运行、异机备份复制方案。
 
 ## 停止点与恢复命令（本次任务到此为止）
 
-**停止点（2026-10-26，B8 收尾）**：B0→B6 + B8 全部完成并有真实运行证据；B7（参数快照，可选）**未实现**。**没有公网 URL、没有部署、没有推送远端**；生产/DNS/防火墙/收费/扩大采集等动作一律未做；GitHub 上**从未运行过 CI**（无远端仓库）。
+**停止点（2026-10-27，R1+R2 之后）**：B0→B8 + R1（远端落地与真实 CI）全部完成并有真实运行证据；B7 参数快照已在 R2 实现并验收。**源码已推送到公开仓库**，但**没有公网 URL、没有部署**；生产/DNS/防火墙/收费/扩大采集等动作一律未做（R3 只做本机只读侦察与风险清单）。
 
 **本机服务**：B8 开始前 3220 上有一个交接用的 `node apps/api/dist/index.js`（PID 2864），已按 PID 精确停止（未用宽泛的 node.exe 终止）；B8 的 E2E 自己起停 3220，恢复演练临时用 3321，**收尾时不留常驻进程**。要手工验看，用下面第 5 步。
 
@@ -263,4 +282,4 @@ OEL_ENV=development OEL_HOST=127.0.0.1 OEL_PORT=3220 OEL_PUBLIC_ORIGIN=http://12
 ## 阻塞与未决
 - 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出是否前置（Q4）、多实例与共享限速（Q6）、**远端仓库与 CI 真实运行**、**生产备份异机复制（需服务器确认，未做未验证）**。
 - 未做：服务器只读侦察、目标库迁移与授权实跑、标识归属验证（首版不做短信/邮件）。
-- 不得擅自改生产；不得在无测试输出/证据时声称通过或 URL 可用；未经用户明确同意不新增 `AGENTS.md`、不推送远端、不部署（本轮未推送、未部署、未发布）。
+- 不得擅自改生产；不得在无测试输出/证据时声称通过或 URL 可用；未经用户明确同意不新增 `AGENTS.md`、不部署、不发布。**推送公开仓库已获项目所有者 2026-10-26 授权**（仅逐路径审查过的源码），本轮已推送且未部署。

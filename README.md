@@ -7,7 +7,11 @@ session.
 
 - **Version:** `0.1.0-m1` (B8: engineering candidate for hand-off, *not* a public release)
 - **Node:** `>=22.5 <23` (`node:sqlite` is used directly; CI pins `22.23.0`)
-- **State:** runs locally, verified end to end, no deployment, no public URL, no remote.
+- **Source:** public on GitHub — <https://github.com/Molar2016/openedulab> (branch `main`).
+- **State:** runs locally, verified end to end; CI runs on GitHub Actions. **No deployment,
+  no domain, no public application URL**: this repository is source code only, nothing is
+  hosted, so there is no site to open. There is also no licence file yet (the project owner
+  has not chosen one), which means the code is *not* offered under an open-source licence.
 
 Read `docs/PROJECT_STATE.md` first when picking the work up: it records what is done, what
 is deliberately absent, the evidence paths and the exact commit for each stage.
@@ -26,11 +30,18 @@ is deliberately absent, the evidence paths and the exact commit for each stage.
 | Backup snapshot + restore drill + retention purge | working (local SQLite) | `scripts/backup-check.mjs`, `scripts/restore-check.mjs`, `scripts/retention-purge.mjs` |
 | Saved parameter snapshots (B7) | **not implemented** | `/api/me/saved-state/*` does not exist |
 | Password reset, account deletion, identifier verification | **not implemented** | — |
-| CI running on GitHub | **not running** — no remote repository exists yet | `.github/workflows/ci.yml` + local equivalent |
+| CI running on GitHub | **running** (both jobs green on `main`) | run [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703) |
 
-Not-yet-possible claims, stated plainly: there is no production deployment, no domain, no
-public URL, and nothing has been pushed anywhere. Static JS/CSS cannot be protected by a
-login (design §2); the gate protects pages, API responses and content metadata.
+Not-yet-possible claims, stated plainly: there is no production deployment, no domain and
+no public URL — the GitHub repository is source only, so no site can be opened. Static
+JS/CSS cannot be protected by a login (design §2); the gate protects pages, API responses
+and content metadata.
+
+Dependency advisories are scoped to development tooling (Vite dev server / Vitest), not to
+the runtime dependencies: `npm audit --omit=dev` reports 0, `npm audit` reports 6 in
+devDependencies, all fixed only by a major upgrade of Vite/Vitest. GitHub's Dependabot
+alerts are **disabled** for this repository, so GitHub is not watching these for us; the
+local audit above is the actual evidence. See `docs/third-party.md`.
 
 ## Quick start (local)
 

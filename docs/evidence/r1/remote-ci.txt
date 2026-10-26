@@ -1,0 +1,22 @@
+# R1 — remote landing evidence (captured 2026-10-26T23:37:52+08:00)
+
+## gh auth status
+github.com
+  ✓ Logged in to github.com account Molar2016 (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+
+## repository
+{"defaultBranchRef":{"name":"main"},"isPrivate":false,"name":"openedulab","pushedAt":"2026-10-26T15:33:48Z","url":"https://github.com/Molar2016/openedulab","visibility":"PUBLIC"}
+
+## git ls-remote origin main
+caf2b759dc1a2e2bf3d6ac9a0347e2c6be627f39	refs/heads/main
+
+## local HEAD
+caf2b759dc1a2e2bf3d6ac9a0347e2c6be627f39
+?? docs/evidence/r1/
+
+## CI run 40350561703
+{"conclusion":"success","event":"push","headSha":"caf2b759dc1a2e2bf3d6ac9a0347e2c6be627f39","jobs":[{"completedAt":"2026-10-26T15:35:08Z","conclusion":"success","name":"typecheck / lint / unit / api / content / build","startedAt":"2026-10-26T15:33:59Z"},{"completedAt":"2026-10-26T15:36:45Z","conclusion":"success","name":"browser E2E / backup+restore drill / retention dry-run","startedAt":"2026-10-26T15:35:10Z"}],"status":"completed"}

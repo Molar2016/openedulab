@@ -1,0 +1,30 @@
+# R1 — security alert review of the public repository (captured 2026-10-26T23:38:04+08:00)
+
+## repository security_and_analysis
+{"dependabot_security_updates":{"status":"disabled"},"secret_scanning":{"status":"enabled"},"secret_scanning_non_provider_patterns":{"status":"disabled"},"secret_scanning_push_protection":{"status":"enabled"},"secret_scanning_validity_checks":{"status":"disabled"}}
+
+## secret scanning alerts
+[]
+## dependabot alerts
+{"message":"Dependabot alerts are disabled for this repository.","documentation_url":"https://docs.github.com/rest/dependabot/alerts#list-dependabot-alerts-for-a-repository","status":"403"}gh: Dependabot alerts are disabled for this repository. (HTTP 403)
+gh: This API operation needs the "admin:repo
+## code scanning alerts
+{"message":"no analysis found","documentation_url":"https://docs.github.com/rest/code-scanning/code-scanning#list-code-scanning-alerts-for-a-repository","status":"404"}gh: no analysis found (HTTP 404)
+gh: This API operation needs the "admin:repo_hook" scope. To request it, run:  gh auth refresh -h g
+## local npm audit --omit=dev (runtime dependencies)
+found 0 vulnerabilities
+
+## local npm audit (includes devDependencies)
+6 vulnerabilities (3 moderate, 1 high, 2 critical)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+## advisory detail (devDependencies only)
+summary {"info":0,"low":0,"moderate":3,"high":1,"critical":2,"total":6}
+- @vitest/mocker sev=moderate direct=false range=<=4.1.11 fix={"name":"vitest","version":"5.0.5","isSemVerMajor":true}
+- esbuild sev=moderate direct=false range=<=0.24.2 fix={"name":"vite","version":"8.3.5","isSemVerMajor":true}
+- tinypool sev=critical direct=false range=<=2.1.1 fix={"name":"vitest","version":"5.0.5","isSemVerMajor":true}
+- vite sev=high direct=true range=<=6.4.3 fix={"name":"vite","version":"8.3.5","isSemVerMajor":true}
+- vite-node sev=moderate direct=false range=<=2.2.0-beta.2 fix={"name":"vitest","version":"5.0.5","isSemVerMajor":true}
+- vitest sev=critical direct=true range=<=4.1.10 fix={"name":"vitest","version":"5.0.5","isSemVerMajor":true}
