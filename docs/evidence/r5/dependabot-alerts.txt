@@ -1,0 +1,49 @@
+# Dependabot alerts — R5, 2026-10-27 (executed on this machine with gh CLI)
+
+## 1. Before: alerts were disabled (baseline, same as R1)
+$ gh api repos/Molar2016/openedulab/vulnerability-alerts
+{"message":"Vulnerability alerts are disabled.","status":404}
+$ gh api repos/Molar2016/openedulab/dependabot/alerts
+{"message":"Dependabot alerts are disabled for this repository.","status":403}
+
+## 2. Enable alerts only (no auto-PR security updates)
+$ gh api -X PUT repos/Molar2016/openedulab/vulnerability-alerts
+exit=0 (204 No Content)
+
+## 3. Read back
+$ gh api -i repos/Molar2016/openedulab/vulnerability-alerts
+HTTP/2.0 204 No Content
+$ gh api repos/Molar2016/openedulab/automated-security-fixes
+{"enabled":false,"paused":false}
+## 4. Alerts opened against the pre-upgrade lockfile (vite 5.4.21 / vitest 2.1.9 / esbuild 0.21.5 / tinypool 1.1.1)
+4 open at the time of enabling (vite x2, vitest, esbuild); raw snapshot: numbers 1-4, state=open
+
+## 5. After pushing eee74a2 (upgraded lockfile) GitHub rescanned
+$ gh api "repos/Molar2016/openedulab/dependabot/alerts?per_page=100&state=open"
+[]   # 0 open
+$ gh api "repos/Molar2016/openedulab/dependabot/alerts?per_page=100"
+15 alerts, all state=fixed
+
+## 6. The 15 fixed alerts, by advisory and package version
+15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+      1 "ghsa_id":"GHSA-4w7w-66w2-5vf9"
+      1 "ghsa_id":"GHSA-587h-7wmj-h5pm"
+      1 "ghsa_id":"GHSA-5gmw-xhrv-c9v3"
+      1 "ghsa_id":"GHSA-5xrq-8626-4rwp"
+      1 "ghsa_id":"GHSA-67mh-4wv8-2f99"
+      1 "ghsa_id":"GHSA-698v-4r3x-3vcv"
+      2 "ghsa_id":"GHSA-82fw-gwwq-j7x9"
+      1 "ghsa_id":"GHSA-85c8-ppgw-ccpr"
+      1 "ghsa_id":"GHSA-9jrq-w75r-8gcw"
+      1 "ghsa_id":"GHSA-fx2h-pf6j-xcff"
+      1 "ghsa_id":"GHSA-qxg6-89mg-rqv8"
+      1 "ghsa_id":"GHSA-r825-w8mm-5pxw"
+      1 "ghsa_id":"GHSA-rq7h-c2jc-7f22"
+      1 "ghsa_id":"GHSA-v6wh-96g9-6wx3"
+-- affected versions:
+      1 "version_requirement":"0.21.5"
+      2 "version_requirement":"1.1.1"
+      4 "version_requirement":"2.1.9"
+      8 "version_requirement":"5.4.21"
+
+Note on the 6 vs 15 difference: npm audit groups one row per vulnerable package (6), GitHub opens one alert per advisory x package (15, 14 distinct GHSAs). Both describe the same dev-tool chain and both are now clean: npm 0, GitHub 0 open.

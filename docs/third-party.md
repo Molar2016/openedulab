@@ -134,10 +134,21 @@ a vulnerable version to keep a test green. Identical suites pass before and afte
 122 tests, API 23 files / 330 tests, smoke 108/108 checks, Playwright 78 passed / 52 skipped /
 0 failed (`docs/evidence/r5/check-before.txt` vs `check-after.txt`, `smoke.txt`, `e2e.txt`).
 
-GitHub-side alerting: **Dependabot alerts are now enabled** on the repository (2026-10-27,
-`PUT /repos/…/vulnerability-alerts` → 204, read back 204). Dependabot **security updates**
-(auto-PRs) remain **off** — `automated-security-fixes` reports `enabled:false` — because
-automatic PRs are noise the owner has not asked for; turning them on is an owner decision.
+GitHub-side alerting: **Dependabot alerts were disabled and are now enabled** on the
+repository (2026-10-27: `PUT /repos/…/vulnerability-alerts` → 204; read back `GET` → 204;
+before that both `vulnerability-alerts` and `dependabot/alerts` answered 404/403 "disabled").
+Dependabot **security updates** (auto-PRs) remain **off** — `automated-security-fixes` →
+`{"enabled":false,"paused":false}` — because automatic PRs are noise the owner has not asked
+for; turning them on is an owner decision.
+
+What the alerts actually said, and why the count differs from npm: enabling the alerts opened
+**4** immediately against the committed lockfile (`vite` ×2, `vitest`, `esbuild`); after the
+upgraded lockfile was pushed (`eee74a2`) GitHub rescanned and **all 15 advisory×package alerts
+are `state=fixed`, 0 open**. GitHub opens one alert per advisory per package (15, 14 distinct
+GHSA ids, against `vite@5.4.21` ×8, `vitest@2.1.9` ×4, `tinypool@1.1.1` ×2, `esbuild@0.21.5`),
+while `npm audit` groups one row per package (6). Same dev-tool chain, two granularities; both
+now clean. Raw API transcript: `docs/evidence/r5/dependabot-alerts.txt`.
+
 Secret scanning and push protection stay enabled with 0 alerts; code scanning is still not
 configured (no analysis), which is not the same as "scanning passed".
 

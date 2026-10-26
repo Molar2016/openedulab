@@ -1,0 +1,22 @@
+# Remote CI — R5, run 40421284826
+date: 2026-10-27 (Asia/Shanghai)
+repo: Molar2016/openedulab (PUBLIC) branch main
+commit: eee74a2eedbe7a19848720c3a14389bdeec29ad5 (R5-2 dependency upgrade)
+url: https://github.com/Molar2016/openedulab/actions/runs/40421284826
+
+## gh run view
+✓ main ci · 40421284826
+✓ typecheck / lint / unit / api / content / build in 55s
+✓ browser E2E / backup+restore drill / retention dry-run in 1m26s
+conclusion: success (both jobs)
+
+## non-blocking annotation (unchanged from R1, tracked as a follow-up)
+Node.js 20 is deprecated: actions/checkout@v4 and actions/setup-node@v4 are forced onto Node 24.
+
+## git ls-remote read-back
+eee74a2eedbe7a19848720c3a14389bdeec29ad5	refs/heads/main
+local HEAD: eee74a2eedbe7a19848720c3a14389bdeec29ad5 (identical)
+
+## push note from GitHub at push time
+remote: GitHub found 15 vulnerabilities on Molar2016/openedulab's default branch (3 critical, 2 high, 9 moderate, 1 low).
+After the rescan of the pushed lockfile all 15 are state=fixed and 0 are open — see dependabot-alerts.txt.

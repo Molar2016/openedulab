@@ -127,13 +127,13 @@
 
 **安全告警审查（不把未知说成绿）**：
 - `secret_scanning: enabled`、`secret_scanning_push_protection: enabled` → 告警数 **0**。
-- **Dependabot alerts / Dependabot security updates：`disabled`**（API 返回 403 "Dependabot alerts are disabled for this repository"）→ **GitHub 侧没有在替我们盯依赖**。开启属仓库设置变更，需所有者批准，本轮未改。
+- **Dependabot alerts / Dependabot security updates：`disabled`**（API 返回 403 "Dependabot alerts are disabled for this repository"）→ **GitHub 侧没有在替我们盯依赖**。开启属仓库设置变更，需所有者批准，本轮未改。**（R1 当时的事实；R5-3 已开启 alerts，自动 PR 仍关闭。）**
 - **Code scanning：未配置**（API 404 "no analysis found"）→ 无此类告警，不等于"扫描通过"。
-- 本机实际审计：`npm audit --omit=dev` → **0 漏洞**；`npm audit` → **6（2 critical / 1 high / 3 moderate）**，全部位于前端**开发**工具链（`vitest`/`tinypool`/`vite`/`@vitest/mocker`/`vite-node`/`esbuild`），只能靠 `vite` 5→8、`vitest` 2→5 的大版本升级修掉。已逐条写入 `docs/third-party.md`「Known advisories」并说明可达面（仅开发服务器/Vitest UI，`vite.config.ts` 只绑 `127.0.0.1`，生产产物是静态文件 + Fastify，不含这些）。
+- 本机实际审计：`npm audit --omit=dev` → **0 漏洞**；`npm audit` → **6（2 critical / 1 high / 3 moderate）**，全部位于前端**开发**工具链（`vitest`/`tinypool`/`vite`/`@vitest/mocker`/`vite-node`/`esbuild`），只能靠 `vite` 5→8、`vitest` 2→5 的大版本升级修掉。已逐条写入 `docs/third-party.md`「Known advisories」并说明可达面（仅开发服务器/Vitest UI，`vite.config.ts` 只绑 `127.0.0.1`，生产产物是静态文件 + Fastify，不含这些）。**（R1 当时的事实，保留为历史；R5 已用 `vite` 5→7 + `vitest` 2→5 修掉这 6 条，现在两条审计都是 0，见「R5-2」。）**
 
 **文档断代清理**：README 的「no remote / CI not running / nothing has been pushed anywhere」、`PROJECT_STATE` 的「没有远端仓库，因此从未在 GitHub 上运行过」「无远端、未推送」「GitHub CI 从未运行」等句子已改为当前事实，并在原处标注为**历史**；同时明确写出**公开仓库只有源码，没有可访问的应用地址**（无部署、无域名），以及**尚无许可证文件**（不得据此认为已开源授权）。
 
-**未做**：未开启 Dependabot、未配置 code scanning、未升级 actions 版本（三者都记录为待办，任一都不影响"CI 在 GitHub 上真实通过"这一结论）。
+**未做**：未配置 code scanning、未升级 actions 版本（二者记录为待办，不影响"CI 在 GitHub 上真实通过"这一结论）。**（R1 当时：Dependabot 亦未开启；R5-3 已开启 alerts。）**
 
 ## R2（B7 参数快照，本轮）
 
@@ -193,6 +193,7 @@
 | [40351474575](https://github.com/Molar2016/openedulab/actions/runs/40351474575) | `84dfaee`（R1 文档） | success | 两个 job 全绿 |
 | [40355418679](https://github.com/Molar2016/openedulab/actions/runs/40355418679) | `7f3730d`（R2/B7） | success | e2e job 的 Chromium 安装耗时 ~17 分钟（见下） |
 | [40358303228](https://github.com/Molar2016/openedulab/actions/runs/40358303228) | `fdfa466`（R3/R4 文档 + CI 缓存） | success | 加入浏览器缓存后 e2e job 回到 1m49s |
+| [40421284826](https://github.com/Molar2016/openedulab/actions/runs/40421284826) | `eee74a2`（R5 依赖升级） | success | 两个 job 全绿：checks 55s、e2e 1m26s（缓存命中） |
 
 本文件所在的提交是**纯文档改动**（`docs/` 与 CI 注释），其 CI 运行号记录在夜间交付文件里；上表覆盖所有携带代码/工作流改动的提交。
 
@@ -238,6 +239,22 @@
 
 **没有做的事**：没有 `npm audit fix --force`；没有用 `overrides` 强行钉住传递依赖来"消音"；没有删测试/跳过测试/放宽断言换绿；没有升 vite 8（Rolldown 重写）、没有升 React 18→19、没有动运行时依赖（`fastify`/`@fastify/static`/`react`/`react-dom` 版本不变，`npm audit --omit=dev` 本来就是 0）。
 
+### R5-3 远端：依赖告警开启、推送与真实 CI
+
+**Dependabot（只开告警，不开自动 PR）**：
+- 开启前：`GET /repos/Molar2016/openedulab/vulnerability-alerts` → **404 "Vulnerability alerts are disabled"**，`GET …/dependabot/alerts` → **403 "Dependabot alerts are disabled for this repository"**（与 R1 记录一致）。
+- `PUT …/vulnerability-alerts` → **204**；读回 `GET` → **204**（= 已启用）。
+- `GET …/automated-security-fixes` → `{"enabled":false,"paused":false}` → **自动 PR 保持关闭**（自动化更新会产噪音，属负责人决定，本轮不替其决定）。
+- 开启后立即出现 **4 条 open**（vite ×2、vitest、esbuild，均针对**当时已推送的旧锁文件**）；推送升级后的锁文件 `eee74a2` 后 GitHub 重扫：**15 条全部 `state=fixed`、open 为 0**。
+- 顺带说明 6 与 15 的差异：`npm audit` 按"有漏洞的包"聚合（6 行），GitHub 按"公告 × 包"逐条开告警（15 条 / 14 个 GHSA，涉及 `vite@5.4.21`×8、`vitest@2.1.9`×4、`tinypool@1.1.1`×2、`esbuild@0.21.5`）。是同一批开发工具链问题，两种粒度；现在两边都干净。API 原文：`docs/evidence/r5/dependabot-alerts.txt`。
+
+**推送与读回**：
+- `git push origin main` → `b7d776b..eee74a2 main -> main`；`git ls-remote origin refs/heads/main` = `eee74a2eedbe7a19848720c3a14389bdeec29ad5`，与本地 `HEAD` 逐字相同。
+- 推送前逐条核对：`git diff` 里的新内容只有文档、依赖清单、`vite.config.ts` 与测试证据；`git grep` 抽查无密钥/令牌/`.sqlite`/原始日志入库（证据文件里出现的都是本机测试临时路径与测试用固定串）。
+
+**GitHub Actions（真实远端运行）**：run [40421284826](https://github.com/Molar2016/openedulab/actions/runs/40421284826)，`headSha=eee74a2`，**conclusion `success`**，两个 job 全绿：`typecheck / lint / unit / api / content / build`（55s）、`browser E2E / backup+restore drill / retention dry-run`（1m26s，Playwright 浏览器缓存命中）。原文：`docs/evidence/r5/remote-ci.txt`。
+- 仍有一条**非阻断** annotation：`actions/checkout@v4`/`actions/setup-node@v4` 声明的 Node 20 运行时被强制改跑 Node 24（弃用警告）。与 R1 相同，仍是待办，不影响结论。
+
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 
 
@@ -257,7 +274,8 @@
 - **B6 提交**：`e60fd8a`，43 个文件变更：新增 `tests/e2e/{full-flow,isolation,resilience}.spec.ts`、`scripts/backup-check.mjs`、`docs/evidence/b6/`（39 个文件，含 3 个视口各 5 张截图、`walkthrough.webm`、`backup.json`）；改动 `playwright.config.ts`（4 个 project）、`tests/e2e/{app,gate,internal}.spec.ts`（截图统一写 `b6`，b3–b5 证据保持冻结）、`package.json`（`check:backup`）、`docs/evidence/b5/{e2e-b5,smoke}.txt`（补正）、`docs/PROJECT_STATE.md`。
 - **B8 提交**：`19765beea62e8310e38e58e26af6fc7fb3b50075`（`19765be`），44 个文件变更（+3592/−63）：新增 `.github/workflows/ci.yml`、`README.md`、`apps/api/src/domain/retention.ts`、`apps/api/test/retention.test.ts`、`scripts/retention-purge.mjs`、`scripts/restore-check.mjs`、`docs/architecture/review-B8.md`、`docs/ops/{runbook,rollback}.md`、`docs/privacy/data-map.md`、`docs/third-party.md`、`docs/evidence/b8/`（13）、`docs/evidence/backup/`（2）；改动 `content-routes.ts`（实验详情 querystring schema）、`internal-routes.ts`（preValidation 门禁 + 猜测预算）、`me-routes.ts`（注释）、`experiments.test.ts`(+8)、`internal.test.ts`(+7)、两个 i18n 字典（隐私文案）、`package.json`（check 顺序、`ci:local`、retention/restore 脚本入口）、`backup-check.mjs`（默认报告目录）、`docs/architecture/A-stage-design.md`（§7.8/§11）、`docs/PROJECT_STATE.md`、以及 B8 的 E2E 重新生成的 `docs/evidence/b6/` 截图与录屏（7 个文件；规格里写死的输出路径，内容为当前构建）。**无新迁移**：`0001_init.sql` 校验和仍 `289c27d35781…`；逐路径 `git add`，未用 `-A`，未推送。
 - 仓库里另有两条不是本任务产生的提交：`293a7ba`、`c0b3936`（均为 `scripts/status_watch.py` 的运维看板改动，作者 `molar`），不属于 B0–B8 任一关的产物，本轮未修改、未改写历史。
-- **R1 之后**：远端 `origin` = `https://github.com/Molar2016/openedulab`（PUBLIC），`main` 与远端同步；**未部署、未发布、没有任何公网应用 URL**；无 `AGENTS.md`（未获用户同意，本轮亦未新增）。
+- **R5 提交**：`15d5cba`（R5-1，9 个文件、+224/−82：需求 §6 决策记录、`launch-readiness` §2/§3 重写 + §5 上线闸门、`data-map` 留存与"不得宣称"清单、`deployment-plan` §2.1 Pages 与核对表第 12/14 行、`third-party` 许可证候选表、`A-stage-design` Q3/Q4、`review-B8` 跟进项、`PROJECT_STATE` R5-1、README 状态与能力表）；`eee74a2`（R5-2，36 个文件：`package.json`/`package-lock.json`（vite 7.3.7、vitest 5.0.5、plugin-react 5.2.0）、`vite.config.ts`（`vitest/config` + 钉住 `build.target`）、`third-party` 公告与升级论证、`PROJECT_STATE` R5-2、README 依赖段、`docs/evidence/r5/`（13 个证据文件）与 E2E/target 重新生成的 `docs/evidence/b6`、`b7`、`backup` 产物）。两次都用**逐路径 `git add`**（未用 `-A`），未提交 `dist/`、`node_modules/`、`*.sqlite*`、`test-results/`、`playwright-report/`。
+- **R5 之后**：远端 `origin` = `https://github.com/Molar2016/openedulab`（PUBLIC），`main` = `eee74a2`（文档收口提交在其后）；**未部署、未发布、没有任何公网应用 URL**；**GitHub Pages 未启用**；无 `AGENTS.md`（未获用户同意，本轮亦未新增）；**无 `LICENSE`**（待负责人在 MIT / Apache-2.0 间选择）。
 
 ## 已核事实（B0/B1/B2 实测，非推断）
 - 环境：Windows 10；Node v22.23.0、npm 10.9.8、Git 2.53.0.windows.3；Playwright 浏览器已安装（chromium-1248 等）；`node:sqlite` 此前实测可用（建表 + WAL、upsert、`VACUUM INTO` 一致快照可独立重开，启动有 experimental 警告）。
@@ -341,7 +359,7 @@
 
 ## 停止点与恢复命令（本次任务到此为止）
 
-**停止点（2026-10-27，R1+R2 之后）**：B0→B8 + R1（远端落地与真实 CI）全部完成并有真实运行证据；B7 参数快照已在 R2 实现并验收。**源码已推送到公开仓库**，但**没有公网 URL、没有部署**；生产/DNS/防火墙/收费/扩大采集等动作一律未做（R3 只做本机只读侦察与风险清单）。
+**停止点（2026-10-27，R5 之后）**：B0→B8 + R1（远端落地与真实 CI）+ R2（B7 参数快照）+ R3（只读侦察）+ R4（交付前验证）+ R5（决策同步、依赖安全、依赖告警）全部完成并有真实运行证据。**源码已推送到公开仓库**，但**没有公网 URL、没有部署**；生产/DNS/防火墙/收费/扩大采集等动作一律未做；**GitHub Pages 未启用**（不能承载登录/API/SQLite）；**未开任何隧道**。R5 之后 `npm audit` 与 `npm audit --omit=dev` 均为 0，Dependabot 告警已开启且 0 open（15 条已 fixed）；**许可证仍未选择**（MIT / Apache-2.0 待负责人决定），仓库无 `LICENSE`。
 
 **本机服务**：B8 开始前 3220 上有一个交接用的 `node apps/api/dist/index.js`（PID 2864），已按 PID 精确停止（未用宽泛的 node.exe 终止）；B8 的 E2E 自己起停 3220，恢复演练临时用 3321，**收尾时不留常驻进程**。要手工验看，用下面第 5 步。
 
@@ -356,7 +374,7 @@ npm ci --dry-run
 # 1. 环境自检：类型/规范/单元/API/内容/构建（约 2.5 分钟，退出码 0 才算通过）
 npm run check
 
-# 2. 真实进程 smoke（90 条断言，含重启、撤销、篡改迁移、运维通道）
+# 2. 真实进程 smoke（108 条断言，含重启、撤销、篡改迁移、运维通道、参数快照）
 npm run build && npm run build:api && npm run smoke:api
 
 # 3. 本机真实浏览器端到端（4 个视口；会现场构建并占用 127.0.0.1:3220）

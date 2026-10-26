@@ -109,7 +109,7 @@ docs/               requirements, architecture, ops, privacy, evidence per stage
 | Test-deployment plan, constraints and pre-flight checklist (blocked: no target) | `docs/ops/deployment-plan.md` |
 | Roll back a release | `docs/ops/rollback.md` |
 | What personal data exists, where, for how long | `docs/privacy/data-map.md` |
-| Before public sign-up: open registration, deletion/export, minors | `docs/privacy/launch-readiness.md` |
+| Before public sign-up: open registration, deletion/export (out of scope for v1), minors (no age gate), and the remaining launch gate | `docs/privacy/launch-readiness.md` |
 | Every code dependency actually used | `docs/third-party.md` |
 | B8 security/consistency review of B3–B6 | `docs/architecture/review-B8.md` |
 
