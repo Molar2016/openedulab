@@ -198,7 +198,6 @@ function warningText(warning: ModelWarning, locale: string): string {
 
 export default function MathFunctionsExperiment({ locale, resetToken, services }: ExperimentProps): JSX.Element {
   const [coefficients, setCoefficients] = useState<Coefficients>({ ...DEFAULT_COEFFICIENTS });
-  const [completed, setCompleted] = useState(false);
   const interactCount = useRef(0);
   const lastReset = useRef(resetToken);
 
@@ -208,7 +207,6 @@ export default function MathFunctionsExperiment({ locale, resetToken, services }
     if (resetToken === lastReset.current) return;
     lastReset.current = resetToken;
     setCoefficients({ ...DEFAULT_COEFFICIENTS });
-    setCompleted(false);
     interactCount.current = 0;
   }, [resetToken]);
 
@@ -228,12 +226,17 @@ export default function MathFunctionsExperiment({ locale, resetToken, services }
     if (modelError) services.errors.report({ code: 'model_error', error: modelError });
   }, [modelError, services]);
 
-  const trackInteraction = (controlGroup: ControlGroup): void => {
+  /**
+   * Reports a control *category* (never a value). The host adapter turns the first one
+   * into `experiment_first_interaction` and de-duplicates categories per visit, so a drag
+   * cannot become a per-frame stream.
+   */
+  const trackControl = (controlGroup: ControlGroup): void => {
     interactCount.current += 1;
     services.analytics.track({
-      type: 'experiment_interact',
+      type: 'experiment_control_used',
       experimentId: manifest.id,
-      moduleVersion: manifest.moduleVersion,
+      contentVersion: manifest.contentVersion,
       locale,
       controlGroup,
       interactionBucket: interactionBucketFor(interactCount.current),
@@ -242,12 +245,12 @@ export default function MathFunctionsExperiment({ locale, resetToken, services }
 
   const updateCoefficient = (field: 'a' | 'b' | 'c', value: number): void => {
     setCoefficients((previous) => ({ ...previous, [field]: value }));
-    trackInteraction(field);
+    trackControl(field);
   };
 
   const changeMode = (mode: Coefficients['mode']): void => {
     setCoefficients((previous) => ({ ...previous, mode }));
-    trackInteraction('mode');
+    trackControl('mode');
   };
 
   if (!model) {
@@ -351,27 +354,6 @@ export default function MathFunctionsExperiment({ locale, resetToken, services }
             </div>
           </dl>
 
-          <button
-            type="button"
-            className="button button--secondary"
-            onClick={() => {
-              services.analytics.track({
-                type: 'experiment_complete',
-                experimentId: manifest.id,
-                moduleVersion: manifest.moduleVersion,
-                locale,
-              });
-              setCompleted(true);
-            }}
-            data-testid="complete-button"
-          >
-            {t('complete.button')}
-          </button>
-          {completed ? (
-            <p className="muted small" role="status" data-testid="complete-note">
-              {t('complete.thanks')}
-            </p>
-          ) : null}
         </section>
 
         <section className="panel panel--notes" aria-labelledby="notes-heading">

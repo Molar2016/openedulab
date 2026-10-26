@@ -184,6 +184,10 @@ function ExperimentRoute({
         services={services}
         contentVersion={state.detail.contentVersion}
         reviewedStatus={state.detail.reviewedStatus}
+        appVersion={services.appVersion}
+        onSubmitFeedback={async (payload) => {
+          await services.api.submitFeedback({ ...payload, locale });
+        }}
         {...(favorite.kind === 'unknown'
           ? {}
           : {

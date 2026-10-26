@@ -22,6 +22,16 @@ interface Props {
   reviewedStatus: 'draft' | 'verified';
   /** Optional: supplied by the app when the viewer is signed in. */
   favorite?: FavoriteControl;
+  /** Build version reported with diagnostics and feedback. */
+  appVersion: string;
+  /** Sends a feedback report; resolves when the server stored it. */
+  onSubmitFeedback: (payload: {
+    experimentId: string;
+    contentVersion: string;
+    appVersion: string;
+    category: 'content' | 'bug' | 'other';
+    message: string;
+  }) => Promise<void>;
   onBack: () => void;
 }
 
@@ -37,6 +47,8 @@ export function ExperimentHost({
   contentVersion,
   reviewedStatus,
   favorite,
+  appVersion,
+  onSubmitFeedback,
   onBack,
 }: Props): JSX.Element {
   const { manifest } = entry;
@@ -56,18 +68,18 @@ export function ExperimentHost({
   };
 
   useEffect(() => {
-    const key = `${manifest.id}@${manifest.moduleVersion}:${locale}`;
+    const key = `${manifest.id}@${contentVersion}:${locale}`;
     if (trackedOpen.current === key) return;
     trackedOpen.current = key;
     track({
       type: 'experiment_open',
       experimentId: manifest.id,
-      moduleVersion: manifest.moduleVersion,
+      contentVersion,
       locale,
     });
     // `track` and `services` are stable for the lifetime of a route in the app.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest.id, manifest.moduleVersion, locale]);
+  }, [manifest.id, contentVersion, locale]);
 
   useEffect(() => {
     const handleFullscreenChange = (): void => {
@@ -78,22 +90,22 @@ export function ExperimentHost({
       track({
         type: 'experiment_fullscreen',
         experimentId: manifest.id,
-        moduleVersion: manifest.moduleVersion,
+        contentVersion,
         locale,
-        enterOrExit: active ? 'enter' : 'exit',
+        controlGroup: active ? 'fullscreen_enter' : 'fullscreen_exit',
       });
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest.id, manifest.moduleVersion, locale]);
+  }, [manifest.id, contentVersion, locale]);
 
   const handleReset = (): void => {
     setResetToken((token) => token + 1);
     track({
       type: 'experiment_reset',
       experimentId: manifest.id,
-      moduleVersion: manifest.moduleVersion,
+      contentVersion,
       locale,
     });
   };
@@ -115,9 +127,9 @@ export function ExperimentHost({
   const handleRenderError = (): void => {
     services.errors.report({ code: 'render_error' });
     track({
-      type: 'experiment_error',
+      type: 'client_error',
       experimentId: manifest.id,
-      moduleVersion: manifest.moduleVersion,
+      contentVersion,
       locale,
       errorCode: 'render_error',
     });
@@ -218,6 +230,9 @@ export function ExperimentHost({
       {feedbackOpen ? (
         <FeedbackDialog
           experimentId={manifest.id}
+          contentVersion={contentVersion}
+          appVersion={appVersion}
+          onSubmit={onSubmitFeedback}
           onClose={() => setFeedbackOpen(false)}
           labels={{
             title: t('feedback.title'),
@@ -229,7 +244,10 @@ export function ExperimentHost({
             messagePlaceholder: t('feedback.messagePlaceholder'),
             preview: t('feedback.preview'),
             previewNote: t('feedback.previewNote'),
-            notSent: t('feedback.notSent'),
+            send: t('feedback.send'),
+            sending: t('feedback.sending'),
+            sent: t('feedback.sent'),
+            sendFailed: t('feedback.sendFailed'),
             close: t('feedback.close'),
             privacy: t('feedback.privacy'),
           }}

@@ -58,6 +58,8 @@ function serverEnv({ port, databasePath, migrations }) {
     OEL_STATIC_DIR: staticDir,
     OEL_MIGRATIONS_DIR: migrations,
     OEL_CONTENT_DIR: path.join(repoRoot, 'experiments'),
+    // Local-only operator token for this throwaway process (see the operator section).
+    OEL_OPERATOR_TOKEN: 'smoke-operator-token-0123456789',
     OEL_LOG_LEVEL: 'warn',
   };
 }
@@ -217,16 +219,21 @@ async function main() {
     for (const [route, method] of [
       ['/api/events', 'POST'],
       ['/api/feedback', 'POST'],
-      ['/api/me/saved-state/math.functions', 'GET'],
     ]) {
       const response = await fetch(`${baseUrl}${route}`, { method });
       const body = await response.json();
       check(
-        `${route} is honestly absent (404, not a fake endpoint)`,
-        response.status === 404 && body.error?.code === 'not_found',
+        `${method} ${route} -> 401 unauthenticated`,
+        response.status === 401 && body.error?.code === 'unauthenticated',
         `status=${response.status} code=${body.error?.code}`,
       );
     }
+    const savedState = await fetch(`${baseUrl}/api/me/saved-state/math.functions`);
+    check(
+      '/api/me/saved-state is honestly absent (404; B7 optional feature)',
+      savedState.status === 404,
+      `status=${savedState.status}`,
+    );
 
     const unknownApi = await fetch(`${baseUrl}/api/does-not-exist`, { headers: { accept: 'text/html' } });
     check(
@@ -525,6 +532,120 @@ async function main() {
       'favorites list is empty afterwards',
       (await (await authed('/api/me/favorites')).json()).items.length === 0,
     );
+
+    process.stdout.write('\n## 6d. diagnostics: events, feedback and the operator channel (B5)\n');
+    const operatorHeaders = {
+      authorization: 'Bearer smoke-operator-token-0123456789',
+      'x-operator-label': 'smoke-runner',
+    };
+    const operatorWindow = `from=${String(Date.now() - 3_600_000)}&to=${String(Date.now() + 3_600_000)}`;
+    const eventBatch = {
+      schemaVersion: 1,
+      appVersion: '0.1.0-m1',
+      visitId: 'smoke-visit-0001',
+      events: [
+        { clientEventId: 'smoke-open-001', type: 'experiment_open', experimentId: 'math.functions', contentVersion: '1.0.0', locale: 'en' },
+        { clientEventId: 'smoke-first-001', type: 'experiment_first_interaction', experimentId: 'math.functions', contentVersion: '1.0.0', locale: 'en' },
+        { clientEventId: 'smoke-ctl-001', type: 'experiment_control_used', experimentId: 'math.functions', contentVersion: '1.0.0', locale: 'en', controlGroup: 'a', interactionBucket: '2-5' },
+        { clientEventId: 'smoke-reset-001', type: 'experiment_reset', experimentId: 'math.functions', contentVersion: '1.0.0', locale: 'en' },
+      ],
+    };
+    const accepted = await postJsonAuthed('/api/events', eventBatch);
+    check(
+      'a valid event batch is accepted (202)',
+      accepted.status === 202 && accepted.json.accepted === 4 && accepted.json.dropped === 0,
+      JSON.stringify(accepted.json),
+    );
+    const rejectedBatch = await postJsonAuthed('/api/events', {
+      ...eventBatch,
+      visitId: 'smoke-visit-0002',
+      events: [
+        { clientEventId: 'smoke-bad-001', type: 'experiment_open', experimentId: 'physics.nope', contentVersion: '1.0.0', locale: 'en' },
+        { clientEventId: 'smoke-bad-002', type: 'experiment_complete', experimentId: 'math.functions', contentVersion: '1.0.0', locale: 'en' },
+      ],
+    });
+    check(
+      'unknown experiment and removed event type are dropped, not stored',
+      rejectedBatch.status === 202 && rejectedBatch.json.accepted === 0 && rejectedBatch.json.dropped === 2,
+      JSON.stringify(rejectedBatch.json),
+    );
+    const duplicateBatch = await postJsonAuthed('/api/events', eventBatch);
+    check(
+      'replaying the same batch is de-duplicated',
+      duplicateBatch.status === 202 && duplicateBatch.json.accepted === 0,
+      JSON.stringify(duplicateBatch.json),
+    );
+
+    const feedback = await postJsonAuthed('/api/feedback', {
+      experimentId: 'math.functions',
+      contentVersion: '1.0.0',
+      appVersion: '0.1.0-m1',
+      category: 'confusing',
+      message: 'smoke report: vertex label overlaps the axis',
+    });
+    check('feedback is stored (201)', feedback.status === 201, `status=${feedback.status}`);
+
+    const overview = await fetch(`${baseUrl}/api/internal/overview?${operatorWindow}`, {
+      headers: operatorHeaders,
+    });
+    const overviewBody = await overview.json();
+    const overviewEntry = overviewBody.experiments?.find((entry) => entry.experimentId === 'math.functions');
+    check(
+      'operator overview is 200 and reports the events',
+      overview.status === 200 && overviewEntry?.openAccounts === 1 && overviewEntry?.opens === 1,
+      JSON.stringify(overviewBody.experiments),
+    );
+    check(
+      'overview reports the interaction conversion and control usage',
+      overviewEntry?.interactedVisits === 1 && Array.isArray(overviewBody.dataGaps) && overviewBody.dataGaps.length === 0,
+      JSON.stringify(overviewEntry),
+    );
+
+    const exportNoReason = await fetch(`${baseUrl}/api/internal/export/events.csv?${operatorWindow}`, {
+      headers: operatorHeaders,
+    });
+    check('an export without a purpose is refused (400)', exportNoReason.status === 400, `status=${exportNoReason.status}`);
+    const exportResponse = await fetch(
+      `${baseUrl}/api/internal/export/events.csv?${operatorWindow}&reason=${encodeURIComponent('smoke verification')}`,
+      { headers: operatorHeaders },
+    );
+    const exportText = await exportResponse.text();
+    check(
+      'the events export is CSV with a header and no received_at/UA',
+      exportResponse.status === 200 &&
+        (exportResponse.headers.get('content-type') ?? '').includes('text/csv') &&
+        exportText.split('\n')[0].startsWith('occurred_at_min,experiment_id') &&
+        !exportText.includes('received_at') &&
+        !exportText.includes('Mozilla'),
+      exportText.split('\n')[0],
+    );
+    const feedbackExport = await fetch(
+      `${baseUrl}/api/internal/export/feedback.csv?${operatorWindow}&reason=${encodeURIComponent('smoke verification')}`,
+      { headers: operatorHeaders },
+    );
+    const feedbackText = await feedbackExport.text();
+    check(
+      'the feedback export carries the reported text and the account id',
+      feedbackExport.status === 200 && feedbackText.includes('vertex label overlaps the axis'),
+    );
+
+    const auditCount = (() => {
+      const auditDb = new DatabaseSync(databasePath);
+      try {
+        const row = auditDb.prepare('SELECT COUNT(*) AS total FROM internal_audit').get();
+        return Number(row.total);
+      } finally {
+        auditDb.close();
+      }
+    })();
+    check('operator exports left audit rows', auditCount === 2, `rows=${auditCount}`);
+
+    const noToken = await fetch(`${baseUrl}/api/internal/overview?${operatorWindow}`);
+    check('the operator channel is 404 without a token', noToken.status === 404, `status=${noToken.status}`);
+    const cookieOnly = await fetch(`${baseUrl}/api/internal/overview?${operatorWindow}`, {
+      headers: { cookie: liveCookie },
+    });
+    check('a normal session cannot reach the operator channel', cookieOnly.status === 404, `status=${cookieOnly.status}`);
 
     const authRows = (databasePath) => {
       const db = new DatabaseSync(databasePath);

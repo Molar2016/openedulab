@@ -10,6 +10,15 @@ import { shot, signIn, TEACHER } from './support';
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
+// This spec registers accounts to exercise the real credential paths; the API allows five
+// registrations per hour per IP (a limit that is deliberately not relaxed for tests), so
+// it runs on two projects instead of all four.
+const ALLOWED_PROJECTS = new Set(['desktop-chromium', 'mobile-chromium']);
+// eslint-disable-next-line no-empty-pattern
+test.beforeEach(({}, testInfo) => {
+  test.skip(!ALLOWED_PROJECTS.has(testInfo.project.name), 'registration budget: desktop + mobile');
+});
+
 const STAGE = 'b3';
 
 test.describe('a visitor without a session', () => {

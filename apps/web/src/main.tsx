@@ -5,8 +5,14 @@ import { createAppServices } from './services';
 import './styles.css';
 
 const services = createAppServices({
-  // Off by default: M1 has no analytics endpoint. A build may opt in explicitly.
-  analyticsEnabled: import.meta.env.VITE_OPENEDULAB_ANALYTICS === '1',
+  // Diagnostics are on by default; VITE_OPENEDULAB_ANALYTICS=0 disables the adapter for a
+  // build that must not send anything at all.
+  analyticsEnabled: import.meta.env.VITE_OPENEDULAB_ANALYTICS !== '0',
+});
+
+// Diagnostics are best effort: send whatever is queued before the page goes away.
+window.addEventListener('pagehide', () => {
+  void services.flushAnalytics();
 });
 
 if (import.meta.env.DEV) {

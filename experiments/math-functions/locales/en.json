@@ -37,8 +37,6 @@
   "warning.constant_function": "The function is constant, so the graph is a horizontal line.",
   "warning.no_real_roots": "The discriminant is negative, so the graph does not cross the x axis.",
   "warning.steep_slope": "With a large coefficient the curve is very steep inside the visible window.",
-  "complete.button": "I can see the pattern",
-  "complete.thanks": "Noted locally. Keep changing the coefficients.",
   "teaching.heading": "Ask the class",
   "teaching.prompt": "Ask students to predict what happens when a changes from 1 to −1, then drag to check.",
   "reset.default": "Defaults: a=1, b=0, c=0"

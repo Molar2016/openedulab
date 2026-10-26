@@ -10,6 +10,8 @@ import { registerAuthRoutes } from './http/auth-routes.js';
 import { registerContentRoutes } from './http/content-routes.js';
 import { apiError, type ApiErrorCode } from './http/errors.js';
 import { registerHealthRoute } from './http/health.js';
+import { registerEventRoutes } from './http/event-routes.js';
+import { registerInternalRoutes } from './http/internal-routes.js';
 import { registerMeRoutes } from './http/me-routes.js';
 import { createRouteCollector, exposeRouteInventory } from './http/route-inventory.js';
 import { registerSpaGate } from './http/spa-gate.js';
@@ -127,6 +129,8 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   registerAuthRoutes(app, { config, now, service: sessionService });
   registerContentRoutes(app, { contentIndex, gate });
   registerMeRoutes(app, { config, db, contentIndex, gate, now });
+  registerEventRoutes(app, { config, db, contentIndex, gate, now });
+  registerInternalRoutes(app, { config, db, contentIndex, now });
   registerSpaGate(app, { gate });
   await registerSpaHosting(app, config.staticDir);
   registerSpaFallback(app);

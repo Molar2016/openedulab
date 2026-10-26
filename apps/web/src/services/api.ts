@@ -90,6 +90,27 @@ export interface RecentItem {
   readonly lastOpenedAt: number;
 }
 
+/** Wire shape of a diagnostic event (design §7.6). No free text, no values. */
+export interface DiagnosticEvent {
+  readonly clientEventId: string;
+  readonly type: string;
+  readonly experimentId: string;
+  readonly contentVersion: string;
+  readonly locale?: string;
+  readonly controlGroup?: string;
+  readonly interactionBucket?: string;
+  readonly errorCode?: string;
+}
+
+export interface FeedbackInput {
+  readonly experimentId: string;
+  readonly contentVersion: string;
+  readonly appVersion: string;
+  readonly category: string;
+  readonly message?: string;
+  readonly locale?: string;
+}
+
 export interface ApiClient {
   session(): Promise<SessionInfo>;
   register(credentials: Credentials): Promise<{ displayHint: string }>;
@@ -102,6 +123,13 @@ export interface ApiClient {
   removeFavorite(experimentId: string): Promise<void>;
   recent(limit?: number): Promise<readonly RecentItem[]>;
   recordRecent(experimentId: string): Promise<void>;
+  /** Diagnostic batch. Best effort: the caller decides what a failure means. */
+  postEvents(input: {
+    visitId: string;
+    appVersion: string;
+    events: readonly DiagnosticEvent[];
+  }): Promise<{ accepted: number; dropped: number }>;
+  submitFeedback(input: FeedbackInput): Promise<{ id: string }>;
 }
 
 export interface ApiClientOptions {
@@ -254,6 +282,23 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       request<void>('/api/me/recent', {
         method: 'POST',
         body: JSON.stringify({ experimentId }),
+      }),
+
+    postEvents: (input) =>
+      request<{ accepted: number; dropped: number }>('/api/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          schemaVersion: 1,
+          appVersion: input.appVersion,
+          visitId: input.visitId,
+          events: input.events,
+        }),
+      }),
+
+    submitFeedback: (input) =>
+      request<{ id: string }>('/api/feedback', {
+        method: 'POST',
+        body: JSON.stringify(input),
       }),
   };
 }

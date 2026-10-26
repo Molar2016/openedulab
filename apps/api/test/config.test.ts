@@ -44,6 +44,8 @@ describe('loadConfig — fail closed', () => {
       migrationsDir: f.migrationsDir,
       staticDir: f.staticDir,
       contentDir: f.env.OEL_CONTENT_DIR,
+      operatorToken: null,
+      eventsEnabled: true,
       logLevel: 'silent',
     });
   });

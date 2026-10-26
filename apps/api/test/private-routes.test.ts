@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { api, errorCode, SESSION_COOKIE, startAuthHarness, type AuthHarness } from './support/auth-app.js';
 import {
+  isOperatorApiRoute,
   isPrivateApiRoute,
   isPublicApiRoute,
   type RouteEntry,
@@ -49,7 +50,7 @@ describe('API route inventory', () => {
     const server = await start();
 
     const unclassified = apiRoutes(server.app.routeInventory).filter(
-      (entry) => !isPublicApiRoute(entry) && !isPrivateApiRoute(entry),
+      (entry) => !isPublicApiRoute(entry) && !isPrivateApiRoute(entry) && !isOperatorApiRoute(entry),
     );
 
     expect(unclassified.map((entry) => `${entry.method} ${entry.url}`)).toEqual([]);
@@ -78,10 +79,12 @@ describe('API route inventory', () => {
     expect(privateRoutes).toContain('DELETE /api/me/favorites/:experimentId');
     expect(privateRoutes).toContain('GET /api/me/recent');
     expect(privateRoutes).toContain('POST /api/me/recent');
-    // Not implemented yet (B5): they must not exist as fake endpoints either.
-    expect(routes.some((entry) => entry.url === '/api/events')).toBe(false);
-    expect(routes.some((entry) => entry.url === '/api/feedback')).toBe(false);
+    expect(privateRoutes).toContain('POST /api/events');
+    expect(privateRoutes).toContain('POST /api/feedback');
+    // Saved state is B7 (optional) and must not exist as a fake endpoint before then.
     expect(routes.some((entry) => entry.url === '/api/me/saved-state/:experimentId')).toBe(false);
+    // Without an operator token the channel is not mounted (see the test below).
+    expect(routes.some((entry) => isOperatorApiRoute(entry))).toBe(false);
   });
 
   it('denies anonymous and forged callers on every private route', async () => {
@@ -113,7 +116,9 @@ describe('API route inventory', () => {
     for (const url of [
       '/api/internal/overview',
       '/api/internal/export/events.csv',
+      '/api/internal/export/feedback.csv',
       '/api/internal/accounts/any/timeline',
+      '/api/internal/experiments/math.functions/funnel',
     ]) {
       const response = await api(server.app, { method: 'GET', url });
       expect(response.status).toBe(404);

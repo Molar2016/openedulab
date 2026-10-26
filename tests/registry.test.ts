@@ -10,6 +10,7 @@ const validManifest: ExperimentManifest = {
   id: 'math.example',
   slug: 'example',
   moduleVersion: '0.1.0',
+  contentVersion: '1.0.0',
   sdkVersionRange: '^1.0.0',
   titleKey: 'title',
   descriptionKey: 'description',

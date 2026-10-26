@@ -96,8 +96,7 @@
   "feedback.category.other": "其他",
   "feedback.messagePlaceholder": "哪里出了问题？",
   "feedback.preview": "将要发送的内容预览",
-  "feedback.previewNote": "只有下列字段会离开你的浏览器。",
-  "feedback.notSent": "尚未发送。",
+  "feedback.previewNote": "只有下列字段会离开你的浏览器；按下“发送反馈”之前不会发送任何内容。",
   "feedback.close": "关闭",
   "feedback.privacy": "请不要填写姓名、电话、邮箱或学生个人信息。",
   "footer.privacy": "隐私说明",
@@ -120,5 +119,9 @@
   "tag.grade.high": "高中",
   "tag.concept.linear-function": "一次函数",
   "tag.concept.quadratic-function": "二次函数",
-  "tag.concept.parabola": "抛物线"
+  "tag.concept.parabola": "抛物线",
+  "feedback.send": "发送反馈",
+  "feedback.sending": "正在发送……",
+  "feedback.sent": "已收到，反馈已保存。",
+  "feedback.sendFailed": "反馈没有保存成功，请检查网络后重试。"
 }

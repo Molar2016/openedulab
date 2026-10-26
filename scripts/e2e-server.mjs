@@ -18,6 +18,7 @@ import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const PORT = 3220;
+const OPERATOR_TOKEN = 'e2e-local-operator-token-not-a-secret';
 const DATA_DIR = join(ROOT, 'test-results', 'e2e');
 const DB_PATH = join(DATA_DIR, 'app.sqlite');
 
@@ -60,6 +61,10 @@ const child = spawn(process.execPath, [join(ROOT, 'apps', 'api', 'dist', 'index.
     OEL_STATIC_DIR: join(ROOT, 'dist'),
     OEL_MIGRATIONS_DIR: join(ROOT, 'apps', 'api', 'migrations'),
     OEL_CONTENT_DIR: join(ROOT, 'experiments'),
+    // Local, ephemeral, test-only operator token. It protects a throwaway process on
+    // 127.0.0.1 with a database that is deleted on every run; it is not a secret and must
+    // never be reused as a real deployment token.
+    OEL_OPERATOR_TOKEN: OPERATOR_TOKEN,
     OEL_LOG_LEVEL: 'warn',
   },
 });

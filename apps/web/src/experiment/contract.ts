@@ -1,8 +1,13 @@
 /**
- * Experiment contract v1 (see docs/architecture/ADR-001-experiment-contract.md).
+ * Experiment contract v2 (see docs/architecture/impact-B5-event-contract.md).
  *
  * This module is intentionally dependency-free: no React import, no browser globals.
  * Experiments only ever see these types, never analytics vendors or other experiments.
+ *
+ * v2 changed the diagnostic vocabulary to what the product actually asks: "opened",
+ * "started interacting", "used this control category", "reset", "fullscreen", "crashed".
+ * `experiment_complete` was removed (an exploratory tool has no reliable completion) and
+ * `experiment_interact` was split into first-interaction and control-category events.
  */
 
 /** Host SDK version. Bump major on breaking contract changes. */
@@ -11,7 +16,8 @@ export const SDK_VERSION = '1.0.0';
 export const SUPPORTED_LOCALES = ['zh-CN', 'en'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
-export const CONTROL_GROUPS = ['mode', 'a', 'b', 'c', 'graph'] as const;
+/** Control *categories*, never a control value. Fullscreen direction reuses this field. */
+export const CONTROL_GROUPS = ['mode', 'a', 'b', 'c', 'graph', 'fullscreen_enter', 'fullscreen_exit'] as const;
 export type ControlGroup = (typeof CONTROL_GROUPS)[number];
 
 export const INTERACTION_BUCKETS = ['1', '2-5', '6-20', '21+'] as const;
@@ -28,42 +34,36 @@ export type ErrorCode = (typeof ERROR_CODES)[number];
 
 export const EVENT_TYPES = [
   'experiment_open',
-  'experiment_interact',
+  'experiment_first_interaction',
+  'experiment_control_used',
   'experiment_reset',
   'experiment_fullscreen',
-  'experiment_error',
-  'experiment_complete',
+  'client_error',
 ] as const;
 export type ExperimentEventType = (typeof EVENT_TYPES)[number];
 
-export type FullscreenDirection = 'enter' | 'exit';
-
-/**
- * Whitelisted, aggregate-only product events. No free text, no exact slider values,
- * no identifiers of people or devices. Unknown extra properties are dropped by the
- * analytics adapter before they can reach a sink.
- */
+/** Events a page may emit. `feedback_submitted` is created by the server, not here. */
 export interface ExperimentEvent {
   type: ExperimentEventType;
   experimentId: string;
-  moduleVersion: string;
+  /** Content version from the manifest / API — what a regression would be grouped by. */
+  contentVersion: string;
   locale?: Locale;
   controlGroup?: ControlGroup;
   interactionBucket?: InteractionBucket;
-  enterOrExit?: FullscreenDirection;
   errorCode?: ErrorCode;
   appVersion?: string;
 }
 
-/** Event after sanitisation: only known fields, still aggregate-only. */
-export type SafeExperimentEvent = Readonly<ExperimentEvent>;
+/** Event after sanitisation: known fields only, plus a client id for retry idempotence. */
+export type SafeExperimentEvent = Readonly<ExperimentEvent & { clientEventId: string }>;
 
 export interface ExperimentManifest {
   id: string;
   slug: string;
   moduleVersion: string;
   /** Content version (design §10): what events, saved state and cached metadata key on. */
-  contentVersion?: string;
+  contentVersion: string;
   /** Caret range, e.g. "^1.0.0". The host accepts only matching major versions. */
   sdkVersionRange: string;
   titleKey: string;

@@ -14,6 +14,13 @@ export interface AppConfig {
   readonly staticDir: string;
   /** Root of the content tree; the server indexes each folder's manifest.json. */
   readonly contentDir: string;
+  /**
+   * Bearer token for `/api/internal/*`. `null` (unset) is the normal state for a
+   * user-facing deployment: the operator channel is then simply not mounted.
+   */
+  readonly operatorToken: string | null;
+  /** Diagnostic event ingestion. Off means "accept and store nothing", never "break". */
+  readonly eventsEnabled: boolean;
   readonly logLevel: LogLevel;
 }
 
@@ -48,7 +55,12 @@ const REQUIRED_KEYS = [
   'OEL_CONTENT_DIR',
 ] as const;
 
-const OPTIONAL_KEYS = ['OEL_HOST', 'OEL_LOG_LEVEL'] as const;
+const OPTIONAL_KEYS = [
+  'OEL_HOST',
+  'OEL_LOG_LEVEL',
+  'OEL_OPERATOR_TOKEN',
+  'OEL_EVENTS_ENABLED',
+] as const;
 
 const KNOWN_KEYS: ReadonlySet<string> = new Set<string>([...REQUIRED_KEYS, ...OPTIONAL_KEYS]);
 
@@ -231,6 +243,29 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     }
   }
 
+  const operatorValue = read(env, 'OEL_OPERATOR_TOKEN');
+  let operatorToken: string | null = null;
+  if (operatorValue !== undefined) {
+    if (operatorValue.length < 16) {
+      issues.push({
+        field: 'OEL_OPERATOR_TOKEN',
+        message: 'must be at least 16 characters; the operator channel is Bearer-token only',
+      });
+    } else {
+      operatorToken = operatorValue;
+    }
+  }
+
+  const eventsValue = read(env, 'OEL_EVENTS_ENABLED');
+  let eventsEnabled = true;
+  if (eventsValue !== undefined) {
+    if (eventsValue !== 'true' && eventsValue !== 'false') {
+      issues.push({ field: 'OEL_EVENTS_ENABLED', message: 'must be "true" or "false"' });
+    } else {
+      eventsEnabled = eventsValue === 'true';
+    }
+  }
+
   if (issues.length > 0) {
     throw new ConfigError(issues);
   }
@@ -244,6 +279,8 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     migrationsDir,
     staticDir,
     contentDir,
+    operatorToken,
+    eventsEnabled,
     logLevel,
   });
 }
@@ -297,5 +334,8 @@ export function describeConfigForLog(config: AppConfig): Record<string, string |
     migrationsDir: config.migrationsDir,
     staticDir: config.staticDir,
     contentDir: config.contentDir,
+    // The token itself is never described; only whether the channel is reachable.
+    operatorChannel: config.operatorToken === null ? 'disabled' : 'enabled',
+    eventsEnabled: config.eventsEnabled ? 'true' : 'false',
   };
 }

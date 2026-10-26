@@ -36,6 +36,20 @@ export const PRIVATE_API_ROUTES: readonly RouteEntry[] = Object.freeze([
   { method: 'DELETE', url: '/api/me/favorites/:experimentId' },
   { method: 'GET', url: '/api/me/recent' },
   { method: 'POST', url: '/api/me/recent' },
+  { method: 'POST', url: '/api/events' },
+  { method: 'POST', url: '/api/feedback' },
+]);
+
+/**
+ * Operator channel: not a user route at all. It authenticates with the environment Bearer
+ * token and is only registered when that token exists; without it these paths are 404.
+ */
+export const OPERATOR_API_ROUTES: readonly RouteEntry[] = Object.freeze([
+  { method: 'GET', url: '/api/internal/overview' },
+  { method: 'GET', url: '/api/internal/experiments/:experimentId/funnel' },
+  { method: 'GET', url: '/api/internal/accounts/:accountId/timeline' },
+  { method: 'GET', url: '/api/internal/export/events.csv' },
+  { method: 'GET', url: '/api/internal/export/feedback.csv' },
 ]);
 
 function sameRoute(entry: RouteEntry, candidate: RouteEntry): boolean {
@@ -48,6 +62,10 @@ export function isPublicApiRoute(entry: RouteEntry): boolean {
 
 export function isPrivateApiRoute(entry: RouteEntry): boolean {
   return PRIVATE_API_ROUTES.some((declared) => sameRoute(declared, entry));
+}
+
+export function isOperatorApiRoute(entry: RouteEntry): boolean {
+  return OPERATOR_API_ROUTES.some((declared) => sameRoute(declared, entry));
 }
 
 export interface RouteCollector {

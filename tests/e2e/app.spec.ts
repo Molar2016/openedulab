@@ -96,7 +96,7 @@ test.describe('experiment', () => {
     await expect(page.getByTestId('model-warnings')).toContainText('no longer quadratic');
   });
 
-  test('previews feedback and never claims it was sent', async ({ page }) => {
+  test('previews feedback, sends it on request and confirms a stored report', async ({ page }) => {
     await openExperiment(page);
     await page.getByTestId('feedback-button').click();
     await expect(page.getByTestId('feedback-dialog')).toBeVisible();
@@ -107,8 +107,38 @@ test.describe('experiment', () => {
 
     const preview = page.getByTestId('feedback-preview');
     await expect(preview).toContainText(`"messageLength": ${message.length}`);
+    // The preview shows the shape of the payload, not the text the person typed.
     await expect(preview).not.toContainText('vertex label overlaps');
     await shot(page, STAGE, 'feedback-preview');
+
+    await page.getByTestId('feedback-send').click();
+    await expect(page.getByTestId('feedback-sent')).toBeVisible();
+    await expect(page.getByTestId('feedback-error')).toHaveCount(0);
+  });
+
+  test('keeps working when the diagnostics endpoint is down', async ({ page }) => {
+    // Simulate "analytics is off / ingest is broken": every event batch fails.
+    await page.route('**/api/events', (route) =>
+      route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":{"code":"server_error"}}' }),
+    );
+
+    await openExperiment(page);
+    await page.locator('#coef-a').fill('2');
+    await expect(page.getByTestId('formula')).toHaveText('y = 2x²');
+
+    // Favorites and recent use are a different data product and must be unaffected.
+    const favorite = page.getByTestId('favorite-button');
+    if ((await favorite.textContent()) === 'Add to favorites') {
+      await favorite.click();
+    }
+    await expect(favorite).toHaveText('Remove from favorites');
+
+    await page.goto('/me?lang=en');
+    await expect(page.getByTestId('recent-list')).toBeVisible();
+    await expect(page.getByTestId('recent-list').getByTestId('item-math-functions')).toHaveCount(1);
+
+    // No error was pushed into the experiment UI by the failing diagnostics.
+    await expect(page.getByTestId('experiment-error')).toHaveCount(0);
   });
 
   test('makes no cross-origin request and ships no debug sink', async ({ page }) => {

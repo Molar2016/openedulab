@@ -9,6 +9,14 @@ export const TEACHER = {
   password: 'classroom demo password',
 } as const;
 
+/** A second ordinary account, used to prove that isolation is real. */
+export const SECOND_TEACHER = {
+  identifier: 'e2e-second-teacher@example.com',
+  password: 'second classroom password',
+} as const;
+
+export const SECOND_STATE = 'test-results/e2e/.auth/second.json';
+
 export function evidenceDir(stage: string): string {
   return join(process.cwd(), 'docs', 'evidence', stage);
 }

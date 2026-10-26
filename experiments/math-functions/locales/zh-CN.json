@@ -37,8 +37,6 @@
   "warning.constant_function": "此时函数为常数，图像是一条水平线。",
   "warning.no_real_roots": "判别式小于 0，图像与 x 轴没有实交点。",
   "warning.steep_slope": "系数较大，图像在可视范围内非常陡。",
-  "complete.button": "我看懂规律了",
-  "complete.thanks": "已在本机记录。继续调整参数试试。",
   "teaching.heading": "课堂提问",
   "teaching.prompt": "先让学生预测：a 从 1 变到 −1 时抛物线会怎样变化？再拖动验证。",
   "reset.default": "默认值：a=1, b=0, c=0"

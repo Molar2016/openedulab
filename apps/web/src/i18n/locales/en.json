@@ -96,8 +96,7 @@
   "feedback.category.other": "Other",
   "feedback.messagePlaceholder": "What went wrong?",
   "feedback.preview": "Preview of what would be sent",
-  "feedback.previewNote": "Only the fields below would leave your browser.",
-  "feedback.notSent": "Not sent yet.",
+  "feedback.previewNote": "Only the fields below leave your browser. Nothing is sent until you press Send.",
   "feedback.close": "Close",
   "feedback.privacy": "Please do not include names, phone numbers, email addresses or student data.",
   "footer.privacy": "Privacy",
@@ -120,5 +119,9 @@
   "tag.grade.high": "High school",
   "tag.concept.linear-function": "Linear functions",
   "tag.concept.quadratic-function": "Quadratic functions",
-  "tag.concept.parabola": "Parabola"
+  "tag.concept.parabola": "Parabola",
+  "feedback.send": "Send report",
+  "feedback.sending": "Sending…",
+  "feedback.sent": "Thank you — the report was saved.",
+  "feedback.sendFailed": "The report was not saved. Check your connection and try again."
 }
