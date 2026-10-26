@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path('G:/hermes/projects/openedulab')
-PID = 20864
+PID = 20888
 
 
 def is_running(pid: int) -> bool:
@@ -25,6 +25,12 @@ def main() -> None:
     stage = done[-1] if done else 'B2 或更早（请查项目状态）'
     sha = subprocess.run(['git', '-C', str(ROOT), 'log', '-1', '--format=%h %s'], capture_output=True, text=True).stdout.strip() or '未知'
     running = is_running(PID)
+    stop_marker = Path('G:/hermes/tmp') / f'openedulab_watch_{PID}.stopped'
+    if not running:
+        if stop_marker.exists():
+            return
+        stop_marker.parent.mkdir(parents=True, exist_ok=True)
+        stop_marker.write_text('reported', encoding='utf-8')
     state = '仍在运行' if running else '进程已结束；需要核验最终产物/阻塞后决定是否续跑'
     print(f'OpenEduLab 定时进度：{state}（PID {PID}）。\n已记录完成关口：{stage}；当前提交：{sha}。\n下一工序与测试证据见 docs/PROJECT_STATE.md。本地任务，未获批准不部署生产。')
 
