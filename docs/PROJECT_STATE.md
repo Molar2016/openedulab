@@ -113,6 +113,7 @@
 - **B4 提交**：`4dbc87d`，19 个文件变更：新增 `src/db/{favorite,recent}-repository.ts`、`src/http/me-routes.ts`、`apps/api/test/{favorites,recent}.test.ts`、`apps/web/src/app/MePage.tsx`、`docs/evidence/b4/`；改动 `app.ts`、`route-inventory.ts`（+5 条受控路由）、`private-routes.test.ts`、`App/router/api.ts/ExperimentHost/i18n/styles`、`smoke.mjs`、`tests/{api-client,e2e/app}`。**无新迁移**。
 - **B5 提交**：`51e0499`，40 个文件变更：新增 `src/domain/events.ts`、`src/db/{event,feedback}-repository.ts`、`src/http/{event,internal}-routes.ts`、`apps/api/test/{events,feedback,internal}.test.ts`、`docs/architecture/impact-B5-event-contract.md`、`docs/evidence/b5/`；改动 `contract.ts`（v2）、`services/{analytics,api,index}.ts`、`FeedbackDialog`、`ExperimentHost`、`experiments/math-functions/{view.tsx,locales}`、`main.tsx`、`config.ts`（`OEL_OPERATOR_TOKEN`/`OEL_EVENTS_ENABLED`）、`smoke.mjs`、`tests/{analytics,host,registry,e2e/app,e2e/internal}`。**无新迁移**。
 - **仓库里另有一条不是本任务产生的提交**：`293a7ba ops: add bounded background progress watcher`（作者 `molar`，只加 `scripts/status_watch.py`，用 PROJECT_STATE 与进程存活情况生成飞书进度文本）。它不是本任务书某一关的产物，未被本轮验收；本轮未修改它、也未改写历史。
+- **B6 提交**：`e60fd8a`，43 个文件变更：新增 `tests/e2e/{full-flow,isolation,resilience}.spec.ts`、`scripts/backup-check.mjs`、`docs/evidence/b6/`（39 个文件，含 3 个视口各 5 张截图、`walkthrough.webm`、`backup.json`）；改动 `playwright.config.ts`（4 个 project）、`tests/e2e/{app,gate,internal}.spec.ts`（截图统一写 `b6`，b3–b5 证据保持冻结）、`package.json`（`check:backup`）、`docs/evidence/b5/{e2e-b5,smoke}.txt`（补正）、`docs/PROJECT_STATE.md`。
 - 无远端、未推送、未部署、未发布；无 `AGENTS.md`（未获用户同意）。
 
 ## 已核事实（B0/B1/B2 实测，非推断）
@@ -180,6 +181,37 @@
 7. ~~**B6（端到端验收）**：三视口完整流程、跨账号隔离、过期与登出、故障注入、无障碍、构建/迁移/备份恢复检查。~~ **已完成（本轮）**：4 个 project 的 E2E 74 通过/0 失败、备份恢复 PASS、截图/录屏/日志齐全。
 8. **B7（可选，不阻塞主闭环）**：参数快照 `saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。当前**未实现**，`/api/me/saved-state/*` 是 404（smoke 已断言），需求 §4.5 因此未满足。
 9. **B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新；之后才是 D/E 阶段的只读侦察与部署审批。
+
+## 停止点与恢复命令（本次任务到此为止）
+
+**停止点**：B3→B6 四道关口全部完成并有真实运行证据；B7（参数快照，可选）**未实现**，B8（CI/留存清理/运维手册）**未开始**。没有常驻服务、没有公网 URL、没有部署；生产/DNS/防火墙/收费/扩大采集等动作一律未做，也未推送远端。
+
+**恢复时按顺序执行（都能直接复制）**：
+
+```bash
+cd G:/hermes/projects/openedulab
+
+# 1. 环境自检：类型/规范/单元/API/内容/构建（约 40 秒，退出码 0 才算通过）
+npm run check
+
+# 2. 真实进程 smoke（90 条断言，含重启、撤销、篡改迁移、运维通道）
+npm run build && npm run build:api && npm run smoke:api
+
+# 3. 本机真实浏览器端到端（4 个视口；会现场构建并占用 127.0.0.1:3220）
+npx playwright test
+
+# 4. 备份恢复演练（对某次 e2e 的数据库；也可 --db 指向别处）
+npm run check:backup
+
+# 5. 只想手工看页面：构建并启动同源服务（真实 Fastify + 构建后的 SPA）
+npm run build && npm run build:api
+OEL_ENV=development OEL_HOST=127.0.0.1 OEL_PORT=3220 OEL_PUBLIC_ORIGIN=http://127.0.0.1:3220 OEL_DATABASE_PATH=apps/api/data/local.sqlite OEL_STATIC_DIR=dist OEL_MIGRATIONS_DIR=apps/api/migrations OEL_CONTENT_DIR=experiments OEL_LOG_LEVEL=info node apps/api/dist/index.js
+# 打开 http://127.0.0.1:3220/ → 会被 302 到 /login；注册一个账号即可完整走一遍
+```
+
+注意：第 3 步用 `reuseExistingServer: false`，若第 5 步的服务还在跑，先停掉它，否则会报端口占用。第 5 步的数据库是持久的（`apps/api/data/local.sqlite`，已被 gitignore），第 3 步每次都会重建自己的临时库。
+
+**下一关（B7，可选）的入口**：`apps/api/migrations/` 已预留 `saved_state` 表（`0001_init.sql` 建好但从未写入），实现时只需新增 `/api/me/saved-state/:experimentId` 的 GET/PUT/DELETE + 在 `route-inventory.ts` 登记 + 实验模块声明 `stateSchema`（设计 §10），并按 R-17/R-18 补测试（版本不兼容回退默认、无显式保存则不持久化）。
 
 ## 阻塞与未决
 - 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出是否前置（Q4）、多实例与共享限速（Q6）。
