@@ -192,6 +192,9 @@
 | [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703) | `caf2b75`（B8 收口） | success | 两个 job 全绿 |
 | [40351474575](https://github.com/Molar2016/openedulab/actions/runs/40351474575) | `84dfaee`（R1 文档） | success | 两个 job 全绿 |
 | [40355418679](https://github.com/Molar2016/openedulab/actions/runs/40355418679) | `7f3730d`（R2/B7） | success | e2e job 的 Chromium 安装耗时 ~17 分钟（见下） |
+| [40358303228](https://github.com/Molar2016/openedulab/actions/runs/40358303228) | `fdfa466`（R3/R4 文档 + CI 缓存） | success | 加入浏览器缓存后 e2e job 回到 1m49s |
+
+本文件所在的提交是**纯文档改动**（`docs/` 与 CI 注释），其 CI 运行号记录在夜间交付文件里；上表覆盖所有携带代码/工作流改动的提交。
 
 **CI 加固（由上面第 3 个 run 暴露）**：`e2e` job 里 `npx playwright install --with-deps chromium` 在缓存未命中时跑成了 ~17 分钟（前两次同样的步骤只要 ~40 秒），把 30 分钟 job 预算吃掉一半多。已加 `actions/cache@v4` 缓存 `~/.cache/ms-playwright`（key 跟 `package-lock.json` 哈希），Playwright 升级时仍会重下一次。这是对 CI 可靠性的修复，不是放宽任何检查。
 
