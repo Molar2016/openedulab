@@ -1,6 +1,6 @@
 # PROJECT_STATE
 
-最后更新：2026-10-27 00:10（R1 远端落地 + R2 B7 参数快照；B8 仍为上一关收口）。**当前声明以「R1」「R2」两节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；B0–B8 的历史结论保留在下方各节。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：仓库只有源码，没有部署、没有域名。
+最后更新：2026-10-27 01:05（R1 远端落地 + R2 B7 参数快照 + R3 发布前只读侦察；B8 仍为上一关收口）。**当前声明以「R1」「R2」「R3」三节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；B0–B8 的历史结论保留在下方各节。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：仓库只有源码，没有部署、没有域名。
 
 ## 当前状态
 需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与去重最近使用、内部按账号诊断事件、参数仅显式保存一份快照。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
@@ -156,6 +156,47 @@
 
 **未做（刻意）**：`saved_state` 没有自己的留存期限（跟随账号，删除按钮是自助入口）；不做多份快照/版本历史；快照损坏（JSON 解不开）时返回 409 让用户覆盖，不做自动修复；未把参数写进任何导出/运维视图（也没有这样的视图）。
 
+## R3（发布前只读侦察）：结论是阻塞，不是部署
+
+**做了只读侦察，没有接触任何远端**（命令与输出：`docs/evidence/r3/recon.txt`）：
+- 仓库只有一个远端 `https://github.com/Molar2016/openedulab.git`（源码远端，不是部署目标）。
+- 本机**没有** `~/.ssh/config`；`~/.ssh` 里存在 `deliver_vps`、`id_ed25519`、`id_ed25519_classroom_vps` 等密钥文件，但**没有任何证据表明其中任何一个属于本项目**，且"用 VPS 做交付替代"本就被排除。
+- `known_hosts` 里有 `[172.16.12.27]:30134`、`8.148.14.233` 与一条哈希条目——这些是本机别的工作流联系过的主机，**未连接、未探测、未推断归属**。
+- 仓库内没有任何部署物料（无 Dockerfile/compose/unit/部署脚本；`systemctl` 只出现在 runbook 的通用示例里）。
+- 本机候选端口（3220/3321/3000/8080/80/443）无监听；本机无 docker/podman/pm2/nginx/caddy/rsync。
+- 刻意不做：不 ssh/scp、不扫端口、不查 DNS、不申请费用、不建账号、不改任何既有服务。
+
+**状态：远端测试部署阻塞：需服务器地址/访问方式/独立域名等**（另需：数据库选型、留存窗口/未成年人政策/删除与导出范围的决策）。在拿到这些之前，本地只形成了可执行的隔离部署方案与前置核对表：`docs/ops/deployment-plan.md`（含五条从代码学到的硬约束：生产必须 HTTPS 否则 `__Host-`+`Secure` 会话无法建立；`trustProxy=false` 会让反代后的按 IP 限速塌缩成一个桶；单实例假设；SQLite 是宿主机上的文件、备份必须离机；没有邮件短信因此不能承诺找回密码）。
+
+**发布前风险与前置条件**：`docs/privacy/launch-readiness.md`。
+- **自注册不验证归属**：可被抢注他人邮箱/手机（对方随后无法注册，409 `identifier_taken`），可被脚本批量注册（每 IP 5 次/小时，但每个新账号都重新获得 120 条/分钟、3000 条/天的诊断额度 → 单 IP 理论日增约 12 万账号×事件上限的量级）。**不存在**通过邮箱/手机接管既有账号的路径（没有找回密码、登录不区分"账号不存在"与"口令错误"），也**不存在**读取他人数据的路径（每条 SQL 由会话账号限定，已有跨账号用例）。当前可用的缓解只有限速、运维定位、数据库层禁用账号（无 HTTP 入口）与留存清理；是否加验证码/邮箱验证/邀请码属所有者决策（涉及第三方与费用）。
+- **账号删除与个人数据导出：未实现**，是公开发布的硬阻塞（`ON DELETE CASCADE` 已覆盖 6 张表，`internal_audit` 刻意无外键）。已在该文档给出实现范围与测试口径，未动代码。
+- **未成年人**：产品面向课堂，含 14 岁以下学生即触达 PIPL 敏感个人信息（需监护人同意与专门规则）；当前无年龄门槛、无同意机制，文案也未作任何承诺。三种模型（机构控制/18+/监护人同意）待所有者选一种。
+
+**本轮未做**：无服务器动作、无 DNS/防火墙/证书、无部署、无费用、无注册流程改动、无许可证/条款/隐私政策选择。
+
+## R4（交付前最终验证）
+
+**本地全套（同一棵工作树，证据 `docs/evidence/r4/final-verification.txt`）**：
+- `npm run check` **退出码 0**：web **10 文件 / 122 测试**；API **23 文件 / 330 测试**；lint 与 typecheck 无输出；`validate-content` OK；SPA 与 API 构建成功。
+- `npm run smoke:api` → **108/108 checks passed**（真实进程、真实 socket）。
+- `npx playwright test`（4 个 project）→ **78 passed / 52 skipped / 0 failed**（52 条跳过全部是显式 `test.skip(project…)`）。
+- `npm run check:backup` PASS（八张表：account 4 / session 15 / favorite 0 / recent_use 2 / **saved_state 1** / event 68 / feedback 5 / internal_audit 3；`integrity_check=ok`）。
+- `npm run check:restore` PASS（恢复库上 `healthz=ok`、`migrations.applied=1`、`writeProbe=201`，`saved_state` 仍在）。
+- `retention --dry-run` → 0 行。
+
+**GitHub Actions（本仓库真实运行，均为 push 到 `main`）**：
+
+| run | commit | 结论 | 说明 |
+|---|---|---|---|
+| [40350561703](https://github.com/Molar2016/openedulab/actions/runs/40350561703) | `caf2b75`（B8 收口） | success | 两个 job 全绿 |
+| [40351474575](https://github.com/Molar2016/openedulab/actions/runs/40351474575) | `84dfaee`（R1 文档） | success | 两个 job 全绿 |
+| [40355418679](https://github.com/Molar2016/openedulab/actions/runs/40355418679) | `7f3730d`（R2/B7） | success | e2e job 的 Chromium 安装耗时 ~17 分钟（见下） |
+
+**CI 加固（由上面第 3 个 run 暴露）**：`e2e` job 里 `npx playwright install --with-deps chromium` 在缓存未命中时跑成了 ~17 分钟（前两次同样的步骤只要 ~40 秒），把 30 分钟 job 预算吃掉一半多。已加 `actions/cache@v4` 缓存 `~/.cache/ms-playwright`（key 跟 `package-lock.json` 哈希），Playwright 升级时仍会重下一次。这是对 CI 可靠性的修复，不是放宽任何检查。
+
+**仍然成立**：**没有公网应用 URL、没有部署、没有域名**；公开仓库只有源码；R3 的部署前置条件与风险清单见 `docs/ops/deployment-plan.md` 与 `docs/privacy/launch-readiness.md`。
+
 ## 本轮确定的架构决策（详见设计文档 §1 / §8）
 同源模块化单体（Fastify + 静态 SPA，无 CORS）；服务端会话（DB 存 token 哈希，HttpOnly Cookie，非 JWT）；scrypt 口令哈希；私有 API 一律从会话派生 `account_id`（不接受请求体/路径传账号）；个人数据与诊断事件物理分表、分路由、分一致性等级；运维权限用环境变量 Bearer token，未配置时 404；本地开发 SQLite（`node:sqlite`），生产候选 PostgreSQL 但**不承诺可切换**；迁移用编号 SQL + 校验和 + 单事务且只允许两库共同子集；备份 `VACUUM INTO`/`pg_dump -Fc` + 异机复制 + 每月恢复演练。
 
@@ -301,6 +342,6 @@ OEL_ENV=development OEL_HOST=127.0.0.1 OEL_PORT=3220 OEL_PUBLIC_ORIGIN=http://12
 **B7（参数快照）的现状与入口**：已实现（R2）。`/api/me/saved-state/:experimentId` 的 GET/PUT/DELETE 已挂载并登记在受控清单里，参数白名单来自 `experiments/<folder>/state-schema.json`（服务器启动时校验，非法即拒绝启动）。给新实验加保存能力 = 加一个 `state-schema.json` 并在视图里读写 `initialState` / `stateBridge`；服务端不需要改代码。
 
 ## 阻塞与未决
-- 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出是否前置（Q4）、多实例与共享限速（Q6）、**远端仓库与 CI 真实运行**、**生产备份异机复制（需服务器确认，未做未验证）**。
+- 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与未成年人政策/留存期限（Q3）、账号删除/数据导出（Q4）、多实例与共享限速（Q6）、**生产备份异机复制（需服务器确认，未做未验证）**。**远端仓库与 CI 已在 R1 落地并实测通过，此项已解除**；R3 已把 Q1–Q4/Q6 的前置条件与本机侦察结论写进 `docs/ops/deployment-plan.md` 与 `docs/privacy/launch-readiness.md`（**远端测试部署仍阻塞：需服务器地址/访问方式/独立域名**）。
 - 未做：服务器只读侦察、目标库迁移与授权实跑、标识归属验证（首版不做短信/邮件）。
 - 不得擅自改生产；不得在无测试输出/证据时声称通过或 URL 可用；未经用户明确同意不新增 `AGENTS.md`、不部署、不发布。**推送公开仓库已获项目所有者 2026-10-26 授权**（仅逐路径审查过的源码），本轮已推送且未部署。

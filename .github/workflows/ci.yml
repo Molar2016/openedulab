@@ -87,6 +87,17 @@ jobs:
       - name: Install from lockfile
         run: npm ci
 
+      # Browser downloads were the slowest and least predictable part of this job: on
+      # 2026-10-26 a cache-miss run spent ~17 minutes in this step instead of ~40 seconds.
+      # The cache key follows the lockfile, so a Playwright upgrade still downloads once.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 

@@ -102,8 +102,10 @@ docs/               requirements, architecture, ops, privacy, evidence per stage
 | Architecture, permission matrix, data & event dictionaries | `docs/architecture/A-stage-design.md` |
 | Stage status, commits, evidence, open blockers | `docs/PROJECT_STATE.md` |
 | Operate it: env vars, start/stop, health, operator channel, purge | `docs/ops/runbook.md` |
+| Test-deployment plan, constraints and pre-flight checklist (blocked: no target) | `docs/ops/deployment-plan.md` |
 | Roll back a release | `docs/ops/rollback.md` |
 | What personal data exists, where, for how long | `docs/privacy/data-map.md` |
+| Before public sign-up: open registration, deletion/export, minors | `docs/privacy/launch-readiness.md` |
 | Every code dependency actually used | `docs/third-party.md` |
 | B8 security/consistency review of B3–B6 | `docs/architecture/review-B8.md` |
 

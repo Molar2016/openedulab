@@ -1,0 +1,50 @@
+# R3 — local, read-only reconnaissance for a test deployment (captured 2026-10-27T00:03:54+08:00)
+## git remotes of this repository
+origin	https://github.com/Molar2016/openedulab.git (fetch)
+origin	https://github.com/Molar2016/openedulab.git (push)
+
+## ssh client configuration (host aliases only; keys and identities not read)
+(no ~/.ssh/config)
+
+## ssh directory entries (names only)
+deliver_vps
+deliver_vps.pub
+id_ed25519
+id_ed25519.pub
+id_ed25519_classroom_vps
+id_ed25519_classroom_vps.pub
+known_hosts
+known_hosts.old
+
+## known_hosts: distinct host tokens (hashed entries stay hashed)
+[172.16.12.27]:30134
+|1|4/FtHQ3C3BoXUR/1AZ/RoBkMboE=|tGQLl5Pp/AEIxwlEqIsRmMbJC3E=
+8.148.14.233
+
+## container / process tooling available locally
+docker   absent
+podman   absent
+pm2      absent
+nginx    absent
+caddy    absent
+ssh      present
+scp      present
+rsync    absent
+
+## listening TCP ports that could be a local deployment of this project
+(nothing on 3220/3321/3000/8080/443/80)
+
+## repository-side deployment artefacts (does the repo name any target?)
+./docs/architecture/A-stage-design.md:462:- 开发机 Windows 10，Node v22.23.0 / npm 10.9.8 / Git 2.53.0；**未发现 docker、pnpm**（`PROJECT_STATE` 已记录，本轮复核仍无仓库无 git）。
+./docs/architecture/ADR-000-foundation.md:17:Windows 10 10.0.19045.6466；12 逻辑处理器；物理内存 17081098240 字节；Node v22.23.0、npm 10.9.8、git 2.53.0.windows.3。pnpm、docker 命令不可用；corepack 包装路径异常。G:/repos 下发现 classroom-game、esp32-data-recorder、home-inventory、knowledge-island、personal-journal，未见 OpenEduLab 仓库。G:/hermes/projects 下未见同名项目。对指定常用端口的 netstat 过滤无结果，不能推出其它端口空闲。未连接服务器探测；服务器 OS/资源/应用/反代/备份/SSL/端口、域名、GitHub 远端均未知。
+./docs/ops/runbook.md:157:systemctl stop openedulab            # or the equivalent for your supervisor
+./docs/ops/runbook.md:161:systemctl start openedulab
+(end of matches)
+
+## deployment-related files present in the repo
+backup-check.mjs
+e2e-server.mjs
+restore-check.mjs
+retention-purge.mjs
+status_watch.py
+validate-content.mjs
