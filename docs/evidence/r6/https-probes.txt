@@ -1,0 +1,56 @@
+== date ==
+2026-10-27T08:14:52+08:00
+
+== host DNS resolution (bounded to 5s per name) ==
+  acme-v02.api.letsencrypt.org       FAIL
+  letsencrypt.org                    FAIL
+  nodejs.org                         FAIL
+  baidu.com                          FAIL
+  mirrors.cloud.aliyuncs.com         FAIL
+  configured resolvers:
+    Current DNS Server: 100.100.2.136
+           DNS Servers: 100.100.2.136 100.100.2.138
+  same lookup against a public resolver (proves the network path, not the name):
+    acme-v02.api.letsencrypt.org via 223.5.5.5 -> 172.65.32.248
+
+== outbound reachability of the ACME endpoint (TCP + real HTTPS) ==
+  resolved A record: 172.65.32.248
+  tcp 172.65.32.248:443 -> OK
+  GET /directory over TLS -> HTTP 200, 961 bytes
+  directory keys: {  "1-RYyrx7jaE": "https://community.letsencrypt.org/t/adding-random-entries-to-the-directory/33417",  "keyChange": "https://acme-v02.api.letsencrypt.org/acme/k…
+
+== other outbound destinations (context: egress is not uniformly open) ==
+  172.65.32.248:443  OK
+  1.1.1.1:443        BLOCKED
+  8.8.8.8:443        BLOCKED
+  223.5.5.5:443      OK
+
+== tooling available for ACME ==
+  certbot    MISSING
+  lego       MISSING
+  acme.sh    MISSING
+  python3    Python 3.12.3
+  openssl    OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)
+  apt can fetch? mirrors unreachable
+  pypi?      pypi unreachable
+
+== nginx layout relevant to adding a 443 site ==
+  config files present:
+    /etc/nginx/conf.d/:
+    
+    /etc/nginx/sites-enabled/:
+    snake
+  server blocks and their listen lines:
+    3:server {
+    4:    listen 80 default_server;
+    5:    server_name _;
+  443 listeners: 0
+  current sha256 of the live site file:
+    eb7a7e5f560a8e44e013609802d230f459f3f5aba6288ff7996db7c0c2c0ec79  /etc/nginx/sites-enabled/snake
+
+== application constraints that shape the decision ==
+  OEL_ENV in the test instance:
+    OEL_ENV=development
+    OEL_PUBLIC_ORIGIN=http://127.0.0.1:3221
+  trustProxy is a deliberate code constant (see apps/api/src/app.ts):
+    39:        trustProxy: false,

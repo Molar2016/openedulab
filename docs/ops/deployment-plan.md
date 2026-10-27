@@ -1,10 +1,17 @@
 # Test deployment plan (R3): what is missing, and what to do the moment it is supplied
 
-Status: **BLOCKED**. No server, domain or access method for this project has been supplied,
-and the read-only reconnaissance on the development machine found nothing that is
-demonstrably this project's test environment. Nothing outside this machine was contacted.
+Status: **partly unblocked (R6, 2026-10-27) — internal test deployment done, public HTTPS not done.**
 
-Evidence for the search itself: `docs/evidence/r3/recon.txt` (captured 2026-10-27).
+The owner supplied a host and an access method in R6, so §2 items 1–2 are answered and a
+**loopback-only test instance is deployed and verified** on that host (`127.0.0.1:3221`,
+independent OS user/directory/database/systemd unit; see `docs/evidence/r6/`). It is *not* a public
+deployment: no domain, no certificate, no public listener, no advertised URL. Item 3 (a name/HTTPS)
+is still open, and publishing the page under the bare IP is assessed but **not executed** — the
+blockers are a broken host resolver, the shared-nginx change, and the owner's authorisation for
+public exposure. Read `docs/ops/ip-https-assessment.md` before attempting it.
+
+Historical note: the reconnaissance below (§1) is what R3 actually found, when no target was known.
+It is kept because it records why nothing was guessed at that stage.
 
 ## 1. What the reconnaissance actually found
 

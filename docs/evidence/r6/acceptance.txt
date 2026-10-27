@@ -1,0 +1,58 @@
+OpenEduLab R6 acceptance run — 2026-10-27T08:13:25+08:00
+target: 127.0.0.1:3221 through the SSH tunnel to the VPS loopback; real Chromium; development env
+
+=== [1] BEFORE restart ===
+anonymous GET /api/catalog      -> 401
+anonymous GET /api/me/favorites -> 401
+anonymous GET /api/me/recent    -> 401
+anonymous GET /api/me/saved-state/math.functions -> 401
+anonymous GET /api/internal/overview -> 404
+anonymous deep link             -> http://127.0.0.1:3221/login?next=%2Fexperiments%2Fmath-functions
+after sign-in                   -> 共 1 个实验
+account block                   -> 当前账号 r***@example.test退出登录
+experiment formula              -> y = x²
+experiment meta                 -> 由服务器加载 · 内容版本 1.0.0 · 草稿，未审核
+GET /api/me/saved-state/math.functions -> 200 {"experimentId":"math.functions","contentVersion":"1.0.0","stateSchemaVersion":1,"values":{"a":3,"b":0,"c":0,"mode":"quadratic"},"updatedAt":1793059585926}
+GET /api/me/favorites           -> 200 {"items":[{"experimentId":"math.functions","createdAt":1793059585292}]}
+GET /api/auth/session           -> 200 {"authenticated":true,"account":{"displayHint":"r***@example.test","createdAt":1793059540253}}
+pre-restart session written to  -> G:/hermes/tmp/oel-r6-art/r6-pre-restart.json
+
+=== [2] PROCESS RESTART ===
+main pid before=588499
+ 588499     359 /opt/openedulab-test/node/bin/node /opt/openedulab-test/app/apps/api/dist/index.js
+sent SIGKILL to 588499
+active=active main pid after=589554
+--- socket ---
+LISTEN 0      511                                 127.0.0.1:3221       0.0.0.0:*          
+--- healthz ---
+{"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":3,"timestamp":"2026-10-27T00:13:35.047Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
+--- old services (must all be active) ---
+nginx            active
+snake-game       active
+classroom-game   active
+snake-entry=200 plane=200
+--- nginx config sha256 ---
+eb7a7e5f560a8e44e013609802d230f459f3f5aba6288ff7996db7c0c2c0ec79  /etc/nginx/sites-enabled/snake
+--- restarts counted by systemd ---
+2
+--- data dir ---
+total 380
+-rw------- 1 oel-test oel-test   4096 Oct 27 08:04 app.sqlite
+-rw------- 1 oel-test oel-test  32768 Oct 27 08:13 app.sqlite-shm
+-rw------- 1 oel-test oel-test 350232 Oct 27 08:13 app.sqlite-wal
+
+=== [3] AFTER restart (same browser session the server issued BEFORE the restart) ===
+after restart: GET /api/auth/session -> 200 {"authenticated":true,"account":{"displayHint":"r***@example.test","createdAt":1793059540253}}
+after restart: GET /api/me/favorites -> 200 {"items":[{"experimentId":"math.functions","createdAt":1793059585292}]}
+after restart: GET saved-state       -> 200 {"experimentId":"math.functions","contentVersion":"1.0.0","stateSchemaVersion":1,"values":{"a":3,"b":0,"c":0,"mode":"quadratic"},"updatedAt":1793059585926}
+after restart: GET /api/me/recent    -> 200 {"items":[{"experimentId":"math.functions","lastOpenedAt":1793060003902}]}
+/me favorites-list text              -> 一次函数与二次函数拖动 a、b、c，观察 y = ax + b 与 y = ax² + bx + c 的斜率、顶点、对称轴和实根如何联动。取消收藏
+second account signed in             -> ok
+second account GET /api/me/favorites -> 200 {"items":[]}
+second account GET saved-state       -> 404
+second account DELETE same favourite -> 204
+second account /me empty state       -> visible
+first account favourites after that  -> {"items":[{"experimentId":"math.functions","createdAt":1793059585292}]}
+second account POST /api/auth/logout -> 204
+replay of logged-out cookie          -> 401
+first account session unaffected     -> {"authenticated":true,"account":{"displayHint":"r***@example.test","createdAt":1793059540253}}

@@ -1,0 +1,16 @@
+integrity: ok
+journal_mode: wal
+migrations: [{"version":"0001","applied_at":1793059470161}]
+table account: 2
+table session: 8
+table favorite: 1
+table recent_use: 1
+table saved_state: 1
+table event: 0
+table feedback: 0
+table internal_audit: 0
+accounts (masked): [{"login_kind":"email","masked":"r6.***@example.test","status":"active"},{"login_kind":"email","masked":"r6.***@example.test","status":"active"}]
+session states: [{"total":8,"live":5}]
+password hash shape: {"prefix":"scrypt$327","len":86}
+saved_state rows: [{"experiment_id":"math.functions","content_version":"1.0.0","state_schema_version":1,"payload":"{\"a\":3,\"b\":0,\"c\":0,\"mode\":\"quadratic\"}"}]
+event rows (diagnostics must be off): 0

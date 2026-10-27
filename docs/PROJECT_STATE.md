@@ -1,6 +1,6 @@
 # PROJECT_STATE
 
-最后更新：2026-10-27（R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」「R2」「R3」「R4」「R5」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：仓库只有源码，没有部署、没有域名。
+最后更新：2026-10-27（R6 服务器内部测试部署 + IP HTTPS 评估；R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」「R2」「R3」「R4」「R5」「R6」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉；R6 在负责人自有 VPS 上搭了一份**只绑 127.0.0.1 的独立测试实例**并逐项实测通过，同时评估了"把页面发布到 IP 的 HTTPS"（结论：未执行，见 `docs/ops/ip-https-assessment.md`）。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：没有域名、没有证书、没有对外入口；测试实例只能经加密 SSH 端口转发访问。
 
 ## 当前状态
 需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与去重最近使用、内部按账号诊断事件、参数仅显式保存一份快照。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
@@ -343,7 +343,34 @@
 - **反证**：拿掉实验详情的 querystring schema → 6 条失败（`mutation-locale-schema-off.txt`）；`preValidation`→`preHandler` → 3 条失败（`mutation-internal-ordering-off.txt`）；均从备份恢复。
 - **本机 URL**：E2E 期间为 `http://127.0.0.1:3220`（由 `scripts/e2e-server.mjs` 现场构建并启停，每次重建临时库）；恢复演练临时占用 `127.0.0.1:3321`。**没有公网 URL、没有部署**（B8 当时也未推送；推送发生在 R1，见上）。
 
+## R6（服务器内部测试部署 + IP HTTPS 评估，本轮）
+
+**结论先说**：本轮把一份**独立、只绑 `127.0.0.1`** 的实例部署到负责人自有 VPS 上并通过全部实测；**它不是公网服务**——没有域名、没有证书、没有对外监听、没有可用 URL。把页面发布到裸 IP 的 HTTPS 只做到评估，未执行（见 `docs/ops/ip-https-assessment.md`）。
+
+**闸门（先说前置）**：开工前确认 R5 进程已退出（`ps` 全表只有本轮进程）、仓库 `git status` 为空、本地 `HEAD = eac40c09…` 与远端 `main` 逐字相同、该 SHA 的 CI run `40422607918` 为 `success`。四条都成立才开始碰项目树。
+
+**隔离边界（每一条都实测过，不是声明）**：
+- 新资源只有 `/opt/openedulab-test/{app,node,data,env}` 与新 systemd 单元 `openedulab-test.service`，以及新 OS 用户 `oel-test`（system、nologin、无 home）。创建前确认三者均不存在，无重名覆盖。
+- 监听只有 `127.0.0.1:3221`（`ss` 无 `0.0.0.0` 项）；从公网探测该端口为丢弃（curl exit 28）。单元另加 `IPAddressDeny=any` + `IPAddressAllow=localhost`。
+- `ProtectSystem=strict` + 只把 `data/` 写白；`oel-test` 实测**可读 app 树、不可写 app 树**。
+- **没做**：nginx 未改未 reload（`/etc/nginx/sites-enabled/snake` 的 sha256 全程 `eb7a7e5f…c0ec79`）、未动防火墙/安全组、未改 DNS、未申请证书、未新增 443 监听、未改系统 PATH、服务器上未 `git clone` 也未装开发依赖、无真实凭据与真实个人数据。
+- 交付方式：产物在工作机（同 CI 固定的 Node `22.23.0`）构建，`npm ci --omit=dev` 只装 54 个运行时包；Node 官方 tar.xz 与产物 tgz 都在**服务器上**用发布方校验和复核后才解包；五个关键文件哈希在服务器读回后与本地构建逐字相同。原生 Node 只在 `/opt/openedulab-test/node`。
+
+**配置为什么是 development**：`OEL_ENV=production` 会下发 `__Host-oel_sid` + `Secure`，明文 HTTP 的 loopback origin 根本存不住会话——那样会得到"看着像部署、其实登不进去"的假象。所以本轮：`OEL_ENV=development`、`OEL_PUBLIC_ORIGIN=http://127.0.0.1:3221`、`OEL_EVENTS_ENABLED=false`、**不设 `OEL_OPERATOR_TOKEN`**（`/api/internal/*` 因此根本不挂载 → 404，而不是"有密码保护"）。fail-closed 在主机上实证：去掉 `OEL_PORT` 启动 → 退出码 1 并点名该变量。
+
+**功能验收（经 SSH 本地转发，真实 Chromium，非注入式模拟）**：注册 → 登录 → 受保护目录 → 实验（`y = x²`，页首显示服务器内容版本 1.0.0）→ 收藏（`aria-pressed=true`）→ 参数改动 1→3 后保存快照（"设置已保存。"，回读 `{"a":3,"b":0,"c":0,"mode":"quadratic"}`）→ `/me` 两列表 → 登出。匿名面：`/api/catalog`、`/api/me/*` 一律 401，深链接 302 到 `/login?next=…`，且匿名响应体不含实验数据。**跨账号隔离**：第二账号收藏为 `[]`、`/me` 空状态、读第一账号的快照 404、对"同一个"收藏 `DELETE` 返回 204 而第一账号数据原封不动。**登出撤销**：重放登出前的 cookie 401，且另一账号会话不受影响。**重启后仍在**：真实杀掉本单元 MainPID 让 systemd 拉起（588499 → 589554，`NRestarts=2`），重启**前**签发的那条会话仍然 `authenticated:true`，收藏与快照都还在——因为会话在 SQLite 而不是进程内存。
+
+**库内回读（独立于 HTTP，只读打开）**：`integrity_check=ok`、WAL、迁移 `0001`、account 2 / session 8（live 5）/ favorite 1 / recent_use 1 / saved_state 1，**event 0 / feedback 0 / internal_audit 0**（诊断确实关闭、运维通道未挂载），口令列形如 `scrypt$327…`（86 字符），库内无口令明文。
+
+**旧业务零影响**：`/`、`/snake`、`/plane`、`/index.html` 在开工前、部署后、重启后三次测量均为 `200` 且**字节数与正文哈希完全一致**（11978 / 131380 / 11201 / 131380）；`/snake-ws` 的 502 与 `/api/` 的 404 是**预存在**状态，也未变。`nginx` / `snake-game` / `classroom-game` 始终 active。
+
+**B 段（IP HTTPS）评估要点**（详见 `docs/ops/ip-https-assessment.md`）：实测**推翻了"安全组只开 22/80"**——公网连 443 得到 RST 而非丢弃，并用 25 秒临时监听拿到真实 `HTTP 200`，所以入站 443 本来就是通的；LE 自 2026-01-15 起对 IP 与 6 天（160 小时）证书 GA，certbot 5.3 起有 `--ip-address`、5.4 起 webroot 支持 IP；ACME 端点出站可达（`/directory` 真实 200）。**真正的阻塞是别的**：主机 DNS 解析对**所有**域名失败（`systemd-resolved` 上游不可达，公网 DNS 却正常），certbot 因此连 ACME 地址都找不到；`certbot` 未安装且 apt 镜像与 PyPI 均不可达；应用只能在 origin 根路径提供服务（SPA 资源与 cookie 都是绝对根路径），所以 443 的根会被整站占用；`trustProxy=false` 会让反代后所有请求都来自 127.0.0.1，把按 IP 的限速塌成一个全局桶（Q6/D14）。而修 DNS、加 nginx 站点、公开暴露这三件事都必须负责人点头，故**停在内部测试**，不提供对外 URL，也不用自签证书充数。
+
+**证据**：`docs/evidence/r6/`（8 个证据文件 + 目录索引 `README.md`：前后两次旧业务基线对照、产物来源与哈希、部署记录与单元生效参数、一次连续验收含重启前后、主机状态快照、库内回读、HTTPS 探测、443 可达性）。
+
+
 ## 下一步（严格按序）
+
 1. ~~**B0**：修 typecheck 根因（唯一共享 `debug-hook` 类型，两侧引用，不删测试）→ `npm run check` 退出码 0；`git init` + 首次提交。~~ **已完成（本轮）**。
 2. ~~**B1**：`apps/api` 骨架 + 启动配置校验（缺项即退出、不静默降级）+ `migrations/0001_init.sql` + 迁移运行器（编号 + 校验和 + 单事务）+ `GET /api/healthz` + 由 API 同源托管构建后的 SPA。~~ **已完成（本轮）**：`npm run check` 退出码 0；API 测试 68/68；真实进程 smoke 25/25；深链接返回 index.html；私有路由占位一律 401。注意：**401 是占位拒绝，不是访问控制**。
 3. ~~**B2（认证闭环）**：注册/登录/登出/会话与限速（scrypt、`timingSafeEqual`、HttpOnly Cookie、CSRF Origin+JSON、429 + `Retry-After`）。~~ **已完成（本轮）**：R-01..R-04、R-06 在 API 集成层全绿（`apps/api/test/auth.register|auth.login|session|auth.security|csrf|rate-limit.test.ts`）；哈希格式、`timingSafeEqual`、Cookie 属性、生产 `__Host-`+`Secure`、禁用账号、过期/空闲/撤销、伪造 Cookie、重复标识、重复尝试锁定都有断言；真实进程 smoke 51/51。**B2 不含授权**：占位 401 仍在，持有效会话访问 `/api/catalog` 依旧 401。
@@ -355,11 +382,28 @@
 9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。（B8 当时仍不可称 CI 绿色，因无远端仓库；R1 已完成远端落地并实测 CI 通过。）、B8 当时不可部署。
 10. **下一关（需用户选择，二者都需要新的授权）**：
     - ~~**B7（参数快照）**~~ **已完成（R2）**：`GET/PUT/DELETE /api/me/saved-state/:experimentId` + 路由清单登记 + 实验目录 `state-schema.json` + R-17/R-18 用例（含"拖动不落库"与"不兼容回默认"）。
-    - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与服务地域（Q3；未成年人政策已决定不设年龄门槛）、远端仓库与 CI 真实运行、异机备份复制方案，以及负责人**单独**的上线授权。**Q4（账号删除/数据导出）已移出首版范围（2026-10-27）**。
+    - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与服务地域（Q3；未成年人政策已决定不设年龄门槛）、远端仓库与 CI 真实运行、异机备份复制方案，以及负责人**单独**的上线授权。**Q4（账号删除/数据导出）已移出首版范围（2026-10-27）**。**R3 的只读侦察与 R6 的服务器内部测试部署已完成**：目标主机与访问方式已由负责人提供，`127.0.0.1:3221` 上的独立实例已按需求逐项实测（见「R6」）；**仍未公网发布**——把页面放到裸 IP 的 HTTPS 方案已评估（`docs/ops/ip-https-assessment.md`），但修主机 DNS、加 nginx 站点与公开暴露三项都需要负责人授权。
 
 ## 停止点与恢复命令（本次任务到此为止）
 
-**停止点（2026-10-27，R5 之后）**：B0→B8 + R1（远端落地与真实 CI）+ R2（B7 参数快照）+ R3（只读侦察）+ R4（交付前验证）+ R5（决策同步、依赖安全、依赖告警）全部完成并有真实运行证据。**源码已推送到公开仓库**，但**没有公网 URL、没有部署**；生产/DNS/防火墙/收费/扩大采集等动作一律未做；**GitHub Pages 未启用**（不能承载登录/API/SQLite）；**未开任何隧道**。R5 之后 `npm audit` 与 `npm audit --omit=dev` 均为 0，Dependabot 告警已开启且 0 open（15 条已 fixed）；**许可证仍未选择**（MIT / Apache-2.0 待负责人决定），仓库无 `LICENSE`。
+**停止点（2026-10-27，R6 之后）**：B0→B8 + R1（远端落地与真实 CI）+ R2（B7 参数快照）+ R3（只读侦察）+ R4（交付前验证）+ R5（决策同步、依赖安全、依赖告警）+ R6（服务器内部测试部署、IP HTTPS 评估）全部完成并有真实运行证据。**源码已推送到公开仓库**；**部署状态要分开说**：负责人的 VPS 上有一份 `127.0.0.1:3221` 的**内部测试实例**（systemd 单元 `openedulab-test.service`，已 enable，重启后自启），但它只绑 loopback，只能经 SSH 端口转发访问——**没有公网 URL、没有域名、没有证书**；生产/DNS/防火墙/安全组/收费/扩大采集等动作一律未做；**GitHub Pages 未启用**（不能承载登录/API/SQLite）。R5 之后 `npm audit` 与 `npm audit --omit=dev` 均为 0，Dependabot 告警已开启且 0 open（15 条已 fixed）；**许可证仍未选择**（MIT / Apache-2.0 待负责人决定），仓库无 `LICENSE`。
+
+**服务器上的残留资源（停工时如实列出，不是"已停"）**：该实例是**有意保留的常驻服务**，本轮没有停在半路。在场资源：OS 用户 `oel-test`；`/opt/openedulab-test/`（app 36M + node 204M + data + env）；`/etc/systemd/system/openedulab-test.service`（enabled + active）；`/opt/openedulab-test/data/app.sqlite`（含两个虚构测试账号的数据，仅本地测试用途）；`/tmp/` 下的中转文件（`oel-app.tgz`、`node-v22.23.0-linux-x64.tar.xz`、`SHASUMS256.txt`、`openedulab-test.{env,service}`、`db-readback.mjs`）。**没有**动过 nginx / 防火墙 / 安全组 / DNS / 任何旧服务 / 任何旧文件。一条可重复的验证命令（在任何能 SSH 到主机的机器上）：
+
+```bash
+ssh <owner's ssh target> 'systemctl is-active openedulab-test; ss -lnt | grep 3221; curl -s http://127.0.0.1:3221/api/healthz; sha256sum /etc/nginx/sites-enabled/snake'
+# 期望：active / 127.0.0.1:3221 / {"status":"ok",…"pending":0} / eb7a7e5f…c0ec79
+```
+
+彻底撤除（若负责人要收回这台机器上的全部痕迹，需人工确认后执行）：
+
+```bash
+systemctl disable --now openedulab-test
+rm /etc/systemd/system/openedulab-test.service && systemctl daemon-reload
+rm -rf /opt/openedulab-test          # 含 SQLite 数据与私有 Node
+userdel oel-test
+rm -f /tmp/oel-app.tgz /tmp/node-v22.23.0-linux-x64.tar.xz /tmp/SHASUMS256.txt /tmp/db-readback.mjs
+```
 
 **本机服务**：B8 开始前 3220 上有一个交接用的 `node apps/api/dist/index.js`（PID 2864），已按 PID 精确停止（未用宽泛的 node.exe 终止）；B8 的 E2E 自己起停 3220，恢复演练临时用 3321，**收尾时不留常驻进程**。要手工验看，用下面第 5 步。
 
@@ -403,6 +447,6 @@ OEL_ENV=development OEL_HOST=127.0.0.1 OEL_PORT=3220 OEL_PUBLIC_ORIGIN=http://12
 **B7（参数快照）的现状与入口**：已实现（R2）。`/api/me/saved-state/:experimentId` 的 GET/PUT/DELETE 已挂载并登记在受控清单里，参数白名单来自 `experiments/<folder>/state-schema.json`（服务器启动时校验，非法即拒绝启动）。给新实验加保存能力 = 加一个 `state-schema.json` 并在视图里读写 `initialState` / `stateBridge`；服务端不需要改代码。
 
 ## 阻塞与未决
-- 阻塞公开上线（不阻塞本地）：服务器参数与部署布局（Q1）、域名/HTTPS 与 Cookie 前缀（Q2）、服务地域与留存期限（Q3，**未成年人政策已决定：不设年龄门槛**，见 R5-1）、**多实例与共享限速（Q6）**、**生产备份异机复制（需服务器确认，未做未验证）**。**Q4（账号删除/数据导出）已由负责人于 2026-10-27 决定移出首版范围**，不再作为上线阻塞项，但转为"不得宣称拥有"的文案约束与已记录的残余风险。**远端仓库与 CI 已在 R1 落地并实测通过，此项已解除**；R3 已把 Q1/Q2/Q3/Q6 的前置条件与本机侦察结论写进 `docs/ops/deployment-plan.md` 与 `docs/privacy/launch-readiness.md`（**远端测试部署仍阻塞：需服务器地址/访问方式/独立域名**，且**上线前仍需负责人单独授权**）。
-- 未做：服务器只读侦察、目标库迁移与授权实跑、标识归属验证（首版不做短信/邮件）。
-- 不得擅自改生产；不得在无测试输出/证据时声称通过或 URL 可用；未经用户明确同意不新增 `AGENTS.md`、不部署、不发布。**推送公开仓库已获项目所有者 2026-10-26 授权**（仅逐路径审查过的源码），本轮已推送且未部署。
+- 阻塞公开上线（不阻塞本地）：服务地域与留存期限（Q3，**未成年人政策已决定：不设年龄门槛**，见 R5-1）、**多实例与共享限速（Q6）**、**生产备份异机复制（需服务器确认，未做未验证）**。**Q4（账号删除/数据导出）已由负责人于 2026-10-27 决定移出首版范围**，不再作为上线阻塞项，但转为"不得宣称拥有"的文案约束与已记录的残余风险。**远端仓库与 CI 已在 R1 落地并实测通过**；**Q1/Q2 在 R6 有实质进展但未解决**：目标主机与访问方式已由负责人提供，独立实例已在 `127.0.0.1:3221` 上实测通过（见「R6」与 `docs/evidence/r6/`）；把页面放到裸 IP 的 HTTPS 方案已评估（`docs/ops/ip-https-assessment.md`），但按序还缺三件**必须负责人决定**的事：①修主机 DNS（`systemd-resolved` 上游不可达，主机解析不了任何域名，属主机级改动）②新增 nginx 站点并 reload（线上共享 web 服务器）③同意公网暴露。**许可证仍未选择**。
+- 未做（R6 之后仍悬着）：把证书装进 nginx、自动续期定时器、HTTPS 下的生产模式切换与 `trustProxy` 代理信任改造（Q6/D14，属代码改动且需自己的测试）、标识归属验证（首版不做短信/邮件）、生产备份异机复制。
+- 不得擅自改生产；不得在无测试输出/证据时声称通过或 URL 可用；未经用户明确同意不新增 `AGENTS.md`、不部署、不发布。**推送公开仓库已获项目所有者 2026-10-26 授权**（仅逐路径审查过的源码）。**在负责人自有 VPS 上做隔离测试部署已获 2026-10-27 授权**（仅限独立实例，不得覆盖/影响现有网站）；本轮据此只新增了独立资源，未改任何旧服务。

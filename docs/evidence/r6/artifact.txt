@@ -1,0 +1,35 @@
+OpenEduLab R6 — deployment artifact provenance (2026-10-27T08:16:09+08:00)
+
+== source commit ==
+  HEAD: eac40c09cd836ed41d2f2c556fff971af8ef5e03
+  remote main: eac40c09cd836ed41d2f2c556fff971af8ef5e03
+  worktree clean: yes
+
+== toolchain ==
+  node v22.23.0 / npm 10.9.8   (CI workflow pins node 22.23.0)
+
+== runtime Node transferred to the server ==
+  file: node-v22.23.0-linux-x64.tar.xz (31048380 bytes)
+  official SHASUMS256.txt line:
+    14d7de44f235534799f8b171a4050d9a6a4bc99c87e053a25d3d54afa580aa20  node-v22.23.0-linux-x64.tar.xz
+  local sha256sum:
+    14d7de44f235534799f8b171a4050d9a6a4bc99c87e053a25d3d54afa580aa20 *node-v22.23.0-linux-x64.tar.xz
+  re-verified on the server against the same SHASUMS256.txt: OK
+
+== application artifact ==
+  oel-app.tgz (5455029 bytes)
+  sha256: 393b5b11629f6513eb1bec5c5871e00837bc79392e4430ffb37a924491a75a21
+  re-verified on the server before extraction: OK
+  contents: dist/ (SPA) + apps/api/dist/ + apps/api/migrations/ + experiments/ + package.json + node_modules/ (production only)
+
+== production dependency set (npm ci --omit=dev) ==
+  real packages: 54, size 31M
+  dev tooling directories present: 0 (0 expected)
+  fastify 5.12.7 / @fastify/static 10.1.7
+
+== local build hashes (the server tree was read back and matched exactly) ==
+  dist/index.html                                d108888053aed4b43c7af1ab58d658b476c3f3c35a2e7724bebd0a584f7489e4
+  dist/assets/index-B__W4sDg.js                  02d684df1d825ed5406a8b32dc279ad5eab5cc2e097045eef944bb91f5bc35f1
+  apps/api/dist/index.js                         13ded2347cfdfd9090ef686489aedcf06749b01a313cbd8e70636208c72c99a9
+  experiments/math-functions/manifest.json       76b9bba748424aff154042bc3a4f233a8448ada6f386886efdfb873f4e0f6f1d
+  apps/api/migrations/0001_init.sql              289c27d35781287668532ee6c32a03db25aa8472346d9ac51c94146e908a3ce3

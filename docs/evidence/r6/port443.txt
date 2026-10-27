@@ -1,0 +1,40 @@
+R6 — is inbound 443 actually reachable from the internet?
+Method: a bounded temporary listener (python3 http.server on :443, one harmless file, 25 s),
+then one GET from the development machine over the public internet, then kill.
+No configuration, firewall, security-group or nginx change was made; the listener is gone afterwards.
+
+--- from the development machine (public path) ---
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.12.3
+Date: Tue, 27 Oct 2026 00:16:37 GMT
+Content-type: text/plain
+Content-Length: 17
+Last-Modified: Tue, 27 Oct 2026 00:16:26 GMT
+
+
+HTTP 200 from <test-host>:443, 0 bytes, 0.154224s
+cat: /tmp/probe-body.txt: No such file or directory
+body: 
+
+--- contrast: ports the security group filters ---
+port 3221 -> curl exit=28 (28 = timeout/filtered, 7 = refused but reachable)
+port 8080 -> curl exit=28 (28 = timeout/filtered, 7 = refused but reachable)
+
+--- server side, during the probe window ---
+(server log above shows the connection arriving and being killed)
+
+--- verbatim server-side probe log ---
+  listening pid=590485
+  NOT LISTENING
+  PROBE_READY
+  after kill:
+  443 closed again (clean)
+  log: 75 bytes
+
+Note: the 'NOT LISTENING' line is the 2 s check running before the socket finished binding; the
+requests below it and the GET above show it was listening. The 17-byte body is 'r6-port443-probe'.
+
+--- after the window (unchanged state) ---
+  443 listeners: 0
+  nginx sha256: eb7a7e5f560a8e44e013609802d230f459f3f5aba6288ff7996db7c0c2c0ec79
+  ufw: Status: inactive

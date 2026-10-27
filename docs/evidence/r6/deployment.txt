@@ -1,0 +1,113 @@
+R6 deployment record — server-internal test instance (no public URL)
+=====================================================================
+What this is: a second, independent OpenEduLab instance on the owner's existing VPS, bound to
+127.0.0.1 only, reachable exclusively through an encrypted SSH port forward. It is NOT a public
+deployment: no domain, no TLS, no public listener, no advertised URL.
+
+1. Layout and ownership (created for this purpose; nothing pre-existing was reused)
+-------------------------------------------------------------------------------------
+  /opt/openedulab-test/app    root:root      0755, go-w   SPA dist + compiled API + migrations
+                                                          + experiments + production node_modules
+                                                          + package.json  (36 MB, 3828 files)
+  /opt/openedulab-test/node   root:root      0755         private Node runtime, 204 MB
+  /opt/openedulab-test/data   oel-test:oel-test 0700      SQLite database (app.sqlite + -wal/-shm)
+  /opt/openedulab-test/env    root:root      0755         unit environment file, mode 0600
+
+  OS user: oel-test  (system account, nologin, /nonexistent home, no supplementary groups)
+  Verified: oel-test can read dist/, can write data/, CANNOT write the application tree.
+
+2. Environment file (secrets: none — the operator token is deliberately NOT set)
+--------------------------------------------------------------------------------
+  OEL_ENV=development
+  OEL_HOST=127.0.0.1
+  OEL_PORT=3221
+  OEL_PUBLIC_ORIGIN=http://127.0.0.1:3221
+  OEL_DATABASE_PATH=/opt/openedulab-test/data/app.sqlite
+  OEL_STATIC_DIR=/opt/openedulab-test/app/dist
+  OEL_MIGRATIONS_DIR=/opt/openedulab-test/app/apps/api/migrations
+  OEL_CONTENT_DIR=/opt/openedulab-test/app/experiments
+  OEL_LOG_LEVEL=info
+  OEL_EVENTS_ENABLED=false
+
+  Why development and not production: production mode issues `__Host-oel_sid` with `Secure`, which a
+  plain-HTTP loopback origin can never hold. Using production here would have produced a service
+  that looks deployed and cannot hold a session. The honest alternative was chosen: development
+  semantics, loopback only, and no public claim.
+  OEL_OPERATOR_TOKEN is absent on purpose, so /api/internal/* is not mounted at all (404), not merely
+  password-protected.
+
+3. systemd unit (new file; no existing unit was edited)
+-------------------------------------------------------
+  [Unit]
+  Description=OpenEduLab server-internal test instance (loopback 127.0.0.1:3221, no TLS, not public)
+  After=network.target
+  ConditionPathExists=/opt/openedulab-test/env/openedulab-test.env
+
+  [Service]
+  Type=simple
+  User=oel-test
+  Group=oel-test
+  WorkingDirectory=/opt/openedulab-test/app
+  EnvironmentFile=/opt/openedulab-test/env/openedulab-test.env
+  ExecStart=/opt/openedulab-test/node/bin/node /opt/openedulab-test/app/apps/api/dist/index.js
+  Restart=on-failure
+  RestartSec=3
+  NoNewPrivileges=true
+  PrivateTmp=true
+  PrivateDevices=true
+  ProtectSystem=strict
+  ProtectHome=true
+  ProtectKernelTunables=true
+  ProtectKernelModules=true
+  ProtectControlGroups=true
+  ProtectClock=true
+  ProtectHostname=true
+  RestrictSUIDSGID=true
+  RestrictRealtime=true
+  LockPersonality=true
+  RestrictNamespaces=true
+  RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+  ReadWritePaths=/opt/openedulab-test/data
+  IPAddressDeny=any
+  IPAddressAllow=localhost
+  LimitNOFILE=4096
+  UMask=0077
+
+  Effective values confirmed with `systemctl show`: ProtectSystem=strict, NoNewPrivileges=yes,
+  ReadWritePaths=/opt/openedulab-test/data, IPAddressDeny=0.0.0.0/0 ::/0, IPAddressAllow=127.0.0.0/8 ::1/128,
+  RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX, UMask=0077.
+
+4. Fail-closed configuration, proven on the host (not inferred from the tests)
+------------------------------------------------------------------------------
+  $ runuser -u oel-test -- env <everything except OEL_PORT> node apps/api/dist/index.js
+  Refusing to start: invalid server configuration.
+    - OEL_PORT: is required and has no default
+  See .env.example for the required variables.
+  EXIT=1
+
+5. Startup log (one line, shows the security posture it actually adopted)
+------------------------------------------------------------------------
+  [openedulab-api] listening on http://127.0.0.1:3221
+  [openedulab-api] version 0.1.0-m1 config {"env":"development","host":"127.0.0.1","port":3221,
+    "publicOrigin":"http://127.0.0.1:3221","databasePath":"/opt/openedulab-test/data/app.sqlite",
+    "migrationsDir":"/opt/openedulab-test/app/apps/api/migrations",
+    "staticDir":"/opt/openedulab-test/app/dist",
+    "contentDir":"/opt/openedulab-test/app/experiments",
+    "operatorChannel":"disabled","eventsEnabled":"false"}
+
+6. What was NOT done (deliberately)
+-----------------------------------
+  * nginx was not edited, reloaded or restarted; /etc/nginx/sites-enabled/snake is byte-identical
+    (sha256 eb7a7e5f…c0ec79 before and after).
+  * No firewall or security-group change; ufw stays inactive; no port opened.
+  * No DNS change; no certificate requested; no 443 listener.
+  * No system-wide PATH change; Node lives only under /opt/openedulab-test/node.
+  * No `git clone` on the server and no development dependency installed there: the artifact was
+    built on the development machine and transferred with checksums.
+  * No real credentials and no real personal data: the only accounts are invented test identities.
+
+7. How to reach it (the only way it can be reached)
+---------------------------------------------------
+  ssh -N -L 127.0.0.1:3221:127.0.0.1:3221 <owner's ssh target>
+  then open http://127.0.0.1:3221/ in a browser on the local machine.
+  Without that forward the service is unreachable from anywhere but the VPS itself.

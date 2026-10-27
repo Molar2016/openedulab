@@ -1,0 +1,32 @@
+R6 pre-existing services — plain GET from the development machine over the public internet
+captured: 2026-10-27T08:19:04+08:00   host: <test-host> (owner's VPS; address withheld from this public repo)
+method: plain GET (not HEAD), direct connection, proxy bypassed, 15 s timeout
+
+note: the status code, byte count and body hash of every row are identical to the capture taken
+      BEFORE any work started (07:56 local, recorded in the R6 progress log), so this file also
+      documents the untouched starting state. baseline-after.txt is the same measurement taken
+      after the deployment and all verification steps; the two files differ only in timestamps.
+
+PATH           CODE   BYTES     SHA256(head)       NOTE
+/              200    11978     e4ed4f1c774c3adb   <title>课堂游戏</title>
+/snake         200    131380    44ba4f39aa01e4e5   canvas build (same body as /index.html)
+/plane         200    11201     3a9780ac73f41212   <title>飞机大战 · 课堂对战</title>
+/index.html    200    131380    44ba4f39aa01e4e5   fallback route, byte-identical to /snake
+/snake-ws      502    166       76440d13ed742192   PRE-EXISTING: WS endpoint opened by a plain GET
+/api/          404    50        502c827b5925269d   PRE-EXISTING: no such route
+
+Response headers, / and /snake:
+  HTTP/1.1 200 OK
+  Server: nginx/1.24.0 (Ubuntu)
+  Date: Tue, 27 Oct 2026 00:19:02 GMT
+  Content-Type: text/html; charset=utf-8
+  Content-Length: 11978
+  Connection: keep-alive
+  Cache-Control: no-store
+  
+
+  (Server header shown above; the same nginx instance serves / and /snake)
+
+Interpretation for later comparisons: /snake-ws 502 and /api/ 404 are the state BEFORE R6 and
+must stay exactly that way. Any change in code or byte count on /, /snake, /plane, /index.html
+would mean the old routes were disturbed.
