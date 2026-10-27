@@ -54,23 +54,22 @@ document §8.2.
   assumptions (in-process rate limiting, sessions in the database) are recorded as risk R6.
 - No CSS framework: `styles.css` is hand-written.
 
-## Project licence: **not chosen** (owner decision pending)
+## Project software license (owner decision 2026-10-27)
 
-There is no `LICENSE` file in this repository and none may be added by anyone but the project
-owner. On 2026-10-27 the owner narrowed the candidates to **MIT** or **Apache-2.0** but did
-not pick one, so the decision is recorded as open:
+The owner selected a **project-specific noncommercial source license** rather than MIT,
+Apache-2.0, or standard PolyForm Noncommercial. The complete grant is at [`../LICENSE`](../LICENSE):
+third parties may use, modify and redistribute the original OpenEduLab code only for
+noncommercial purposes, with notices and change markings; commercial use requires the
+copyright holder's separate prior written permission. The rights holder retains commercial
+use. Unlike PolyForm Noncommercial, the project-specific terms do **not** automatically
+allow for-profit educational institutions to use the code just because they teach.
+This is **not an OSI-approved open-source license** and has not had legal review.
 
-| Aspect | MIT | Apache-2.0 |
-|---|---|---|
-| Text length | ~170 words | ~11 kB |
-| Patent grant | none (silent on patents) | explicit grant + termination on patent litigation |
-| Trademark clause | none | explicit (§6) |
-| Notice/attribution | one copyright line | NOTICE file conventions, change notices |
-| Fit here | simplest, common for small teaching tools | safer if schools/companies ever embed it |
-
-Until one is chosen and committed **with** the owner's name and year, the correct statements
-are: "source is public to read", "no licence has been granted", and "do not redistribute".
-README and the in-app `about.licensePending` string already say the licence is not final.
+These terms cover only code that the named copyright holder owns or has the authority to
+license. Third-party dependencies follow their own licenses (inventory above); textbook
+contents/images and user data are outside this grant. Do not merge external contributions
+under the same dual-licensing assumption without confirming their rights and contributor
+permission first.
 
 ## Updating a dependency
 

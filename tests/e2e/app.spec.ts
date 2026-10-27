@@ -18,7 +18,7 @@ async function noHorizontalOverflow(page: Page): Promise<boolean> {
 }
 
 test.describe('catalog and search (signed in)', () => {
-  test('shows the account, finds the experiment by search and filter, and counts results', async ({
+  test('shows the account, finds the experiment by search, and counts results', async ({
     page,
   }) => {
     await page.goto('/?lang=en');
@@ -35,7 +35,7 @@ test.describe('catalog and search (signed in)', () => {
     await page.getByLabel('Search experiments').fill('quadratic');
     await expect(page.getByTestId('result-count')).toHaveText('1 experiment');
 
-    await page.getByRole('button', { name: 'Clear filters' }).click();
+    await page.getByRole('button', { name: 'Clear search' }).click();
     await expect(page.getByTestId('result-count')).toHaveText('1 experiment');
     await shot(page, STAGE, 'catalog-en');
   });

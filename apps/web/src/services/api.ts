@@ -137,6 +137,12 @@ export interface CurriculumChapter {
   readonly sections?: readonly CurriculumSection[];
 }
 
+/**
+ * The school stage a textbook catalog declares (小学/初中/高中). Catalog metadata, read from
+ * the directory — never inferred from a book title or a catalog id on this side.
+ */
+export type CurriculumStage = 'primary' | 'middle' | 'high';
+
 /** One book (册) of a catalog. */
 export interface CurriculumBook {
   readonly bookId: string;
@@ -169,6 +175,11 @@ export interface CurriculumCatalog {
    * catalogs.
    */
   readonly editionStatus?: 'current-2022' | 'legacy-2011';
+  /**
+   * The school stage the volume is used in; absent for a catalog that declares none (an
+   * example, or content nobody has classified yet). Illustrative catalogs carry no stage.
+   */
+  readonly stage?: CurriculumStage;
   readonly books: readonly CurriculumBook[];
 }
 

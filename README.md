@@ -8,12 +8,15 @@ session.
 - **Version:** `0.1.0-m1` (B8: engineering candidate for hand-off, *not* a public release)
 - **Node:** `>=22.5 <23` (`node:sqlite` is used directly; CI pins `22.23.0`)
 - **Source:** public on GitHub — <https://github.com/Molar2016/openedulab> (branch `main`).
-- **State:** runs locally, verified end to end; CI runs on GitHub Actions. **No deployment,
-  no domain, no public application URL**: this repository is source code only, nothing is
-  hosted, so there is no site to open. There is also no licence file yet: on 2026-10-27 the
-  owner narrowed the choice to MIT or Apache-2.0 but has not decided, so the code is *not*
-  offered under an open-source licence. GitHub Pages is deliberately not enabled — it hosts
-  static files only and cannot serve this login-gated server (see
+- **License:** original OpenEduLab code is available under the project-specific
+  [Noncommercial Software License 1.0](LICENSE). **Others may not use it commercially**
+  without the copyright holder's separate prior written permission; Molar2016 retains
+  commercial rights. This is **source-available, not OSI open source**. Third-party code,
+  textbook material and user data are not covered by this grant; see `docs/third-party.md`.
+- **State:** runs locally, verified end to end; CI runs on GitHub Actions. **No domain or
+  public application URL**: this repository is source code only; the work-machine and VPS
+  test instances are loopback-only, not public sites. GitHub Pages is deliberately not enabled
+  — it hosts static files only and cannot serve this login-gated server (see
   `docs/ops/deployment-plan.md` §2.1).
 
 Read `docs/PROJECT_STATE.md` first when picking the work up: it records what is done, what

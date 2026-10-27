@@ -1,0 +1,55 @@
+OpenEduLab Noncommercial Software License 1.0
+
+Copyright (c) 2026 Molar2016. All rights reserved.
+
+1. Scope. This license applies only to the original OpenEduLab software code
+   offered by its copyright holder in this repository. It does not license
+   third-party dependencies or works, textbook text or images, trademarks,
+   user data, or any material identified as subject to separate terms. Each
+   such item remains governed by its own rights and terms.
+
+2. Noncommercial grant. The copyright holder grants you a non-exclusive,
+   worldwide, royalty-free license to use, reproduce, modify, and distribute
+   the covered code and your modifications solely for noncommercial purposes,
+   subject to the conditions below. You may not sublicense commercial rights.
+
+3. Commercial use prohibited. Except for the copyright holder, no person or
+   organization may use, reproduce, modify, distribute, deploy, host, or offer
+   the covered code or its modifications for a commercial purpose without the
+   copyright holder's separate prior written permission. Commercial purpose
+   includes use on behalf of a for-profit organization (including internal or
+   educational use); use in a fee-based product, course, school, platform,
+   training, consulting, or service; use to obtain advertising, subscription,
+   licensing, or other revenue; or use intended to gain a commercial advantage.
+   Offering the software free of charge does not turn such a use into a
+   noncommercial use. A teacher's ordinary salary at a nonprofit or public
+   institution does not, by itself, make otherwise free, noncommercial
+   classroom use commercial. If a proposed use is uncertain, obtain separate
+   written permission before proceeding.
+
+4. Conditions on permitted distribution. Keep this license and all copyright
+   and attribution notices with every copy of the covered code you distribute.
+   Clearly identify files you have modified. You must not imply endorsement by
+   the copyright holder, and you receive no trademark rights.
+
+5. Reserved rights. All rights not expressly granted remain reserved. The
+   copyright holder may use or license the code commercially and may grant
+   others separate permissions. This license does not give you any exclusive
+   right and does not claim rights over contributions the copyright holder
+   does not own or have authority to license.
+
+6. Termination. Your rights under this license terminate if you violate its
+   terms. Ceasing the violation does not automatically reinstate them; obtain
+   the copyright holder's written reinstatement. Rights already granted to
+   compliant recipients of copies you distributed remain subject to these
+   terms.
+
+7. Disclaimer. To the extent permitted by law, the covered code is provided
+   "AS IS", without any warranty of any kind, including merchantability,
+   fitness for a particular purpose, or noninfringement. To the extent
+   permitted by law, the copyright holder is not liable for damages arising
+   from its use or inability to use it.
+
+This is a project-specific source-available license, NOT an OSI-approved
+open-source license. For commercial permission, contact Molar2016 through
+https://github.com/Molar2016/openedulab .

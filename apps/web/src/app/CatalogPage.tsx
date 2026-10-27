@@ -11,8 +11,6 @@ interface Props {
   navigate: (to: string) => void;
 }
 
-const ALL = 'all';
-
 type State =
   | { readonly kind: 'loading' }
   | { readonly kind: 'error' }
@@ -24,23 +22,19 @@ function tagLabel(i18n: I18n, kind: 'subject' | 'grade' | 'concept', value: stri
   return label === key ? value : label;
 }
 
-function uniqueSorted(values: readonly string[]): string[] {
-  return [...new Set(values)].sort();
-}
-
 /**
  * Catalog (design §7.2, R-07).
  *
  * The list comes from `GET /api/catalog`, i.e. from an authenticated request — the page
- * shows no experiment metadata before the server answered. Filtering happens on the
- * fetched set so the UI stays responsive; the API also filters, and is tested for it.
+ * shows no experiment metadata before the server answered. This screen is deliberately
+ * search-only: a teacher who knows the tool they need types its name, and the subject /
+ * grade-band / concept chip rows that used to sit above the list are gone. Matching happens
+ * on the fetched set so the UI stays responsive; the API keeps its filters for older clients
+ * and is still tested for them.
  */
 export function CatalogPage({ api, locale, i18n, navigate }: Props): JSX.Element {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [query, setQuery] = useState('');
-  const [subject, setSubject] = useState(ALL);
-  const [grade, setGrade] = useState(ALL);
-  const [concept, setConcept] = useState(ALL);
   const [reloadToken, setReloadToken] = useState(0);
 
   const t = (key: string, params?: Record<string, string | number>): string => i18n.t(key, params);
@@ -66,21 +60,9 @@ export function CatalogPage({ api, locale, i18n, navigate }: Props): JSX.Element
     [state],
   );
 
-  const options = useMemo(
-    () => ({
-      subjects: uniqueSorted(items.flatMap((item) => item.subjects)),
-      grades: uniqueSorted(items.flatMap((item) => item.grades)),
-      concepts: uniqueSorted(items.flatMap((item) => item.concepts)),
-    }),
-    [items],
-  );
-
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const visible = items.filter((item) => {
-    if (subject !== ALL && !item.subjects.includes(subject)) return false;
-    if (grade !== ALL && !item.grades.includes(grade)) return false;
-    if (concept !== ALL && !item.concepts.includes(concept)) return false;
     if (tokens.length === 0) return true;
     const haystack = [
       item.title,
@@ -96,35 +78,7 @@ export function CatalogPage({ api, locale, i18n, navigate }: Props): JSX.Element
     return tokens.every((token) => haystack.includes(token));
   });
 
-  const hasFilters = subject !== ALL || grade !== ALL || concept !== ALL || query.trim() !== '';
-  const clearFilters = (): void => {
-    setQuery('');
-    setSubject(ALL);
-    setGrade(ALL);
-    setConcept(ALL);
-  };
-
-  const filterGroup = (
-    label: string,
-    values: string[],
-    selected: string,
-    onSelect: (value: string) => void,
-    kind: 'subject' | 'grade' | 'concept',
-  ): JSX.Element => (
-    <div className="filter" role="group" aria-label={label}>
-      <span className="filter__label">{label}</span>
-      <div className="chips">
-        <button type="button" aria-pressed={selected === ALL} onClick={() => onSelect(ALL)}>
-          {t('catalog.all')}
-        </button>
-        {values.map((value) => (
-          <button key={value} type="button" aria-pressed={selected === value} onClick={() => onSelect(value)}>
-            {tagLabel(i18n, kind, value)}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  const clearSearch = (): void => setQuery('');
 
   return (
     <section className="catalog" aria-labelledby="catalog-heading">
@@ -162,29 +116,23 @@ export function CatalogPage({ api, locale, i18n, navigate }: Props): JSX.Element
             />
           </div>
 
-          <div className="filters" aria-label={t('catalog.filters')}>
-            {filterGroup(t('catalog.filter.subject'), options.subjects, subject, setSubject, 'subject')}
-            {filterGroup(t('catalog.filter.grade'), options.grades, grade, setGrade, 'grade')}
-            {filterGroup(t('catalog.filter.concept'), options.concepts, concept, setConcept, 'concept')}
-          </div>
-
           <div className="catalog__summary">
             <p aria-live="polite" className="small" data-testid="result-count">
               {t('catalog.resultCount', { count: visible.length })}
             </p>
-            {hasFilters ? (
-              <button type="button" className="button button--ghost small" onClick={clearFilters}>
-                {t('catalog.clearFilters')}
+            {query.trim() === '' || visible.length === 0 ? null : (
+              <button type="button" className="button button--ghost small" onClick={clearSearch}>
+                {t('catalog.clearSearch')}
               </button>
-            ) : null}
+            )}
           </div>
 
           {visible.length === 0 ? (
             <div className="empty" data-testid="catalog-empty">
               <h2>{t('catalog.empty')}</h2>
               <p className="muted">{t('catalog.emptyHint')}</p>
-              <button type="button" className="button" onClick={clearFilters}>
-                {t('catalog.clearFilters')}
+              <button type="button" className="button" onClick={clearSearch}>
+                {t('catalog.clearSearch')}
               </button>
             </div>
           ) : (

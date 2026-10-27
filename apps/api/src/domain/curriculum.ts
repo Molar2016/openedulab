@@ -53,6 +53,14 @@ export const CATALOG_SCHEMA_VERSION = 1;
  */
 export const CATALOG_EDITION_STATUS = ['current-2022', 'legacy-2011'] as const;
 export type CatalogEditionStatus = (typeof CATALOG_EDITION_STATUS)[number];
+/**
+ * The school stage a textbook belongs to (teacher navigation A). It is catalog metadata, not
+ * a UI guess: the directory groups volumes by this declared value instead of inferring
+ * "middle school" from a grade word in a book title or from the catalog id. Optional, because
+ * an illustrative sample is not a volume of any school stage.
+ */
+export const CATALOG_STAGE = ['primary', 'middle', 'high'] as const;
+export type CatalogStage = (typeof CATALOG_STAGE)[number];
 
 
 export type PlacementStatus = 'illustrative' | 'verified';
@@ -114,6 +122,11 @@ export interface CurriculumCatalog {
    * directory order is unaffected by it.
    */
   readonly editionStatus: CatalogEditionStatus | null;
+  /**
+   * The school stage this textbook is used in (`primary`, `middle`, `high`), or `null` when
+   * the catalog does not declare one (an example, or content that has not been classified).
+   */
+  readonly stage: CatalogStage | null;
   readonly books: readonly CurriculumBook[];
 }
 
@@ -475,6 +488,7 @@ function readCatalogEntries(
           'publisher',
           'revision',
           'editionStatus',
+          'stage',
           'books',
         ].includes(key),
     );
@@ -546,6 +560,23 @@ function readCatalogEntries(
       }
     }
 
+    // The school stage is metadata like the edition line: it tells the directory which
+    // 小学/初中/高中 shelf the volume belongs on. Absent is legitimate (an example catalog,
+    // or content nobody has classified yet) — it is never derived from the catalog id.
+    let stage: CatalogStage | null = null;
+    if (candidate.stage !== undefined) {
+      if (
+        typeof candidate.stage !== 'string' ||
+        !(CATALOG_STAGE as readonly string[]).includes(candidate.stage)
+      ) {
+        entryIssues.push(
+          `stage ${JSON.stringify(candidate.stage)} must be one of ${CATALOG_STAGE.map((value) => `"${value}"`).join(', ')}`,
+        );
+      } else {
+        stage = candidate.stage as CatalogStage;
+      }
+    }
+
     const books = readBooks(candidate, entryWhere, catalogId, entryIssues);
 
     if (entryIssues.length > 0) {
@@ -563,6 +594,7 @@ function readCatalogEntries(
       publisher,
       revision,
       editionStatus,
+      stage,
       books: books as CurriculumBook[],
     });
   });

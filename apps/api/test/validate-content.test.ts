@@ -243,6 +243,22 @@ describe('offline content validation of shared catalogs', () => {
     expect(result.stderr).toMatch(/tool order 1 is already used by "math.functions.chapter-one"/);
   });
 
+  it('accepts a school stage on a catalog and rejects one it cannot label', async () => {
+    const accepted = await writeRepoFixture([tool], [
+      { subject: 'math', file: 'staged', catalogs: [catalog({ stage: 'middle' })] },
+    ]);
+    const ok = await validate(accepted.root);
+    expect(ok.stderr).toBe('');
+    expect(ok.code).toBe(0);
+
+    const rejected = await writeRepoFixture([tool], [
+      { subject: 'math', file: 'staged', catalogs: [catalog({ stage: 'university' })] },
+    ]);
+    const bad = await validate(rejected.root);
+    expect(bad.code).toBe(1);
+    expect(bad.stderr).toMatch(/stage "university" must be one of "primary", "middle", "high"/);
+  });
+
   it('rejects a catalog file whose subject disagrees with its directory', async () => {
     const fixture = await writeRepoFixture([tool], [
       {

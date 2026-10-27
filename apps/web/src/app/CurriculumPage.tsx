@@ -1,14 +1,22 @@
-import { createElement, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Locale } from '../experiment/contract';
 import type { I18n } from '../i18n';
-import type { ApiClient, CurriculumItem, CurriculumResponse } from '../services/api';
+import type { ApiClient, CurriculumResponse, CurriculumStage } from '../services/api';
 import {
   buildCurriculumTree,
-  type CurriculumCatalogGroup,
-  type CurriculumBookGroup,
+  buildTextbookDirectory,
+  matchesTextbook,
   type CurriculumChapterGroup,
   type CurriculumSectionGroup,
+  type TextbookBook,
 } from './curriculum-tree';
+import {
+  buildCurriculumSearch,
+  CURRICULUM_STAGES,
+  DEFAULT_CURRICULUM_STAGE,
+  parseCurriculumView,
+  type CurriculumView,
+} from './curriculum-url';
 import { placementHref } from './router';
 
 interface Props {
@@ -29,44 +37,36 @@ const SUBJECT_KEYS: Readonly<Record<string, string>> = {
   physics: 'curriculum.subject.physics',
 };
 
-function subjectHeading(i18n: I18n, subject: string): string {
+function subjectLabel(i18n: I18n, subject: string): string {
   const key = SUBJECT_KEYS[subject];
-  return key === undefined
-    ? i18n.t('curriculum.subject.other', { subject })
-    : i18n.t(key);
-}
-
-function Heading({
-  level,
-  id,
-  children,
-}: {
-  level: number;
-  id?: string;
-  children: ReactNode;
-}): JSX.Element {
-  // Sections add one level to the hierarchy; HTML stops at h6, so the deepest entry heading
-  // is clamped rather than emitting an invalid <h7>.
-  const safeLevel = Math.min(Math.max(level, 1), 6);
-  return createElement(`h${String(safeLevel)}`, id === undefined ? {} : { id }, children);
+  return key === undefined ? i18n.t('curriculum.subject.other', { subject }) : i18n.t(key);
 }
 
 /**
- * Curriculum directory (ADR-003 → ADR-004).
+ * Curriculum directory, teacher navigation A: 学段 → 课程 → 一册册教材 → 章 → 节 → 工具.
  *
- * Navigation is 学科 → 教材 → 册 → 章 → 工具入口, rendered from what the *server* publishes:
- * `GET /api/curriculum` returns the flat entries plus the catalog tree, and this page joins
- * them. Two catalogs may place the same tool in a different order — the page shows each
- * catalog's own order instead of inventing a global one.
+ * What a teacher holds is one printed volume, so the page shows one card per volume right
+ * after the course choice. The server's catalog is a content container (the 2022 edition holds
+ * five volumes; the current grade-9 lower volume is a catalog of its own) — the page projects
+ * its books into cards and keeps the catalog only as metadata (publisher, edition).
  *
- * A subject here is only a navigation grouping: there is no class, term, cohort, teacher
- * roster or progress record anywhere. Entries are labelled as pilot examples, and an
- * illustrative catalog carries no publisher or edition, so nothing on screen can be mistaken
- * for a verified textbook table of contents.
+ * Choosing a volume opens *that* volume alone, its chapters collapsed. Expanding a chapter is
+ * the only thing that reveals its sections and their tool entries; an entry keeps its own
+ * `/curriculum/<slug>` URL, so the placement preset and the snapshot scoped to that placement
+ * are exactly what they were before. No knowledge-point level is invented: the directory
+ * publishes chapters and sections, and nothing here adds a node the data lacks.
+ *
+ * The view state (stage, course, volume, open chapter, search) lives in the URL through
+ * `curriculum-url.ts`, so a reload, a shared link and the back button all restore the same
+ * screen. Illustrative catalogs are examples, not textbooks: they stay out of the volume list,
+ * while the direct placement routes that reference them keep working.
  */
 export function CurriculumPage({ api, locale, i18n, navigate }: Props): JSX.Element {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [reloadToken, setReloadToken] = useState(0);
+  const [view, setView] = useState<CurriculumView>(() =>
+    parseCurriculumView(window.location.search),
+  );
 
   const t = (key: string, params?: Record<string, string | number>): string => i18n.t(key, params);
 
@@ -86,83 +86,318 @@ export function CurriculumPage({ api, locale, i18n, navigate }: Props): JSX.Elem
     };
   }, [api, locale, reloadToken]);
 
-  const tree = useMemo(
+  /**
+   * The URL is the source of truth for navigation state: the back/forward buttons replay a
+   * URL, so the page re-reads it rather than keeping its own memory of what was open.
+   */
+  useEffect(() => {
+    const onPopState = (): void => setView(parseCurriculumView(window.location.search));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const commit = useCallback(
+    (patch: Partial<CurriculumView>, mode: 'push' | 'replace' = 'push'): void => {
+      const search = buildCurriculumSearch(window.location.search, patch);
+      if (mode === 'replace') {
+        window.history.replaceState({}, '', `/curriculum${search}`);
+      } else {
+        window.history.pushState({}, '', `/curriculum${search}`);
+      }
+      setView(parseCurriculumView(search));
+    },
+    [],
+  );
+
+  const directory = useMemo(
     () =>
       state.kind === 'ready'
-        ? buildCurriculumTree(state.response.items, state.response.catalogs)
+        ? buildTextbookDirectory(
+            buildCurriculumTree(state.response.items, state.response.catalogs),
+          )
         : [],
     [state],
   );
 
-  const singleSubject = tree.length === 1 ? tree[0]?.subject : undefined;
-  const catalogLevel = singleSubject === undefined ? 3 : 2;
+  const stage: CurriculumStage = view.stage ?? DEFAULT_CURRICULUM_STAGE;
+  const courses = directory.find((group) => group.stage === stage)?.courses ?? [];
+  const subject =
+    view.subject !== null && courses.some((course) => course.subject === view.subject)
+      ? view.subject
+      : courses.length === 1
+        ? (courses[0]?.subject ?? null)
+        : null;
+  const course = courses.find((entry) => entry.subject === subject);
+  const books = course?.books ?? [];
+  const chosenBook: TextbookBook | 'missing' | null =
+    view.book === null
+      ? null
+      : (courses.flatMap((entry) => entry.books).find((book) => book.bookId === view.book) ??
+        'missing');
 
-  const renderEntry = (entry: CurriculumItem, level: number): JSX.Element => {
+  const stageLabel = (value: CurriculumStage): string => t(`curriculum.stage.${value}`);
+
+  const openBook = (book: TextbookBook): void => {
+    commit({ stage: book.stage, subject: book.subject, book: book.bookId, chapter: null });
+  };
+
+  const bookHref = (book: TextbookBook): string =>
+    `/curriculum${buildCurriculumSearch(window.location.search, {
+      stage: book.stage,
+      subject: book.subject,
+      book: book.bookId,
+      chapter: null,
+    })}`;
+
+  const toolLink = (entry: {
+    readonly slug: string;
+    readonly title: string;
+  }): JSX.Element => {
     const href = placementHref(entry.slug, locale);
     return (
-      <article className="card" data-testid={`curriculum-entry-${entry.slug}`}>
-        <div className="card__meta">
-          <span className="badge">{entry.section?.label ?? entry.chapter.label}</span>
-          <span className="badge badge--muted" data-testid={`curriculum-status-${entry.slug}`}>
-            {entry.status === 'verified'
-              ? t('curriculum.verified')
-              : t('curriculum.illustrative')}
-          </span>
-        </div>
-        <Heading level={level}>
-          <a
-            href={href}
-            onClick={(event) => {
-              event.preventDefault();
-              navigate(href);
-            }}
-          >
-            {entry.title}
-          </a>
-        </Heading>
-        <p className="muted">{entry.summary}</p>
-        <dl className="curriculum__meta">
-          <div>
-            <dt>{t('curriculum.meta.edition')}</dt>
-            <dd>{entry.edition.label}</dd>
-          </div>
-          <div>
-            <dt>{t('curriculum.meta.book')}</dt>
-            <dd>{entry.book.label}</dd>
-          </div>
-          <div>
-            <dt>{t('curriculum.meta.chapter')}</dt>
-            <dd>{entry.chapter.label}</dd>
-          </div>
-          {entry.section === undefined ? null : (
-            <div>
-              <dt>{t('curriculum.meta.section')}</dt>
-              <dd>{entry.section.label}</dd>
-            </div>
-          )}
-        </dl>
-        <a
-          className="button"
-          href={href}
-          onClick={(event) => {
-            event.preventDefault();
-            navigate(href);
-          }}
-        >
-          {t('curriculum.open')}
-        </a>
-      </article>
+      <a
+        className="curriculum__toolLink"
+        href={href}
+        onClick={(event) => {
+          event.preventDefault();
+          navigate(href);
+        }}
+      >
+        {entry.title}
+        <span aria-hidden="true"> →</span>
+      </a>
     );
   };
+
+  const entriesOf = (
+    entries: readonly { readonly placementId: string; readonly slug: string; readonly title: string }[],
+  ): JSX.Element => (
+    <ul className="curriculum__entries">
+      {entries.map((entry) => (
+        <li key={entry.placementId}>{toolLink(entry)}</li>
+      ))}
+    </ul>
+  );
+
+  const renderSection = (group: CurriculumSectionGroup): JSX.Element => (
+    <li
+      key={group.section.sectionId}
+      className="curriculum__section"
+      data-testid={`curriculum-section-${group.section.sectionId}`}
+    >
+      <p className="curriculum__sectionHead">
+        <span>{group.section.label}</span>
+        {group.section.printedPage === undefined ? null : (
+          <span className="curriculum__page">
+            {t('curriculum.meta.page', { page: group.section.printedPage })}
+          </span>
+        )}
+      </p>
+      {group.entries.length > 0 ? entriesOf(group.entries) : null}
+    </li>
+  );
+
+  const renderChapter = (group: CurriculumChapterGroup): JSX.Element => {
+    const { chapter } = group;
+    const open = view.chapter === chapter.chapterId;
+    const panelId = `curriculum-chapter-panel-${chapter.chapterId}`;
+    const meta = [
+      chapter.printedPage === undefined
+        ? null
+        : t('curriculum.meta.page', { page: chapter.printedPage }),
+      t('curriculum.sectionCount', { count: group.sections.length }),
+    ]
+      .filter((part): part is string => part !== null)
+      .join(' · ');
+
+    return (
+      <li
+        key={chapter.chapterId}
+        className="curriculum__chapter"
+        data-testid={`curriculum-chapter-${chapter.chapterId}`}
+      >
+        <h3 className="curriculum__chapterHeading">
+          <button
+            type="button"
+            className="curriculum__chapterToggle"
+            data-testid={`curriculum-chapter-toggle-${chapter.chapterId}`}
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => commit({ chapter: open ? null : chapter.chapterId })}
+          >
+            <span className="curriculum__chapterLabel">{chapter.label}</span>
+            <span className="curriculum__chapterMeta muted small">{meta}</span>
+            <span className="curriculum__chevron" aria-hidden="true">
+              {open ? '−' : '+'}
+            </span>
+          </button>
+        </h3>
+        <div
+          id={panelId}
+          data-testid={panelId}
+          className="curriculum__chapterPanel"
+          hidden={!open}
+        >
+          {group.sections.length > 0 ? (
+            <ul className="curriculum__sections">{group.sections.map(renderSection)}</ul>
+          ) : null}
+          {group.entries.length > 0 ? entriesOf(group.entries) : null}
+          {group.sections.length === 0 && group.entries.length === 0 ? (
+            <p className="muted small curriculum__noTool">{t('curriculum.chapterEmpty')}</p>
+          ) : null}
+        </div>
+      </li>
+    );
+  };
+
+  const bookView = (book: TextbookBook): JSX.Element => (
+    <section className="curriculum__book" data-testid="curriculum-book">
+      <p className="muted small curriculum__crumb" data-testid="curriculum-crumb">
+        {t('curriculum.crumb', {
+          stage: stageLabel(book.stage),
+          subject: subjectLabel(i18n, book.subject),
+          book: book.label,
+        })}
+      </p>
+      <button
+        type="button"
+        className="button button--ghost small curriculum__back"
+        data-testid="curriculum-back-to-books"
+        onClick={() => commit({ book: null, chapter: null })}
+      >
+        {t('curriculum.backToBooks')}
+      </button>
+      <header className="curriculum__bookHeader">
+        <h2>{book.label}</h2>
+        <p className="muted small">
+          {[subjectLabel(i18n, book.subject), book.publisher, book.edition]
+            .filter((part): part is string => part !== undefined && part !== '')
+            .join(' · ')}
+          {' · '}
+          {t('curriculum.chapterCount', { count: book.chapterCount })}
+        </p>
+      </header>
+      <ol className="curriculum__accordion" data-testid="curriculum-chapters">
+        {book.chapters.map(renderChapter)}
+      </ol>
+    </section>
+  );
+
+  const visibleBooks = books.filter((book) =>
+    matchesTextbook(book, {
+      query: view.q,
+      subject: subjectLabel(i18n, book.subject),
+      stage: stageLabel(book.stage),
+    }),
+  );
+
+  const listView = (): JSX.Element => (
+    <>
+      <div className="search search--lead">
+        <label htmlFor="curriculum-search">{t('curriculum.searchLabel')}</label>
+        <input
+          id="curriculum-search"
+          type="search"
+          value={view.q}
+          placeholder={t('curriculum.searchPlaceholder')}
+          onChange={(event) => commit({ q: event.target.value }, 'replace')}
+        />
+      </div>
+
+      <div className="chips curriculum__stages" role="group" aria-label={t('curriculum.stage.label')}>
+        {CURRICULUM_STAGES.map((value) => (
+          <button
+            key={value}
+            type="button"
+            data-testid={`curriculum-stage-${value}`}
+            aria-pressed={value === stage}
+            onClick={() => commit({ stage: value, subject: null, book: null, chapter: null })}
+          >
+            {stageLabel(value)}
+          </button>
+        ))}
+      </div>
+
+      {courses.length === 0 ? (
+        <div className="empty" data-testid="curriculum-stage-empty">
+          <h2>{t('curriculum.stageEmpty')}</h2>
+          <p className="muted">{t('curriculum.stageEmptyHint')}</p>
+        </div>
+      ) : null}
+
+      {courses.length > 0 ? (
+        <div
+          className="chips curriculum__courses"
+          role="group"
+          aria-label={t('curriculum.course.label')}
+        >
+          {courses.map((entry) => (
+            <button
+              key={entry.subject}
+              type="button"
+              data-testid={`curriculum-course-${entry.subject}`}
+              aria-pressed={entry.subject === subject}
+              onClick={() =>
+                commit({ stage, subject: entry.subject, book: null, chapter: null })
+              }
+            >
+              {subjectLabel(i18n, entry.subject)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {courses.length > 0 && subject === null ? (
+        <p className="muted small">{t('curriculum.chooseCourse')}</p>
+      ) : null}
+
+      {subject !== null && visibleBooks.length === 0 ? (
+        <div className="empty" data-testid="curriculum-books-empty">
+          <h2>{t('curriculum.booksEmpty')}</h2>
+          <p className="muted">{t('curriculum.booksEmptyHint')}</p>
+        </div>
+      ) : null}
+
+      {subject !== null && visibleBooks.length > 0 ? (
+        <ul className="curriculum__bookGrid" data-testid="curriculum-books">
+          {visibleBooks.map((book) => (
+            <li key={book.key}>
+              <article
+                className="card curriculum__bookCard"
+                data-testid={`curriculum-book-card-${book.bookId}`}
+              >
+                <a
+                  className="curriculum__bookLink"
+                  href={bookHref(book)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    openBook(book);
+                  }}
+                >
+                  <span className="badge">{subjectLabel(i18n, book.subject)}</span>
+                  <h2>{book.label}</h2>
+                  {book.publisher === undefined ? null : (
+                    <p className="muted small">{book.publisher}</p>
+                  )}
+                  <p className="muted small">
+                    {book.editionStatus === undefined
+                      ? book.edition
+                      : t(`curriculum.edition.${book.editionStatus}`)}{' · '}
+                    {t('curriculum.chapterCount', { count: book.chapterCount })}
+                  </p>
+                </a>
+              </article>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
 
   return (
     <section className="curriculum" aria-labelledby="curriculum-heading">
       <div className="catalog__intro">
-        <h1 id="curriculum-heading">
-          {singleSubject === undefined
-            ? t('curriculum.heading')
-            : subjectHeading(i18n, singleSubject)}
-        </h1>
+        <h1 id="curriculum-heading">{t('curriculum.heading')}</h1>
         <p className="muted">{t('curriculum.subheading')}</p>
         <p className="muted small">{t('curriculum.note')}</p>
       </div>
@@ -187,151 +422,32 @@ export function CurriculumPage({ api, locale, i18n, navigate }: Props): JSX.Elem
         </div>
       ) : null}
 
-      {state.kind === 'ready' && tree.length === 0 ? (
+      {state.kind === 'ready' && directory.length === 0 ? (
         <div className="empty" data-testid="curriculum-empty">
           <h2>{t('curriculum.empty')}</h2>
           <p className="muted">{t('curriculum.emptyHint')}</p>
         </div>
       ) : null}
 
-      {state.kind === 'ready' && tree.length > 0 ? (
+      {state.kind === 'ready' && directory.length > 0 ? (
         <div className="curriculum__tree" data-testid="curriculum-list">
-          {tree.map((subjectGroup) => (
-            <section
-              key={subjectGroup.subject}
-              className="curriculum__subject"
-              data-testid={`curriculum-subject-${subjectGroup.subject}`}
-              {...(singleSubject === undefined
-                ? { 'aria-labelledby': `curriculum-subject-heading-${subjectGroup.subject}` }
-                : { 'aria-label': subjectHeading(i18n, subjectGroup.subject) })}
-            >
-              {singleSubject === undefined ? (
-                <Heading level={2} id={`curriculum-subject-heading-${subjectGroup.subject}`}>
-                  {subjectHeading(i18n, subjectGroup.subject)}
-                </Heading>
-              ) : null}
-
-              {subjectGroup.catalogs.map((catalogGroup: CurriculumCatalogGroup) => {
-                const { catalog } = catalogGroup;
-                return (
-                  <article
-                    key={catalog.catalogId}
-                    className="curriculum__catalog"
-                    data-testid={`curriculum-catalog-${catalog.catalogId}`}
-                    aria-labelledby={`curriculum-catalog-heading-${catalog.catalogId}`}
-                  >
-                    <header className="curriculum__catalogHeader">
-                      <Heading level={catalogLevel} id={`curriculum-catalog-heading-${catalog.catalogId}`}>
-                        {catalog.label}
-                      </Heading>
-                      <span
-                        className="badge badge--muted"
-                        data-testid={`curriculum-catalog-status-${catalog.catalogId}`}
-                      >
-                        {catalog.status === 'verified'
-                          ? t('curriculum.verified')
-                          : t('curriculum.illustrative')}
-                      </span>
-                      {catalog.publisher === undefined ? null : (
-                        <p className="muted small">
-                          {t('curriculum.meta.publisher')}: {catalog.publisher}
-                          {catalog.revision === undefined
-                            ? null
-                            : ` · ${t('curriculum.meta.revision')}: ${catalog.revision}`}
-                        </p>
-                      )}
-                    </header>
-
-                    {catalogGroup.books.map((bookGroup: CurriculumBookGroup) => (
-                      <section
-                        key={bookGroup.book.bookId}
-                        className="curriculum__book"
-                        data-testid={`curriculum-book-${bookGroup.book.bookId}`}
-                        aria-labelledby={`curriculum-book-heading-${bookGroup.book.bookId}`}
-                      >
-                        <Heading
-                          level={catalogLevel + 1}
-                          id={`curriculum-book-heading-${bookGroup.book.bookId}`}
-                        >
-                          {bookGroup.book.label}
-                        </Heading>
-                        <ol className="curriculum__chapters">
-                          {bookGroup.chapters.map((chapterGroup: CurriculumChapterGroup) => (
-                            <li
-                              key={chapterGroup.chapter.chapterId}
-                              className="curriculum__chapter"
-                              data-testid={`curriculum-chapter-${chapterGroup.chapter.chapterId}`}
-                            >
-                              <Heading level={catalogLevel + 2}>
-                                {chapterGroup.chapter.label}
-                                {chapterGroup.chapter.printedPage === undefined ? null : (
-                                  <span className="curriculum__page">
-                                    {t('curriculum.meta.page', {
-                                      page: chapterGroup.chapter.printedPage,
-                                    })}
-                                  </span>
-                                )}
-                              </Heading>
-                              {chapterGroup.entries.length > 0 ? (
-                                <ol className="curriculum__entries">
-                                  {chapterGroup.entries.map((entry: CurriculumItem) => (
-                                    <li key={entry.placementId}>
-                                      {renderEntry(entry, catalogLevel + 3)}
-                                    </li>
-                                  ))}
-                                </ol>
-                              ) : null}
-                              {chapterGroup.sections.length > 0 ? (
-                                <ol className="curriculum__sections">
-                                  {chapterGroup.sections.map((sectionGroup: CurriculumSectionGroup) => (
-                                    <li
-                                      key={sectionGroup.section.sectionId}
-                                      className="curriculum__section"
-                                      data-testid={`curriculum-section-${sectionGroup.section.sectionId}`}
-                                    >
-                                      <p className="curriculum__sectionHead">
-                                        <span className="curriculum__sectionLabel">
-                                          {sectionGroup.section.label}
-                                        </span>
-                                        {sectionGroup.section.printedPage === undefined ? null : (
-                                          <span className="curriculum__page">
-                                            {t('curriculum.meta.page', {
-                                              page: sectionGroup.section.printedPage,
-                                            })}
-                                          </span>
-                                        )}
-                                      </p>
-                                      {sectionGroup.entries.length === 0 ? (
-                                        <p className="muted small">
-                                          {t('curriculum.sectionEmpty')}
-                                        </p>
-                                      ) : (
-                                        <ol className="curriculum__entries">
-                                          {sectionGroup.entries.map((entry: CurriculumItem) => (
-                                            <li key={entry.placementId}>
-                                              {renderEntry(entry, catalogLevel + 4)}
-                                            </li>
-                                          ))}
-                                        </ol>
-                                      )}
-                                    </li>
-                                  ))}
-                                </ol>
-                              ) : null}
-                              {chapterGroup.entries.length === 0 &&
-                              chapterGroup.sections.length === 0 ? (
-                                <p className="muted small">{t('curriculum.chapterEmpty')}</p>
-                              ) : null}
-                            </li>
-                          ))}
-                        </ol>
-                      </section>
-                    ))}
-                  </article>
-                );
-              })}
-            </section>
-          ))}
+          {chosenBook === 'missing' ? (
+            <div className="empty" data-testid="curriculum-book-missing">
+              <h2>{t('curriculum.bookMissing')}</h2>
+              <p className="muted">{t('curriculum.bookMissingHint')}</p>
+              <button
+                type="button"
+                className="button"
+                onClick={() => commit({ book: null, chapter: null })}
+              >
+                {t('curriculum.backToBooks')}
+              </button>
+            </div>
+          ) : chosenBook === null ? (
+            listView()
+          ) : (
+            bookView(chosenBook)
+          )}
         </div>
       ) : null}
     </section>

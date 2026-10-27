@@ -205,6 +205,7 @@ interface CurriculumResponse {
     catalogId: string;
     subject: string;
     order: number;
+    stage?: string;
     editionStatus?: string;
     publisher?: string;
     revision?: string;
@@ -838,6 +839,69 @@ describe('curriculum sections', () => {
     expect(
       body.catalogs[1]?.books[0]?.chapters[0]?.sections.map((entry) => entry.placementIds),
     ).toEqual([[]]);
+  });
+
+  it('serves the school stage a catalog declares, and omits it when the catalog has none', async () => {
+    const root = await makeRoot(
+      [tool()],
+      [
+        {
+          subject: 'math',
+          file: 'staged',
+          catalogs: [
+            catalog({ catalogId: 'pep-middle', order: 1, stage: 'middle' }),
+            catalog({ catalogId: 'sample-catalog', order: 2 }),
+          ],
+        },
+      ],
+    );
+
+    const body = await served(root);
+    expect(body.catalogs.map((entry) => entry.catalogId)).toEqual(['pep-middle', 'sample-catalog']);
+    // The stage is catalog metadata, served next to publisher and edition — never guessed
+    // from a catalog id, a book title or a chapter number in the client.
+    expect(body.catalogs[0]?.stage).toBe('middle');
+    expect(Object.prototype.hasOwnProperty.call(body.catalogs[1], 'stage')).toBe(false);
+  });
+
+  it('accepts every school stage the interface can label', async () => {
+    const result = await load(
+      [tool()],
+      [
+        {
+          subject: 'math',
+          file: 'stages',
+          catalogs: [
+            catalog({ catalogId: 'pep-primary', order: 1, stage: 'primary' }),
+            catalog({ catalogId: 'pep-middle', order: 2, stage: 'middle' }),
+            catalog({ catalogId: 'pep-high', order: 3, stage: 'high' }),
+          ],
+        },
+      ],
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.index.catalogs.map((entry) => entry.stage)).toEqual([
+      'primary',
+      'middle',
+      'high',
+    ]);
+  });
+
+  it('refuses a school stage it cannot label', async () => {
+    const issues = await issuesOf(
+      [tool()],
+      [
+        {
+          subject: 'math',
+          file: 'staged',
+          catalogs: [catalog({ stage: 'university' })],
+        },
+      ],
+    );
+
+    expect(issues).toMatch(/stage "university" must be one of "primary", "middle", "high"/);
   });
 
   it('refuses an edition status outside the known editions', async () => {

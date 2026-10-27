@@ -82,6 +82,19 @@ describe('six-volume PEP math directory (shipped content)', () => {
     expect(Object.keys(current ?? {}).sort()).toEqual(Object.keys(legacy ?? {}).sort());
   });
 
+  it('declares the school stage of each real textbook, and leaves the examples unclassified', () => {
+    const math = shipped().catalogs.filter((catalog) => catalog.subject === 'math');
+    const stages = new Map(math.map((catalog) => [catalog.catalogId, catalog.stage]));
+
+    // The directory groups volumes by a stage the data declares — not by reading "七年级"
+    // out of a book title, nor by guessing from the catalog id.
+    expect(stages.get(CURRENT)).toBe('middle');
+    expect(stages.get(LEGACY)).toBe('middle');
+    // A sample is not a volume of any school stage, so it declares none.
+    expect(stages.get('pilot-edition')).toBeNull();
+    expect(stages.get('pilot-edition-b')).toBeNull();
+  });
+
   it('numbers the current edition 1-30 across its five books, without a gap or a repeat', () => {
     const current = shipped().catalogs.find((catalog) => catalog.catalogId === CURRENT);
     const orders = current?.books.flatMap((book) => book.chapters.map((chapter) => chapter.order));

@@ -24,6 +24,8 @@ const CURRICULUM_SCHEMA_VERSION = 3;
 const CATALOG_SCHEMA_VERSION = 1;
 /** Edition lines the interface has a sentence for (ADR-006). */
 const CATALOG_EDITION_STATUS = ['current-2022', 'legacy-2011'];
+/** School stages the interface has a label for (teacher navigation A). */
+const CATALOG_STAGE = ['primary', 'middle', 'high'];
 
 const errors = [];
 
@@ -260,6 +262,7 @@ async function validateCatalogFiles() {
               'publisher',
               'revision',
               'editionStatus',
+              'stage',
               'books',
             ].includes(key)
           ) {
@@ -305,6 +308,14 @@ async function validateCatalogFiles() {
           if (entry.status === 'illustrative') {
             issues.push(
               'an illustrative catalog must not declare an edition status: a sample is not a printed edition',
+            );
+          }
+        }
+
+        if (entry.stage !== undefined) {
+          if (typeof entry.stage !== 'string' || !CATALOG_STAGE.includes(entry.stage)) {
+            issues.push(
+              `stage ${JSON.stringify(entry.stage)} must be one of ${CATALOG_STAGE.map((value) => `"${value}"`).join(', ')}`,
             );
           }
         }

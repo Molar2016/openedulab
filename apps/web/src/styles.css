@@ -294,6 +294,15 @@ main {
   gap: 0.25rem;
 }
 
+.search--lead {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.search--lead input {
+  min-height: 56px;
+  font-size: 1.05rem;
+}
+
 .search label {
   font-weight: 600;
 }
@@ -307,28 +316,6 @@ main {
   background: var(--surface);
   color: inherit;
   font: inherit;
-}
-
-.filters {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.filter {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.filter__label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
 }
 
 .chips {
@@ -542,6 +529,202 @@ main {
 .curriculum__catalogHeader h3 {
   margin: 0;
   font-size: 1.15rem;
+}
+
+/* Teacher navigation A: 学段/课程 chips, one card per volume, a chapter accordion. */
+.curriculum__stages,
+.curriculum__courses {
+  margin: 1rem 0 0;
+}
+
+.curriculum__courses {
+  margin-top: 0.6rem;
+}
+
+.curriculum__bookGrid {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.9rem;
+}
+
+.curriculum__bookCard {
+  padding: 0;
+}
+
+.curriculum__bookLink {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.curriculum__bookLink:hover {
+  background: var(--surface-soft);
+}
+
+.curriculum__bookLink h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.curriculum__bookLink p {
+  margin: 0;
+}
+
+.curriculum__bookLink .badge {
+  justify-self: start;
+}
+
+.curriculum__bookHeader {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.curriculum__bookHeader h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.curriculum__crumb {
+  margin: 0 0 0.5rem;
+}
+
+.curriculum__back {
+  margin-bottom: 0.35rem;
+  justify-self: start;
+}
+
+.curriculum__accordion {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.curriculum__chapterHeading {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.curriculum__chapterToggle {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.curriculum__chapterToggle:hover {
+  border-color: var(--accent);
+}
+
+.curriculum__chapterToggle[aria-expanded='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.curriculum__chapterLabel {
+  flex: 1 1 auto;
+  font-weight: 650;
+}
+
+.curriculum__chapterMeta {
+  white-space: nowrap;
+}
+
+.curriculum__chevron {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.curriculum__chapterPanel {
+  padding: 0.25rem 1rem 0.75rem;
+  border: 1px solid var(--accent);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  background: var(--surface);
+}
+
+.curriculum__chapterPanel[hidden] {
+  display: none;
+}
+
+.curriculum__sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.curriculum__section {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.curriculum__section:last-child {
+  border-bottom: 0;
+}
+
+.curriculum__sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.curriculum__entries {
+  list-style: none;
+  margin: 0.15rem 0 0.3rem;
+  padding: 0 0 0 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.curriculum__toolLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 40px;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.curriculum__toolLink:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.curriculum__noTool {
+  margin: 0.1rem 0 0;
 }
 
 .tags {
@@ -1006,7 +1189,8 @@ main {
     flex: 1 1 auto;
   }
 
-  .cards {
+  .cards,
+  .curriculum__bookGrid {
     grid-template-columns: 1fr;
   }
 }

@@ -13,7 +13,6 @@ import { shot } from './support';
 
 const STAGE = 'r8';
 const ORIGIN = 'http://127.0.0.1:3220';
-const CHAPTER_A = 'math.functions.pilot-linear-slope';
 const CHAPTER_B = 'math.functions.pilot-quadratic-vertex';
 const TOOL = 'math.functions';
 
@@ -31,123 +30,59 @@ function overflowOf(page: Page): Promise<number> {
 }
 
 test.describe('curriculum directory and chapter entries', () => {
-  test('lists both chapters, opens chapter A with its preset, saves, reloads and resets', async ({
+  test('walks the teacher path: search 人教 八下, open the volume, expand 23.2, open its tool', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'one full flow, desktop');
 
-    await page.goto('/curriculum?lang=en');
+    await page.goto('/curriculum?lang=zh-CN');
 
-    // Reachable by navigation, honest about what the entries are, and grouped as
-    // 学科 → 教材 → 册 → 章 → 工具入口.
-    await expect(page.getByRole('heading', { level: 1, name: 'Mathematics course' })).toBeVisible();
-    await expect(page.getByTestId('curriculum-catalog-pilot-edition')).toBeVisible();
-    await expect(page.getByTestId('curriculum-catalog-pilot-edition-b')).toBeVisible();
-    await expect(page.getByTestId('curriculum-catalog-status-pilot-edition')).toHaveText(
-      /not a textbook chapter/i,
-    );
-    await expect(page.getByTestId('curriculum-entry-pilot-linear-slope')).toBeVisible();
-    await expect(page.getByTestId('curriculum-entry-pilot-quadratic-vertex')).toBeVisible();
-    await expect(page.getByTestId('curriculum-status-pilot-linear-slope')).toHaveText(
-      /not a textbook chapter/i,
-    );
-    await expect(page.getByTestId('curriculum-entry-pilot-linear-slope')).toContainText(
-      'Sample chapter A · slope and intercept',
-    );
+    await expect(page.getByRole('heading', { level: 1, name: '按教材找工具' })).toBeVisible();
+    // One card per volume: there is no edition-catalog level between the course and the book.
+    const cards = page.getByTestId(/^curriculum-book-card-/);
+    await expect(cards).toHaveCount(6);
+    await expect(page.getByTestId('curriculum-catalog-pep-math-2022')).toHaveCount(0);
 
-    // Catalog A orders slope → vertex; catalog B orders vertex → slope for the same tool.
-    const catalogAEntries = page
-      .getByTestId('curriculum-catalog-pilot-edition')
-      .getByTestId(/^curriculum-entry-/);
-    await expect(catalogAEntries.nth(0)).toHaveAttribute(
-      'data-testid',
-      'curriculum-entry-pilot-linear-slope',
+    // The shorthand teachers type finds exactly the volume in their hand.
+    await page.getByRole('searchbox', { name: '搜索教材' }).fill('人教 八下');
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toContainText('八年级下册');
+    await expect(page).toHaveURL(/q=/);
+    await shot(page, STAGE, 'a-search-8b');
+
+    await cards.first().click();
+    await expect(page).toHaveURL(/book=pep-math-8b-2026/);
+    const chapters = page.getByTestId('curriculum-chapters');
+    await expect(chapters).toContainText('第二十三章 一次函数');
+    // Only this volume's chapters: the other edition's chapter 26 is not here.
+    await expect(chapters).not.toContainText('第二十六章');
+
+    // Collapsed by default: expanding a chapter is the only way to its sections.
+    const panel = page.getByTestId('curriculum-chapter-panel-pep-math-8b-2026-ch23');
+    await expect(panel).toBeHidden();
+    await page.getByTestId('curriculum-chapter-toggle-pep-math-8b-2026-ch23').click();
+    await expect(panel).toBeVisible();
+    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')).toContainText(
+      '23.2 一次函数的图象和性质',
     );
-    await expect(catalogAEntries.nth(1)).toHaveAttribute(
-      'data-testid',
-      'curriculum-entry-pilot-quadratic-vertex',
-    );
-    const catalogBEntries = page
-      .getByTestId('curriculum-catalog-pilot-edition-b')
-      .getByTestId(/^curriculum-entry-/);
-    await expect(catalogBEntries.nth(0)).toHaveAttribute(
-      'data-testid',
-      'curriculum-entry-pilot-vertex-first',
-    );
-    await expect(catalogBEntries.nth(1)).toHaveAttribute(
-      'data-testid',
-      'curriculum-entry-pilot-slope-after',
-    );
-    await expect(page.getByTestId('curriculum-book-pilot-book-b1')).toContainText('Sample book B1');
-    await expect(page.getByTestId('curriculum-book-pilot-book-b2')).toContainText('Sample book B2');
-    await shot(page, STAGE, 'curriculum-directory');
+    await expect(page).toHaveURL(/chapter=pep-math-8b-2026-ch23/);
+    await shot(page, STAGE, 'a-chapter-expanded');
 
-    // Open chapter A through its link.
-    await page
-      .getByTestId('curriculum-entry-pilot-linear-slope')
-      .getByRole('link', { name: /Slope and intercept of a linear function/i })
-      .click();
-    await expect(page).toHaveURL(new RegExp(`/curriculum/pilot-linear-slope`));
-    await expect(page.getByTestId('placement-breadcrumb')).toContainText(
-      'Sample chapter A · slope and intercept',
-    );
-    // "Back" from a chapter goes to the curriculum directory, not to the tool catalog.
-    await expect(page.getByTestId('back-button')).toHaveText(/back to curriculum/i);
-
-    // Preset from the chapter, not the tool default (which is a=1, b=0, quadratic).
-    await expect(page.getByTestId('formula')).toHaveText('y = 2x + 3');
-    await expect(page.locator('#coef-a')).toHaveValue(/^2(\.0+)?$/);
-    await expect(page.locator('#coef-b')).toHaveValue(/^3(\.0+)?$/);
-    await expect(page.getByTestId('parameter-origin')).toHaveText(/chapter preset/i);
-    await expect(page.getByTestId('restore-state-button')).toHaveCount(0);
-    await expect(page.getByTestId('delete-state-button')).toHaveCount(0);
-
-    const chapterBefore = await page.request.get(`/api/me/placement-state/${CHAPTER_A}`);
-    expect(chapterBefore.status()).toBe(404);
-
-    // Change and save: this writes (account, placement), nothing else.
-    await page.locator('#coef-a').fill('5');
-    await expect(page.getByTestId('formula')).toHaveText('y = 5x + 3');
-    await page.getByTestId('save-state-button').click();
-    await expect(page.getByTestId('saved-state-notice')).toHaveText(/saved/i);
-    await expect(page.getByTestId('parameter-origin')).toHaveText(/your saved parameters/i);
-
-    const stored = await page.request.get(`/api/me/placement-state/${CHAPTER_A}`);
-    expect(stored.status()).toBe(200);
-    const storedBody = (await stored.json()) as {
-      placementId: string;
-      placementVersion: number;
-      contentVersion: string;
-      values: Record<string, number | string>;
-    };
-    expect(storedBody.placementId).toBe(CHAPTER_A);
-    expect(storedBody.placementVersion).toBe(1);
-    expect(storedBody.contentVersion).toBe('1.0.0');
-    expect(Number(storedBody.values.a)).toBeCloseTo(5, 6);
-    await shot(page, STAGE, 'chapter-a-saved');
-
-    // Re-entering the chapter applies the snapshot automatically.
+    // A reload restores the volume and the open chapter from the URL alone.
     await page.reload();
-    await expect(page.getByTestId('formula')).toHaveText('y = 5x + 3');
-    await expect(page.getByTestId('parameter-origin')).toHaveText(/your saved parameters/i);
+    await expect(page.getByTestId('curriculum-chapter-panel-pep-math-8b-2026-ch23')).toBeVisible();
 
-    // Reset returns to the preset and keeps the snapshot.
-    await page.getByTestId('reset-button').click();
-    await expect(page.getByTestId('formula')).toHaveText('y = 2x + 3');
-    await expect(page.getByTestId('parameter-origin')).toHaveText(/chapter preset/i);
-    await expect(page.getByTestId('saved-state-notice')).toHaveText(/kept/i);
-    const afterReset = await page.request.get(`/api/me/placement-state/${CHAPTER_A}`);
-    expect(afterReset.status()).toBe(200);
-    await shot(page, STAGE, 'chapter-a-reset-kept');
-
-    // Saving after a reset overwrites this chapter's own snapshot.
-    await page.getByTestId('save-state-button').click();
-    await expect(page.getByTestId('saved-state-notice')).toHaveText(/saved/i);
-    const overwritten = await page.request.get(`/api/me/placement-state/${CHAPTER_A}`);
-    expect(Number(((await overwritten.json()) as { values: { a: number } }).values.a)).toBeCloseTo(
-      2,
-      6,
-    );
+    // The tool keeps its own placement URL: same preset, same breadcrumb, same snapshot scope.
+    await page
+      .getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')
+      .getByRole('link', { name: /一次函数的图象和性质/ })
+      .click();
+    await expect(page).toHaveURL(new RegExp('/curriculum/pep-8b-23-2-linear-graph'));
+    await expect(page.getByTestId('placement-breadcrumb')).toContainText('八年级下册');
+    await expect(page.getByTestId('formula')).toHaveText('y = 2x + 1');
+    await expect(page.getByTestId('parameter-origin')).toHaveText(/本章预置值|chapter preset/i);
+    await expect(page.getByTestId('back-button')).toHaveText(/返回教材目录|back to curriculum/i);
+    await shot(page, STAGE, 'a-tool-from-chapter');
   });
 
   test('opens the same tool from the second catalog with its own preset and snapshot', async ({
@@ -233,12 +168,7 @@ test.describe('curriculum directory and chapter entries', () => {
     await expect(page.getByTestId('formula')).toHaveText('y = 4x²');
     await expect(page.getByTestId('parameter-origin')).toHaveText(/your saved parameters/i);
 
-    const chapterA = await page.request.get(`/api/me/placement-state/${CHAPTER_A}`);
-    expect(chapterA.status()).toBe(200);
-    expect(Number(((await chapterA.json()) as { values: { a: number } }).values.a)).toBeCloseTo(
-      2,
-      6,
-    );
+    // The pilot chapter B is untouched by any of this; chapter-level snapshots are per entry.
     const chapterBStill = await page.request.get(`/api/me/placement-state/${CHAPTER_B}`);
     expect(chapterBStill.status()).toBe(404);
 
@@ -257,20 +187,28 @@ test.describe('curriculum directory and chapter entries', () => {
     await clearToolSnapshot(page);
   });
 
-  test('reads well on a phone: no horizontal scrolling on the directory or a chapter', async ({
+  test('reads well on a phone: the volume cards and an expanded chapter fit', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-chromium', 'phone layout only');
 
-    await page.goto('/curriculum?lang=en');
-    await expect(page.getByTestId('curriculum-list')).toBeVisible();
-    await expect(page.getByTestId('curriculum-catalog-pilot-edition-b')).toBeVisible();
+    await page.goto('/curriculum?lang=zh-CN');
+    await expect(page.getByTestId('curriculum-books')).toBeVisible();
+    await expect(page.getByTestId('curriculum-book-card-pep-math-8b-2026')).toBeVisible();
     expect(await overflowOf(page)).toBeLessThanOrEqual(1);
 
-    await page.goto('/curriculum/pilot-linear-slope?lang=en');
+    await page.getByTestId('curriculum-book-card-pep-math-8b-2026').getByRole('link').click();
+    await page.getByTestId('curriculum-chapter-toggle-pep-math-8b-2026-ch23').click();
+    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')).toBeVisible();
+    expect(await overflowOf(page)).toBeLessThanOrEqual(1);
+    await shot(page, STAGE, 'a-book-mobile');
+
+    await page
+      .getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')
+      .getByRole('link', { name: /一次函数的图象和性质/ })
+      .click();
     await expect(page.getByTestId('formula')).toBeVisible();
     expect(await overflowOf(page)).toBeLessThanOrEqual(1);
-    await shot(page, STAGE, 'chapter-mobile');
   });
 
   test('reports an unknown chapter instead of rendering something else', async ({
@@ -296,90 +234,48 @@ test.describe('curriculum directory and chapter entries', () => {
  * section exists and has no tool yet" is the honest state.
  */
 const G3_STAGE = 'r9/g3';
-const CURRENT = 'pep-math-2022';
-const LEGACY = 'pep-math-9b-legacy';
 const LINEAR_PLACEMENT = 'math.functions.pep-8b-ch23-s2-linear-graph';
 const QUADRATIC_PLACEMENT = 'math.functions.pep-9a-ch26-s2-quadratic-graph';
 
 test.describe('six-volume PEP directory', () => {
-  test('lists both textbook editions as peer catalogs, then the pilot catalogs', async ({
+  test('lists the six volumes as one stage of cards, hiding the examples', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'one directory walk, desktop');
 
     await page.goto('/curriculum?lang=en');
-    await expect(page.getByTestId('curriculum-list')).toBeVisible();
+    await expect(page.getByTestId('curriculum-books')).toBeVisible();
 
-    const catalogs = page.getByTestId(
-      /^curriculum-catalog-(pep-math-2022|pep-math-9b-legacy|pilot-edition|pilot-edition-b)$/,
-    );
-    await expect(catalogs).toHaveCount(4);
-    const order = await catalogs.evaluateAll((nodes) =>
+    const cards = page.getByTestId(/^curriculum-book-card-/);
+    await expect(cards).toHaveCount(6);
+    const ids = await cards.evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('data-testid')),
     );
-    expect(order).toEqual([
-      `curriculum-catalog-${CURRENT}`,
-      `curriculum-catalog-${LEGACY}`,
-      'curriculum-catalog-pilot-edition',
-      'curriculum-catalog-pilot-edition-b',
+    expect(ids).toEqual([
+      'curriculum-book-card-pep-math-7a-2024',
+      'curriculum-book-card-pep-math-7b-2025',
+      'curriculum-book-card-pep-math-8a-2025',
+      'curriculum-book-card-pep-math-8b-2026',
+      'curriculum-book-card-pep-math-9a-2026',
+      'curriculum-book-card-pep-math-9b-legacy',
     ]);
 
-    // Five books, in the order of the edition.
-    const current = page.getByTestId(`curriculum-catalog-${CURRENT}`);
-    const books = current.getByTestId(/^curriculum-book-pep-math-/);
-    const bookIds = await books.evaluateAll((nodes) =>
-      nodes.map((node) => node.getAttribute('data-testid')),
+    // Each card is a real volume with its publisher and its own edition line; the 2011 volume
+    // is a peer among them, not a zone and not a second book of the 2022 edition.
+    await expect(page.getByTestId('curriculum-book-card-pep-math-8b-2026')).toContainText(
+      /People's Education Press/,
     );
-    expect(bookIds).toEqual([
-      'curriculum-book-pep-math-7a-2024',
-      'curriculum-book-pep-math-7b-2025',
-      'curriculum-book-pep-math-8a-2025',
-      'curriculum-book-pep-math-8b-2026',
-      'curriculum-book-pep-math-9a-2026',
-    ]);
-    // The catalog states its publisher and edition, because this one is a real textbook.
-    await expect(current).toContainText(/People's Education Press/);
-    await expect(current).toContainText(/2022 curriculum revision/);
-    // The edition is ordinary detail, not a badge: no catalog carries an edition badge.
-    await expect(page.getByTestId(/^curriculum-catalog-edition-/)).toHaveCount(0);
-
-    // Chapter 23 of grade 8 volume 2: sections in printed order, one of them holding the tool.
-    const chapter = page.getByTestId('curriculum-chapter-pep-math-8b-2026-ch23');
-    await expect(chapter).toContainText('Chapter 23 Linear functions');
-    const sections = chapter.getByTestId(/^curriculum-section-pep-math-8b-2026-ch23-/);
-    const sectionIds = await sections.evaluateAll((nodes) =>
-      nodes.map((node) => node.getAttribute('data-testid')),
+    await expect(page.getByTestId('curriculum-book-card-pep-math-8b-2026')).toContainText(
+      /2022 curriculum revision/,
     );
-    expect(sectionIds).toEqual([
-      'curriculum-section-pep-math-8b-2026-ch23-s1',
-      'curriculum-section-pep-math-8b-2026-ch23-s2',
-      'curriculum-section-pep-math-8b-2026-ch23-s3',
-      'curriculum-section-pep-math-8b-2026-ch23-s4',
-      'curriculum-section-pep-math-8b-2026-ch23-project',
-    ]);
-    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s1')).toContainText(
-      'No tool is published in this section yet.',
+    await expect(page.getByTestId('curriculum-book-card-pep-math-9b-legacy')).toContainText(
+      /2011 curriculum edition/,
     );
-    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')).toContainText(
-      '23.2 Graphs and properties of linear functions',
-    );
-    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')).toContainText(
-      'Page 117',
-    );
-    await expect(
-      page
-        .getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')
-        .getByTestId('curriculum-entry-pep-8b-23-2-linear-graph'),
-    ).toHaveCount(1);
-
-    // The grade-9 edition names its own edition line and keeps its own chapter 26 (inverse
-    // proportion), not the 2022 edition's chapter 26 (quadratic functions).
-    const legacy = page.getByTestId(`curriculum-catalog-${LEGACY}`);
-    await expect(legacy).toContainText(/2011 curriculum edition/);
-    await expect(legacy).not.toContainText(/old edition still in use/i);
-    await expect(legacy).toContainText('Chapter 26 Inverse proportional functions');
-    await expect(current).toContainText('Chapter 26 Quadratic functions');
-    await shot(page, G3_STAGE, 'six-volume-directory');
+    await expect(page.getByTestId(/^curriculum-catalog-/)).toHaveCount(0);
+    // The R8 examples are not textbooks: they are absent here, and their direct URLs below
+    // still open. Nothing was deleted from the content.
+    await expect(page.getByTestId(/^curriculum-book-card-pilot-/)).toHaveCount(0);
+    await shot(page, G3_STAGE, 'a-six-volume-cards');
   });
 
   test('opens 8b 23.2 with its linear preset, saves it, and leaves 9a 26.2 untouched', async ({
@@ -481,14 +377,20 @@ test.describe('six-volume PEP directory', () => {
     );
   });
 
-  test('reads the six-volume directory on a phone without horizontal scrolling', async ({
+  test('reads one six-volume book on a phone without horizontal scrolling', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-chromium', 'phone layout only');
 
     await page.goto('/curriculum?lang=en');
-    await expect(page.getByTestId(`curriculum-catalog-${CURRENT}`)).toBeVisible();
-    await expect(page.getByTestId('curriculum-chapter-pep-math-8b-2026-ch23')).toBeVisible();
+    await expect(page.getByTestId('curriculum-books')).toBeVisible();
+    expect(await overflowOf(page)).toBeLessThanOrEqual(1);
+
+    await page.goto(
+      '/curriculum?lang=en&stage=middle&subject=math&book=pep-math-8b-2026&chapter=pep-math-8b-2026-ch23',
+    );
+    await expect(page.getByTestId('curriculum-chapter-panel-pep-math-8b-2026-ch23')).toBeVisible();
+    await expect(page.getByTestId('curriculum-section-pep-math-8b-2026-ch23-s2')).toBeVisible();
     expect(await overflowOf(page)).toBeLessThanOrEqual(1);
 
     await page.goto('/curriculum/pep-8b-23-2-linear-graph?lang=en');

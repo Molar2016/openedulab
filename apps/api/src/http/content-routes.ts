@@ -171,6 +171,7 @@ function catalogTreeItem(
     status: catalog.status,
     order: catalog.order,
     ...(catalog.editionStatus === null ? {} : { editionStatus: catalog.editionStatus }),
+    ...(catalog.stage === null ? {} : { stage: catalog.stage }),
     label: catalog.labels[locale],
     ...(catalog.publisher === null ? {} : { publisher: catalog.publisher[locale] }),
     ...(catalog.revision === null ? {} : { revision: catalog.revision[locale] }),

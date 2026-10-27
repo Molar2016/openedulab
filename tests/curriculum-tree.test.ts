@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildCurriculumTree } from '../apps/web/src/app/curriculum-tree';
+import {
+  buildCurriculumTree,
+  buildTextbookDirectory,
+  matchesTextbook,
+  type CurriculumStageGroup,
+  type TextbookBook,
+} from '../apps/web/src/app/curriculum-tree';
 import type { CurriculumCatalog, CurriculumItem } from '../apps/web/src/services/api';
 
 /**
@@ -345,5 +351,175 @@ describe('curriculum tree with sections', () => {
 
     expect(chapters.map((group) => group.sections)).toEqual([[], []]);
     expect(chapters[1]?.entries.map((entry) => entry.placementId)).toEqual(['a']);
+  });
+});
+
+
+/**
+ * Textbook directory (teacher navigation A): 学段 → 课程 → 一册册真实教材.
+ *
+ * The server still publishes catalogs that contain several books, and an edition catalog is
+ * not a navigation level a teacher recognizes — they hold one printed volume. The frontend
+ * therefore flattens every book of every *verified* catalog into a single card, grouped by the
+ * school stage the catalog declares. Examples (`illustrative`) are not textbooks and stay out
+ * of this view; their direct links are handled by the placement route, not by this list.
+ */
+
+const STAGED_CURRENT: CurriculumCatalog = {
+  catalogId: 'pep-math-2022',
+  subject: 'math',
+  version: 1,
+  status: 'verified',
+  order: 1,
+  stage: 'middle',
+  editionStatus: 'current-2022',
+  label: 'PEP mathematics (2022 curriculum revision)',
+  publisher: "People's Education Press",
+  revision: '2022 curriculum revision',
+  books: [
+    {
+      bookId: 'pep-math-8b-2026',
+      order: 4,
+      label: 'Grade 8, volume 2',
+      chapters: [
+        {
+          chapterId: 'pep-math-8b-2026-ch23',
+          order: 23,
+          label: 'Chapter 23 Linear functions',
+          printedPage: 113,
+          placementIds: ['linear'],
+          sections: [
+            {
+              sectionId: 'pep-math-8b-2026-ch23-s2',
+              order: 2,
+              label: '23.2 Graphs and properties of linear functions',
+              printedPage: 117,
+              placementIds: ['linear'],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      bookId: 'pep-math-9a-2026',
+      order: 5,
+      label: 'Grade 9, volume 1',
+      chapters: [
+        {
+          chapterId: 'pep-math-9a-2026-ch26',
+          order: 26,
+          label: 'Chapter 26 Quadratic functions',
+          placementIds: [],
+        },
+      ],
+    },
+  ],
+};
+
+const STAGED_LEGACY: CurriculumCatalog = {
+  catalogId: 'pep-math-9b-legacy',
+  subject: 'math',
+  version: 1,
+  status: 'verified',
+  order: 2,
+  stage: 'middle',
+  editionStatus: 'legacy-2011',
+  label: 'PEP mathematics, grade 9 volume 2 (2011 edition)',
+  publisher: "People's Education Press",
+  revision: '2011 curriculum edition',
+  books: [
+    {
+      bookId: 'pep-math-9b-legacy',
+      order: 6,
+      label: 'Grade 9, volume 2',
+      chapters: [
+        {
+          chapterId: 'pep-math-9b-legacy-ch26',
+          order: 26,
+          label: 'Chapter 26 Inverse proportional functions',
+          placementIds: [],
+        },
+      ],
+    },
+  ],
+};
+
+const LINEAR: CurriculumItem = item(
+  'linear',
+  'pep-8b-23-2-linear-graph',
+  'pep-math-2022',
+  'pep-math-8b-2026',
+  'pep-math-8b-2026-ch23',
+  1,
+);
+
+function textbookDirectory(): readonly CurriculumStageGroup[] {
+  return buildTextbookDirectory(
+    buildCurriculumTree([LINEAR], [STAGED_LEGACY, STAGED_CURRENT, CATALOG_A]),
+  );
+}
+
+describe('textbook directory', () => {
+  it('flattens every book of the verified catalogs into one stage group, in catalog order', () => {
+    const directory = textbookDirectory();
+
+    expect(directory.map((group) => group.stage)).toEqual(['middle']);
+    expect(directory[0]?.courses.map((course) => course.subject)).toEqual(['math']);
+    expect(directory[0]?.courses[0]?.books.map((book) => book.bookId)).toEqual([
+      'pep-math-8b-2026',
+      'pep-math-9a-2026',
+      'pep-math-9b-legacy',
+    ]);
+  });
+
+  it('leaves illustrative catalogs out of the textbook list', () => {
+    const books = textbookDirectory().flatMap((group) =>
+      group.courses.flatMap((course) => course.books),
+    );
+
+    expect(books.some((book) => book.bookId === 'pilot-book-a')).toBe(false);
+    expect(books.map((book) => book.catalogId)).not.toContain('pilot-edition');
+  });
+
+  it('keeps each book’s chapters to that book — two “chapter 26”s never mix', () => {
+    const books = textbookDirectory()[0]?.courses[0]?.books ?? [];
+    const nineA = books.find((book) => book.bookId === 'pep-math-9a-2026');
+    const nineB = books.find((book) => book.bookId === 'pep-math-9b-legacy');
+
+    expect(nineA?.chapters.map((chapter) => chapter.chapter.label)).toEqual([
+      'Chapter 26 Quadratic functions',
+    ]);
+    expect(nineB?.chapters.map((chapter) => chapter.chapter.label)).toEqual([
+      'Chapter 26 Inverse proportional functions',
+    ]);
+  });
+
+  it('names the publisher, the volume and the edition a card needs, and nothing it does not', () => {
+    const book = textbookDirectory()[0]?.courses[0]?.books[0];
+
+    expect(book?.publisher).toBe("People's Education Press");
+    expect(book?.edition).toBe('2022 curriculum revision');
+    expect(book?.label).toBe('Grade 8, volume 2');
+    expect(book?.chapterCount).toBe(1);
+    expect(book?.key).toBe('pep-math-2022/pep-math-8b-2026');
+  });
+
+  it('matches a teacher’s shorthand: publisher alias, grade and volume', () => {
+    const books = textbookDirectory()[0]?.courses[0]?.books ?? [];
+    const eightB = books[0] as TextbookBook;
+
+    // At zh-CN the server sends the Chinese publisher name, so the usual abbreviation works.
+    const zhPublisher = { ...eightB, publisher: '人民教育出版社' };
+    expect(matchesTextbook(zhPublisher, { query: '人教 八下', subject: '数学', stage: '初中' })).toBe(true);
+    expect(matchesTextbook(eightB, { query: 'PEP 8下', subject: 'Mathematics', stage: 'Middle school' })).toBe(true);
+    expect(matchesTextbook(eightB, { query: '2022', subject: 'Mathematics', stage: 'Middle school' })).toBe(true);
+    expect(matchesTextbook(eightB, { query: '九上', subject: 'Mathematics', stage: 'Middle school' })).toBe(false);
+  });
+
+  it('ignores case and extra spaces in a search, and shows everything for an empty one', () => {
+    const book = textbookDirectory()[0]?.courses[0]?.books[0] as TextbookBook;
+
+    expect(matchesTextbook(book, { query: "  PEOPLE'S   education  ", subject: '', stage: '' })).toBe(true);
+    expect(matchesTextbook(book, { query: '   ', subject: '', stage: '' })).toBe(true);
   });
 });

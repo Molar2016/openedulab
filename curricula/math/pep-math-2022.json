@@ -10,6 +10,7 @@
       "status": "verified",
       "order": 1,
       "editionStatus": "current-2022",
+      "stage": "middle",
       "label": {
         "zh-CN": "人教版初中数学（2022 年课标修订版）",
         "en": "PEP middle-school mathematics (2022 curriculum revision)"
