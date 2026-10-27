@@ -40,6 +40,7 @@ const TABLES = [
   'favorite',
   'recent_use',
   'saved_state',
+  'placement_saved_state',
   'event',
   'feedback',
   'internal_audit',

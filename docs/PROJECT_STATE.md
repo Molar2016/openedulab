@@ -1,9 +1,9 @@
 # PROJECT_STATE
 
-最后更新：2026-10-27（R6 服务器内部测试部署 + IP HTTPS 评估；R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」「R2」「R3」「R4」「R5」「R6」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉；R6 在负责人自有 VPS 上搭了一份**只绑 127.0.0.1 的独立测试实例**并逐项实测通过，同时评估了"把页面发布到 IP 的 HTTPS"（结论：未执行，见 `docs/ops/ip-https-assessment.md`）。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：没有域名、没有证书、没有对外入口；测试实例只能经加密 SSH 端口转发访问。
+最后更新：2026-10-27（R7 课程上下文预置与按上下文保存参数的纵向切片；R6 服务器内部测试部署 + IP HTTPS 评估；R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」至「R7」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉；R6 在负责人自有 VPS 上搭了一份**只绑 127.0.0.1 的独立测试实例**并逐项实测通过，同时评估了"把页面发布到 IP 的 HTTPS"（结论：未执行，见 `docs/ops/ip-https-assessment.md`）。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：没有域名、没有证书、没有对外入口；测试实例只能经加密 SSH 端口转发访问。
 
 ## 当前状态
-需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与去重最近使用、内部按账号诊断事件、参数仅显式保存一份快照。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
+需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与按工具去重的最近使用、内部按账号诊断事件；参数仅显式保存，直接工具与教材章节入口分别拥有独立快照（R7/ADR-003）。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
 **B0（工程地基修复 + 版本控制）已完成**，`npm run check` 与 `npm run test:e2e` 均退出码 0（实测输出见下）。
 **B1（服务端骨架）已完成**：`apps/api` 可启动、配置缺失即退出 1、迁移带校验和且按序单事务、`/api/healthz` 返回版本与迁移状态、构建后的 SPA 由同一进程同源托管；`npm run check` 退出码 0，API 测试 68 个全绿，真实进程 smoke 25/25 通过（证据见 `docs/evidence/b1/`）。
 **B2（认证闭环）已完成**：`POST /api/auth/register|login|logout` 与 `GET /api/auth/session` 已真实可用（scrypt 口令哈希、服务端可撤销会话、HttpOnly Cookie、CSRF Origin+JSON 守卫、进程内限速、429 带 `Retry-After`）。
@@ -142,7 +142,7 @@
 - **契约**：参数白名单是**数据**，不是代码——`experiments/math-functions/state-schema.json`（`schemaVersion: 1`；`mode` 枚举、`a/b/c` 数值 −10..10 step 0.1，默认值与 `model.ts` 的 `DEFAULT_COEFFICIENTS` 一致）。服务器启动时读入并校验（缺失=该实验不支持保存；存在但非法=拒绝启动），浏览器用同一个文件。两条实现（`apps/api/src/domain/state-validator.ts`、`apps/web/src/experiment/state-schema.ts`）由 `tests/state-schema.test.ts` 用**同一张用例表**逐条比对，防漂移。
 - **API**：`GET/PUT/DELETE /api/me/saved-state/:experimentId`。GET 200 / 无快照 404；PUT 200 并回规范化值；DELETE 204 幂等。**保存 30 次/分钟/账号**、写路由走既有 CSRF 守卫、三条路由都登记进 `route-inventory.ts` 受控清单（匿名 401）。新增两个错误码：`state_invalid`(400) 与 `state_schema_incompatible`(409)。
 - **校验**：未知键**拒绝**（不静默剥离）、缺键拒绝、类型/范围/步长（含浮点噪声容差 1e-6）全查、`payload` ≤4096 字节且键排序后落库（同一份设置=同一串字节）。`stateSchemaVersion` 用 `preValidation` 严肃数字判断，绕开 Fastify AJV 的 `"1"→1` 强制转换（这条是被测试逼出来的：先写成 handler 内判断，却被 AJV 先转换掉了）。
-- **UI**：实验页工具栏在实验声明了 schema 时出现三个按钮；拖动滑块**不写任何东西**；恢复是**用户点击**才发生（兼容的旧快照不会自动套用），实现方式是带 `initialState` 重挂载视图；版本不兼容时只显示“来自旧版本，已使用默认值”并只给删除按钮；保存失败明说“没有保存成功”。
+- **UI**：实验页工具栏在实验声明了 schema 时出现三个按钮；拖动滑块**不写任何东西**；恢复是**用户点击**才发生（兼容的旧快照不会自动套用），实现方式是带 `initialState` 重挂载视图；版本不兼容时只显示“来自旧版本，已使用默认值”并只给删除按钮；保存失败明说“没有保存成功”。**（R7 已按负责人 2026-10-27 的决定替换为：自动载入 + 只有“保存参数/重置参数”两个控件，取消恢复与删除按钮；本句仅描述 R2 当时的行为，见「R7」与 ADR-003。）**
 - **不进诊断**：保存/读取/删除都不写 `event`，参数值不进事件表（`saved-state.test.ts` 直接查库断言事件表里没有 `"mode"`/`linear`/参数值；smoke 用事件计数前后相等断言）。
 - **顺带加固**：`scripts/backup-check.mjs` 与 `scripts/restore-check.mjs` 的表清单补上 `saved_state`——原先只数 7 张表，B7 开始写第 8 张，不补就是漏检。
 
@@ -369,6 +369,29 @@
 **证据**：`docs/evidence/r6/`（8 个证据文件 + 目录索引 `README.md`：前后两次旧业务基线对照、产物来源与哈希、部署记录与单元生效参数、一次连续验收含重启前后、主机状态快照、库内回读、HTTPS 探测、443 可达性）。
 
 
+## R7（课程上下文预置 + 按上下文保存参数的纵向切片）
+
+**结论先说**：同一个实验（工具 ID `math.functions`，一份代码）现在可以出现在**两个课程目录条目**里；从章节进入时默认值是该章**预置值**，直接打开工具 URL 时仍是工具默认值。个人保存参数按 `(账号, 章节)` 与 `(账号, 工具)` **分表存放、互不复制**；界面只有“保存参数 / 重置参数”两个控件，载入是**自动**的，重置只改当前画面、不删除已保存快照。**目录里的两个条目是试点/示例，不声称对应任何真实教材章节**（`status: "illustrative"`，界面显示“试点条目（非教材章节）”）。
+
+- **先文档后代码**：`docs/requirements-v2.1.md` §3A/§4.5/§4.6 与 §6 决策 7/8 写清了新的保存/载入语义与“不得声称教材映射”的约束；新增 `docs/architecture/ADR-003-curriculum-context.md`（标识模型、内容文件 schema、迁移、API 契约、UX 语义表、暂不作为、风险）；`docs/roadmap.md` 增 R7 关口。
+- **迁移**：新增 `apps/api/migrations/0002_placement_state.sql`（新表 `placement_saved_state`，PK `(account_id, placement_id)` + `ON DELETE CASCADE`）。**`0001_init.sql` 未改动**，校验和仍 `289c27d35781…`；`schema_migrations` 现在 2 行（`0001`、`0002`）。选新表而不是给 `saved_state` 加列：SQLite 改主键必须重建表，而“两个作用域互不复制”在两表上是结构性事实。
+- **目录是内容**：`experiments/math-functions/curriculum.json`（`schemaVersion: 1`，两条 placement，`status: "illustrative"`，预置 A `{mode:linear,a:2,b:3,c:0}`、B `{mode:quadratic,a:1,b:-2,c:0}`）。服务端启动时整体校验：placementId/slug 形状与唯一、version/order 正整数、edition/book/chapter 两语标签、title/summary 两语文本、**预置值必须通过该工具 `state-schema.json` 的同一校验器**；工具没有 schema 却声明 placement 也拒绝启动。`scripts/validate-content.mjs` 同步检查，CI 能提前失败。
+- **API**（全部在 `requireSession` 后，写路由加 CSRF 与限速；三条新路由登记进 `route-inventory.ts` 受控清单）：`GET /api/curriculum?locale=`（目录条目 + 预置）、`GET/PUT /api/me/placement-state/:placementId`（章级个人快照；`placementVersion` 与 `stateSchemaVersion` 都是握手的一部分，不匹配 409）。没有 `DELETE`：界面上没有删除控件，重置也不删除。
+- **UI**：新增 `/curriculum` 目录页与 `/curriculum/<slug>` 上下文页（顶部导航“课程目录”可直达，章节页有 edition · book · chapter 面包屑）。`ExperimentHost` 换成 `context` + `savedState(auto)` 模型：快照未读完不挂载实验（避免“先默认值再跳变”），解析后自动套用；顶部固定显示来源（你的保存参数 / 本章预置值 / 工具默认值）；重置重挂载为本入口默认值并保留快照；保存失败明说未保存。R2 的“恢复/删除”按钮与其用例被**按决定替换**（不是放宽）：`tests/host-saved-state.test.tsx` → `tests/host-context-state.test.tsx`。
+- **向后兼容**：`/experiments/<slug>` 与 `GET/PUT/DELETE /api/me/saved-state/:experimentId` 行为不变；收藏与最近使用仍以工具 ID 为键，`/me` 的最近使用仍打开直接入口（E2E 有断言）；章级快照不会被写进工具级表，反之亦然。
+
+**RED（先写测试，证据 `docs/evidence/r7/`）**：`test-red-api.txt` = 24 失败 / 2 通过（路由 404、`placements` 不存在）；`test-red-web.txt` = 13 失败 / 24 通过（无 `context`/`parameter-origin`/`CurriculumPage`，无 `/curriculum` 路由）。
+
+**实测（非推断）**：
+- `npm run check` **退出码 0**（`check-r7.txt`）：web **11 文件 / 133 测试**、API **24 文件 / 356 测试**（其中 `curriculum.test.ts` 26 条）、lint/typecheck 无输出、`validate-content` OK（`curriculum placements: math.functions: 2`、UI 字典两语各 157 键）、两个构建成功。复核时另补一条“重置后再保存来源标注应为已保存”的先红后绿回归。
+- `npm run smoke:api` → **124/124 checks passed**（真实进程、真 socket；含匿名 401、两条目同一工具、章级 PUT/GET、兄弟章 404、工具级仍 404、事件数不变、版本 409、恶意 ID 400、无 DELETE 端点；迁移断言改为 `0001+0002` 且 `placement_saved_state` 存在）。
+- `npx playwright test`（4 project）→ **82 passed / 64 skipped / 0 failed**，退出码 0（`e2e-full.txt`）。跳过全部是显式 `test.skip(project…)`。新增/改写覆盖：目录页两入口与试点徽标 → 章 A 预置 `y = 2x + 3` → 改到 5 保存 → 重新进入自动载入 → 重置回预置且快照仍在 → 再保存覆盖；章 B 预置与章 A 互不可见；直接入口不受章级快照影响、工具级快照不进章节；`/me` 最近使用链接仍为 `/experiments/math-functions`；手机视口无横向滚动；未知章节显示“未发布”而不是渲染别的实验。
+- `npm run check:backup` **PASS**（九张表，含 `placement_saved_state: 1`，`integrity_check=ok`）；`npm run check:restore` **PASS**（恢复库 `healthz=ok`、`applied=2`、`latest=0002`、写探针 201）；`retention:dry-run` 0 行。
+
+**本轮没做（刻意）**：不实现章级收藏/最近使用/事件归属（仍按工具）；不做章级快照的删除接口与“多份快照/历史”；不做教材导入、章节编辑器、统一课程树；没有把示例条目改成真实教材章节（缺可核验书目）；没有改动 VPS/nginx/防火墙/DNS/凭据，没有提交或推送。
+
+**已知风险**：章级快照只能覆盖不能清除（产品只保留两个控件）；placement 版本升级会让旧快照退回预置值并提示（不做自动迁移）；示例条目一旦被误当成教材映射会误导教师——因此界面徽标、ADR 与需求都写明“非教材章节”。
+
 ## 下一步（严格按序）
 
 1. ~~**B0**：修 typecheck 根因（唯一共享 `debug-hook` 类型，两侧引用，不删测试）→ `npm run check` 退出码 0；`git init` + 首次提交。~~ **已完成（本轮）**。
@@ -380,7 +403,8 @@
 7. ~~**B6（端到端验收）**：三视口完整流程、跨账号隔离、过期与登出、故障注入、无障碍、构建/迁移/备份恢复检查。~~ **已完成（本轮）**：4 个 project 的 E2E 74 通过/0 失败、备份恢复 PASS、截图/录屏/日志齐全。
 8. ~~**B7（参数快照）**：`saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。~~ **已完成（R2）**：三条路由受门禁/CSRF/限速约束，schema 由实验目录 `state-schema.json` 声明并在启动时校验，保存是唯一写入路径，需求 §4.5 因此满足。
 9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。（B8 当时仍不可称 CI 绿色，因无远端仓库；R1 已完成远端落地并实测 CI 通过。）、B8 当时不可部署。
-10. **下一关（需用户选择，二者都需要新的授权）**：
+10. ~~**R7（课程上下文预置 + 按上下文保存）**：一个工具两个课程目录条目、章级/工具级快照分开、两个控件、自动载入与来源标注。~~ **实现与本机复核完成**：ADR-003、迁移 `0002`、`/api/curriculum` 与 `/api/me/placement-state`、`/curriculum` 与 `/curriculum/<slug>` 页面；`npm run check` 退出码 0、smoke 124/124、E2E 82 通过/0 失败。仓库/远端状态以 Git 为准；VPS 尚未更新。
+11. **下一关（需用户选择，二者都需要新的授权）**：
     - ~~**B7（参数快照）**~~ **已完成（R2）**：`GET/PUT/DELETE /api/me/saved-state/:experimentId` + 路由清单登记 + 实验目录 `state-schema.json` + R-17/R-18 用例（含"拖动不落库"与"不兼容回默认"）。
     - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与服务地域（Q3；未成年人政策已决定不设年龄门槛）、远端仓库与 CI 真实运行、异机备份复制方案，以及负责人**单独**的上线授权。**Q4（账号删除/数据导出）已移出首版范围（2026-10-27）**。**R3 的只读侦察与 R6 的服务器内部测试部署已完成**：目标主机与访问方式已由负责人提供，`127.0.0.1:3221` 上的独立实例已按需求逐项实测（见「R6」）；**仍未公网发布**——把页面放到裸 IP 的 HTTPS 方案已评估（`docs/ops/ip-https-assessment.md`），但修主机 DNS、加 nginx 站点与公开暴露三项都需要负责人授权。
 

@@ -1,0 +1,1082 @@
+
+ RUN  v5.0.5 G:/hermes/projects/openedulab
+
+ ❯ tests/curriculum-page.test.tsx (0 test)
+ ❯ tests/router.test.ts (23 tests | 2 failed) 18ms
+   ❯ parseRoute (7)
+     × maps the curriculum directory and its chapter entries 8ms
+   ❯ curriculum hrefs (1)
+     × keeps the locale and uses the stable slug 1ms
+stderr | tests/host-context-state.test.tsx > what an entry opens with > waits for the snapshot before mounting the experiment (no default-then-jump)
+Warning: A suspended resource finished loading inside a test, but the event was not wrapped in act(...).
+
+When testing, code that resolves suspended data should be wrapped into act(...):
+
+act(() => {
+  /* finish loading suspended data */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+
+ ❯ tests/host-context-state.test.tsx (14 tests | 11 failed) 2435ms
+   ❯ what an entry opens with (6)
+     × opens the direct tool entry with the tool defaults 95ms
+     × opens a chapter with that chapter preset, without asking 25ms
+     × loads a compatible snapshot automatically instead of the preset 30ms
+     × falls back to the chapter preset when the snapshot is from an older version 16ms
+     × falls back to the preset when the snapshot cannot be read 32ms
+     × waits for the snapshot before mounting the experiment (no default-then-jump) 4ms
+   ❯ the two controls (7)
+     × offers save and reset, and nothing that restores or deletes 31ms
+     × saves exactly the parameters currently on screen 1047ms
+     × reset returns the view to the chapter preset without deleting the snapshot 26ms
+     × reset on the direct entry goes back to the tool defaults 31ms
+     × says the settings are saved after a successful write 1022ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/curriculum-page.test.tsx [ tests/curriculum-page.test.tsx ]
+Error: Failed to resolve import "../apps/web/src/app/CurriculumPage" from "tests/curriculum-page.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: G:/hermes/projects/openedulab/tests/curriculum-page.test.tsx:4:31
+  2  |  import { describe, expect, it, vi } from "vitest";
+  3  |  import { fireEvent, render, screen } from "@testing-library/react";
+  4  |  import { CurriculumPage } from "../apps/web/src/app/CurriculumPage";
+     |                                  ^
+  5  |  import { createI18n } from "../apps/web/src/i18n";
+  6  |  const i18n = createI18n("en");
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/config.js:29250:43
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/config.js:29247:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/config.js:27370:18
+ ❯ node_modules/vite/dist/node/chunks/config.js:27428:32
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/config.js:27396:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/config.js:29048:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/config.js:22914:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > opens the direct tool entry with the tool defaults
+TestingLibraryElementError: Unable to find an element by: [data-testid="parameter-origin"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"experiment-host"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment-host__toolbar"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"button button--ghost"[39m
+          [33mdata-testid[39m=[32m"back-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m← [0m
+          [0mBack to catalog[0m
+        [36m</button>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment-host__actions"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"save-state-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mSave my settings[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"reset-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReset to defaults[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"fullscreen-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mFull screen[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"feedback-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReport a problem[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"experiment-host__header"[39m
+      [36m>[39m
+        [36m<h1>[39m
+          [0mLinear and quadratic functions[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mDrag a, b and c to see how y = ax + b and y = ax² + bx + c change: slope, vertex, axis of symmetry and real roots.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted small"[39m
+          [33mdata-testid[39m=[32m"experiment-meta"[39m
+        [36m>[39m
+          [0mLoaded from the server · content version[0m
+          [0m [0m
+          [0m1.0.0[0m
+          [0m ·[0m
+          [0m [0m
+          [0mDraft, not reviewed[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment__main"[39m
+        [36m>[39m
+          [36m<figure[39m
+            [33mclass[39m=[32m"experiment__figure"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-labelledby[39m=[32m"math-functions-graph-title"[39m
+              [33mclass[39m=[32m"graph"[39m
+              [33mdata-testid[39m=[32m"function-graph"[39m
+              [33mrole[39m=[32m"img"[39m
+              [33mviewBox[39m=[32m"0 0 640 420"[39m
+            [36m>[39m
+              [36m<title[39m
+                [33mid[39m=[32m"math-functions-graph-title"[39m
+              [36m>[39m
+                [0mCurrent function: y = x²[0m
+              [36m</title>[39m
+              [36m<defs>[39m
+                [36m<clippath[39m
+                  [33mid[39m=[32m"plot-area"[39m
+                [36m>[39m
+                  [36m<rect[39m
+                    [33mheight[39m=[32m"360"[39m
+                    [33mwidth[39m=[32m"574"[39m
+                    [33mx[39m=[32m"48"[39m
+                    [33my[39m=[32m"20"[39m
+                  [36m/>[39m
+                [36m</clippath>[39m
+              [36m</defs>[39m
+              [36m<rect[39m
+                [33mclass[39m=[32m"graph__background"[39m
+                [33mheight[39m=[32m"360"[39m
+                [33mrx[39m=[32m"6"[39m
+                [33mwidth[39m=[32m"574"[39m
+                [33mx[39m=[32m"48"[39m
+                [33my[39m=[32m"20"[39m
+              [36m/>[39m
+              [36m<g[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"graph__grid"[39m
+              [36m>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"48"[39m
+                  [33mx2[39m=[32m"48"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"105.4"[39m
+                  [33mx2[39m=[32m"105.4"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"162.8"[39m
+                  [33mx2[39m=[32m"162.8"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"220.2"[39m
+                  [33mx2[39m=[32m"220.2"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"277.6"[39m
+                  [33mx2[39m=[32m"277.6"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"335"[39m
+                  [33mx2[39m=[32m"335"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"392.4"[39m
+                  [33mx2[39m=[32m"392.4"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"449.79999999999995"[39m
+                  [33mx2[39m=[32m"449.79999999999995"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"507.20000000000005"[39m
+                  [33mx2[39m=[32m"507.20000000000005"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"564.6"[39m
+                  [33mx2[39m=[32m"564.6"[39m
+                  [33my1[39m=[32m"20"[39m
+    ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/host-context-state.test.tsx:78:19
+     76|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+     77|     expect(screen.getByLabelText(/a \(slope/)).toHaveValue('1');
+     78|     expect(screen.getByTestId('parameter-origin')).toHaveTextContent(/…
+       |                   ^
+     79|   });
+     80|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > opens a chapter with that chapter preset, without asking
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 2x + 3[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:84:50
+     82|     renderHost(control(), entry, CHAPTER);
+     83|
+     84|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+     85|     expect(screen.getByLabelText(/a \(slope/)).toHaveValue('2');
+     86|     expect(screen.getByLabelText(/b \(intercept/)).toHaveValue('3');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > loads a compatible snapshot automatically instead of the preset
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 4x²[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:94:50
+     92|     renderHost(saved, entry, { ...CHAPTER, values: PRESET });
+     93|
+     94|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+     95|     expect(screen.getByTestId('parameter-origin')).toHaveTextContent(/…
+     96|     expect(saved.onSave).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > falls back to the chapter preset when the snapshot is from an older version
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 2x + 3[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:102:50
+    100|     renderHost(control({ status: 'incompatible' }), entry, CHAPTER);
+    101|
+    102|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+    103|     expect(screen.getByTestId('parameter-origin')).toHaveTextContent(/…
+    104|     expect(screen.getByTestId('saved-state-notice')).toHaveTextContent…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > falls back to the preset when the snapshot cannot be read
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 2x + 3[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:110:50
+    108|     renderHost(control({ status: 'error' }), entry, CHAPTER);
+    109|
+    110|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+    111|     expect(screen.getByTestId('saved-state-notice')).toHaveTextContent…
+    112|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > what an entry opens with > waits for the snapshot before mounting the experiment (no default-then-jump)
+TestingLibraryElementError: Unable to find an element by: [data-testid="experiment-loading"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"experiment-host"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment-host__toolbar"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"button button--ghost"[39m
+          [33mdata-testid[39m=[32m"back-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m← [0m
+          [0mBack to catalog[0m
+        [36m</button>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment-host__actions"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"save-state-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mSave my settings[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"reset-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReset to defaults[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"fullscreen-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mFull screen[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"feedback-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReport a problem[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"experiment-host__header"[39m
+      [36m>[39m
+        [36m<h1>[39m
+          [0mLinear and quadratic functions[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mDrag a, b and c to see how y = ax + b and y = ax² + bx + c change: slope, vertex, axis of symmetry and real roots.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted small"[39m
+          [33mdata-testid[39m=[32m"experiment-meta"[39m
+        [36m>[39m
+          [0mLoaded from the server · content version[0m
+          [0m [0m
+          [0m1.0.0[0m
+          [0m ·[0m
+          [0m [0m
+          [0mDraft, not reviewed[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"muted"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0mLoading experiment…[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/host-context-state.test.tsx:117:19
+    115|     renderHost(control({ status: 'loading' }), entry, CHAPTER);
+    116|
+    117|     expect(screen.getByTestId('experiment-loading')).toBeInTheDocument…
+       |                   ^
+    118|     expect(screen.queryByTestId('formula')).toBeNull();
+    119|     expect(screen.queryByTestId('save-state-button')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > the two controls > offers save and reset, and nothing that restores or deletes
+AssertionError: expected <button type="button" …(2)></button> to be null
+
+- Expected:
+null
+
++ Received:
+<button
+  class="button button--ghost"
+  data-testid="restore-state-button"
+  type="button"
+>
+  Restore my settings
+</button>
+
+ ❯ tests/host-context-state.test.tsx:130:58
+    128|     expect(screen.getByTestId('save-state-button')).toHaveTextContent(…
+    129|     expect(screen.getByTestId('reset-button')).toHaveTextContent(/rese…
+    130|     expect(screen.queryByTestId('restore-state-button')).toBeNull();
+       |                                                          ^
+    131|     expect(screen.queryByTestId('delete-state-button')).toBeNull();
+    132|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > the two controls > saves exactly the parameters currently on screen
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 5x + 3[39m
+Received:
+[31m  y = 5x²[39m
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mlang[39m=[32m"en"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment-host"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment-host__toolbar"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"back-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m← [0m
+            [0mBack to catalog[0m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"experiment-host__actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"save-state-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mSave my settings[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"reset-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReset to defaults[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"fullscreen-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mFull screen[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"feedback-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReport a problem[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"experiment-host__header"[39m
+        [36m>[39m
+          [36m<h1>[39m
+            [0mLinear and quadratic functions[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"muted"[39m
+          [36m>[39m
+            [0mDrag a, b and c to see how y = ax + b and y = ax² + bx + c change: slope, vertex, axis of symmetry and real roots.[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"muted small"[39m
+            [33mdata-testid[39m=[32m"experiment-meta"[39m
+          [36m>[39m
+            [0mLoaded from the server · content version[0m
+            [0m [0m
+            [0m1.0.0[0m
+            [0m ·[0m
+            [0m [0m
+            [0mDraft, not reviewed[0m
+          [36m</p>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"experiment__main"[39m
+          [36m>[39m
+            [36m<figure[39m
+              [33mclass[39m=[32m"experiment__figure"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-labelledby[39m=[32m"math-functions-graph-title"[39m
+                [33mclass[39m=[32m"graph"[39m
+                [33mdata-testid[39m=[32m"function-graph"[39m
+                [33mrole[39m=[32m"img"[39m
+                [33mviewBox[39m=[32m"0 0 640 420"[39m
+              [36m>[39m
+                [36m<title[39m
+                  [33mid[39m=[32m"math-functions-graph-title"[39m
+                [36m>[39m
+                  [0mCurrent function: y = 5x²[0m
+                [36m</title>[39m
+                [36m<defs>[39m
+                  [36m<clippath[39m
+                    [33mid[39m=[32m"plot-area"[39m
+                  [36m>[39m
+                    [36m<rect[39m
+                      [33mheight[39m=[32m"360"[39m
+                      [33mwidth[39m=[32m"574"[39m
+                      [33mx[39m=[32m"48"[39m
+                      [33my[39m=[32m"20"[39m
+                    [36m/>[39m
+                  [36m</clippath>[39m
+                [36m</defs>[39m
+                [36m<rect[39m
+                  [33mclass[39m=[32m"graph__background"[39m
+                  [33mheight[39m=[32m"360"[39m
+                  [33mrx[39m=[32m"6"[39m
+                  [33mwidth[39m=[32m"574"[39m
+                  [33mx[39m=[32m"48"[39m
+                  [33my[39m=[32m"20"[39m
+                [36m/>[39m
+                [36m<g[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"graph__grid"[39m
+                [36m>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"48"[39m
+                    [33mx2[39m=[32m"48"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"105.4"[39m
+                    [33mx2[39m=[32m"105.4"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"162.8"[39m
+                    [33mx2[39m=[32m"162.8"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"220.2"[39m
+                    [33mx2[39m=[32m"220.2"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"277.6"[39m
+                    [33mx2[39m=[32m"277.6"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"335"[39m
+                    [33mx2[39m=[32m"335"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"392.4"[39m
+                    [33mx2[39m=[32m"392.4"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"449.79999999999995"[39m
+                    [33mx2[39m=[32m"449.79999999999995"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+          ...
+ ❯ tests/host-context-state.test.tsx:140:63
+    138|     const slope = await screen.findByLabelText(/a \(slope/);
+    139|     fireEvent.change(slope, { target: { value: '5' } });
+    140|     await waitFor(() => expect(screen.getByTestId('formula')).toHaveTe…
+       |                                                               ^
+    141|
+    142|     fireEvent.click(screen.getByTestId('save-state-button'));
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > the two controls > reset returns the view to the chapter preset without deleting the snapshot
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 4x²[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:163:50
+    161|     renderHost(saved, entry, CHAPTER);
+    162|
+    163|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+    164|
+    165|     fireEvent.click(screen.getByTestId('reset-button'));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > the two controls > reset on the direct entry goes back to the tool defaults
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  y = 4x²[39m
+Received:
+[31m  y = x²[39m
+ ❯ tests/host-context-state.test.tsx:178:50
+    176|     renderHost(saved, entry, TOOL);
+    177|
+    178|     expect(await screen.findByTestId('formula')).toHaveTextContent('y …
+       |                                                  ^
+    179|     fireEvent.click(screen.getByTestId('reset-button'));
+    180|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  tests/host-context-state.test.tsx > the two controls > says the settings are saved after a successful write
+TestingLibraryElementError: Unable to find an element by: [data-testid="saved-state-notice"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"experiment-host"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment-host__toolbar"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"button button--ghost"[39m
+          [33mdata-testid[39m=[32m"back-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m← [0m
+          [0mBack to catalog[0m
+        [36m</button>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment-host__actions"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"save-state-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mSave my settings[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"reset-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReset to defaults[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"fullscreen-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mFull screen[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"feedback-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mReport a problem[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"experiment-host__header"[39m
+      [36m>[39m
+        [36m<h1>[39m
+          [0mLinear and quadratic functions[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mDrag a, b and c to see how y = ax + b and y = ax² + bx + c change: slope, vertex, axis of symmetry and real roots.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted small"[39m
+          [33mdata-testid[39m=[32m"experiment-meta"[39m
+        [36m>[39m
+          [0mLoaded from the server · content version[0m
+          [0m [0m
+          [0m1.0.0[0m
+          [0m ·[0m
+          [0m [0m
+          [0mDraft, not reviewed[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment__main"[39m
+        [36m>[39m
+          [36m<figure[39m
+            [33mclass[39m=[32m"experiment__figure"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-labelledby[39m=[32m"math-functions-graph-title"[39m
+              [33mclass[39m=[32m"graph"[39m
+              [33mdata-testid[39m=[32m"function-graph"[39m
+              [33mrole[39m=[32m"img"[39m
+              [33mviewBox[39m=[32m"0 0 640 420"[39m
+            [36m>[39m
+              [36m<title[39m
+                [33mid[39m=[32m"math-functions-graph-title"[39m
+              [36m>[39m
+                [0mCurrent function: y = x²[0m
+              [36m</title>[39m
+              [36m<defs>[39m
+                [36m<clippath[39m
+                  [33mid[39m=[32m"plot-area"[39m
+                [36m>[39m
+                  [36m<rect[39m
+                    [33mheight[39m=[32m"360"[39m
+                    [33mwidth[39m=[32m"574"[39m
+                    [33mx[39m=[32m"48"[39m
+                    [33my[39m=[32m"20"[39m
+                  [36m/>[39m
+                [36m</clippath>[39m
+              [36m</defs>[39m
+              [36m<rect[39m
+                [33mclass[39m=[32m"graph__background"[39m
+                [33mheight[39m=[32m"360"[39m
+                [33mrx[39m=[32m"6"[39m
+                [33mwidth[39m=[32m"574"[39m
+                [33mx[39m=[32m"48"[39m
+                [33my[39m=[32m"20"[39m
+              [36m/>[39m
+              [36m<g[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"graph__grid"[39m
+              [36m>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"48"[39m
+                  [33mx2[39m=[32m"48"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"105.4"[39m
+                  [33mx2[39m=[32m"105.4"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"162.8"[39m
+                  [33mx2[39m=[32m"162.8"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"220.2"[39m
+                  [33mx2[39m=[32m"220.2"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"277.6"[39m
+                  [33mx2[39m=[32m"277.6"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"335"[39m
+                  [33mx2[39m=[32m"335"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"392.4"[39m
+                  [33mx2[39m=[32m"392.4"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"449.79999999999995"[39m
+                  [33mx2[39m=[32m"449.79999999999995"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"507.20000000000005"[39m
+                  [33mx2[39m=[32m"507.20000000000005"[39m
+                  [33my1[39m=[32m"20"[39m
+                  [33my2[39m=[32m"380"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"564.6"[39m
+                  [33mx2[39m=[32m"564.6"[39m
+                  [33my1[39m=[32m"20"[39m
+    ...
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mlang[39m=[32m"en"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"experiment-host"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment-host__toolbar"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"button button--ghost"[39m
+            [33mdata-testid[39m=[32m"back-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m← [0m
+            [0mBack to catalog[0m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"experiment-host__actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"save-state-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mSave my settings[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"reset-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReset to defaults[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"fullscreen-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mFull screen[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"button button--ghost"[39m
+              [33mdata-testid[39m=[32m"feedback-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReport a problem[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"experiment-host__header"[39m
+        [36m>[39m
+          [36m<h1>[39m
+            [0mLinear and quadratic functions[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"muted"[39m
+          [36m>[39m
+            [0mDrag a, b and c to see how y = ax + b and y = ax² + bx + c change: slope, vertex, axis of symmetry and real roots.[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"muted small"[39m
+            [33mdata-testid[39m=[32m"experiment-meta"[39m
+          [36m>[39m
+            [0mLoaded from the server · content version[0m
+            [0m [0m
+            [0m1.0.0[0m
+            [0m ·[0m
+            [0m [0m
+            [0mDraft, not reviewed[0m
+          [36m</p>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"experiment"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"experiment__main"[39m
+          [36m>[39m
+            [36m<figure[39m
+              [33mclass[39m=[32m"experiment__figure"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-labelledby[39m=[32m"math-functions-graph-title"[39m
+                [33mclass[39m=[32m"graph"[39m
+                [33mdata-testid[39m=[32m"function-graph"[39m
+                [33mrole[39m=[32m"img"[39m
+                [33mviewBox[39m=[32m"0 0 640 420"[39m
+              [36m>[39m
+                [36m<title[39m
+                  [33mid[39m=[32m"math-functions-graph-title"[39m
+                [36m>[39m
+                  [0mCurrent function: y = x²[0m
+                [36m</title>[39m
+                [36m<defs>[39m
+                  [36m<clippath[39m
+                    [33mid[39m=[32m"plot-area"[39m
+                  [36m>[39m
+                    [36m<rect[39m
+                      [33mheight[39m=[32m"360"[39m
+                      [33mwidth[39m=[32m"574"[39m
+                      [33mx[39m=[32m"48"[39m
+                      [33my[39m=[32m"20"[39m
+                    [36m/>[39m
+                  [36m</clippath>[39m
+                [36m</defs>[39m
+                [36m<rect[39m
+                  [33mclass[39m=[32m"graph__background"[39m
+                  [33mheight[39m=[32m"360"[39m
+                  [33mrx[39m=[32m"6"[39m
+                  [33mwidth[39m=[32m"574"[39m
+                  [33mx[39m=[32m"48"[39m
+                  [33my[39m=[32m"20"[39m
+                [36m/>[39m
+                [36m<g[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"graph__grid"[39m
+                [36m>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"48"[39m
+                    [33mx2[39m=[32m"48"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"105.4"[39m
+                    [33mx2[39m=[32m"105.4"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"162.8"[39m
+                    [33mx2[39m=[32m"162.8"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"220.2"[39m
+                    [33mx2[39m=[32m"220.2"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"277.6"[39m
+                    [33mx2[39m=[32m"277.6"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"335"[39m
+                    [33mx2[39m=[32m"335"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"392.4"[39m
+                    [33mx2[39m=[32m"392.4"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"449.79999999999995"[39m
+                    [33mx2[39m=[32m"449.79999999999995"[39m
+                    [33my1[39m=[32m"20"[39m
+                    [33my2[39m=[32m"380"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+           ...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ tests/host-context-state.test.tsx:201:11
+    199|     fireEvent.click(screen.getByTestId('save-state-button'));
+    200|
+    201|     await waitFor(() =>
+       |           ^
+    202|       expect(screen.getByTestId('saved-state-notice')).toHaveTextConte…
+    203|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  tests/router.test.ts > parseRoute > maps the curriculum directory and its chapter entries
+AssertionError: expected { name: 'notFound', …(1) } to deeply equal { name: 'curriculum' }
+
+- Expected
++ Received
+
+  {
+-   "name": "curriculum",
++   "name": "notFound",
++   "path": "/curriculum",
+  }
+
+ ❯ tests/router.test.ts:41:39
+     39|
+     40|   it('maps the curriculum directory and its chapter entries', () => {
+     41|     expect(parseRoute('/curriculum')).toEqual({ name: 'curriculum' });
+       |                                       ^
+     42|     expect(parseRoute('/curriculum/pilot-linear-slope')).toEqual({
+     43|       name: 'placement',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  tests/router.test.ts > curriculum hrefs > keeps the locale and uses the stable slug
+TypeError: curriculumHref is not a function
+ ❯ tests/router.test.ts:53:12
+     51| describe('curriculum hrefs', () => {
+     52|   it('keeps the locale and uses the stable slug', () => {
+     53|     expect(curriculumHref('en')).toBe('/curriculum?lang=en');
+       |            ^
+     54|     expect(placementHref('pilot-linear-slope', 'zh-CN')).toBe(
+     55|       '/curriculum/pilot-linear-slope?lang=zh-CN',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  13 failed | 24 passed (37)
+   Start at  09:42:17
+   Duration  3.86s (tests 44%, environment 42%, setup 6%, transform 4%, import 3%, worker 1%)

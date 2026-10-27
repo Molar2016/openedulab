@@ -101,6 +101,42 @@ export interface SavedStateSnapshot {
   readonly updatedAt: number;
 }
 
+/** One curriculum directory entry: a chapter position that reuses a tool (ADR-003). */
+export interface CurriculumNode {
+  readonly id: string;
+  readonly label: string;
+}
+
+export interface CurriculumItem {
+  readonly placementId: string;
+  readonly slug: string;
+  readonly version: number;
+  readonly status: 'illustrative' | 'verified';
+  readonly order: number;
+  readonly experimentId: string;
+  readonly experimentSlug: string;
+  readonly contentVersion: string;
+  readonly stateSchemaVersion: number;
+  readonly title: string;
+  readonly summary: string;
+  readonly edition: CurriculumNode;
+  readonly book: CurriculumNode;
+  readonly chapter: CurriculumNode;
+  /** The preset this entry opens with (validated server-side against the tool schema). */
+  readonly preset: Readonly<Record<string, number | string>>;
+}
+
+/** A personal snapshot scoped to (account, placement) — never to the tool. */
+export interface PlacementStateSnapshot {
+  readonly placementId: string;
+  readonly experimentId: string;
+  readonly placementVersion: number;
+  readonly contentVersion: string;
+  readonly stateSchemaVersion: number;
+  readonly values: Readonly<Record<string, number | string>>;
+  readonly updatedAt: number;
+}
+
 /** Wire shape of a diagnostic event (design §7.6). No free text, no values. */
 export interface DiagnosticEvent {
   readonly clientEventId: string;
@@ -141,6 +177,18 @@ export interface ApiClient {
     input: { readonly stateSchemaVersion: number; readonly values: Readonly<Record<string, number | string>> },
   ): Promise<SavedStateSnapshot>;
   deleteState(experimentId: string): Promise<void>;
+  /** Curriculum directory. Protected content, like the catalog. */
+  curriculum(locale?: string): Promise<readonly CurriculumItem[]>;
+  /** `null` means this account has nothing saved for this placement. */
+  placementState(placementId: string): Promise<PlacementStateSnapshot | null>;
+  savePlacementState(
+    placementId: string,
+    input: {
+      readonly placementVersion: number;
+      readonly stateSchemaVersion: number;
+      readonly values: Readonly<Record<string, number | string>>;
+    },
+  ): Promise<PlacementStateSnapshot>;
   /** Diagnostic batch. Best effort: the caller decides what a failure means. */
   postEvents(input: {
     visitId: string;
@@ -327,6 +375,30 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       request<void>(`/api/me/saved-state/${encodeURIComponent(experimentId)}`, {
         method: 'DELETE',
       }),
+
+    async curriculum(locale) {
+      const suffix = locale === undefined ? '' : `?locale=${encodeURIComponent(locale)}`;
+      const body = await request<{ items: CurriculumItem[] }>(`/api/curriculum${suffix}`);
+      return body.items;
+    },
+
+    async placementState(placementId) {
+      try {
+        return await request<PlacementStateSnapshot>(
+          `/api/me/placement-state/${encodeURIComponent(placementId)}`,
+        );
+      } catch (error) {
+        // 404 is the normal "nothing saved for this entry yet" answer, not a failure.
+        if (error instanceof ApiError && error.code === 'not_found') return null;
+        throw error;
+      }
+    },
+
+    savePlacementState: (placementId, input) =>
+      request<PlacementStateSnapshot>(
+        `/api/me/placement-state/${encodeURIComponent(placementId)}`,
+        { method: 'PUT', body: JSON.stringify(input) },
+      ),
 
     postEvents: (input) =>
       request<{ accepted: number; dropped: number }>('/api/events', {

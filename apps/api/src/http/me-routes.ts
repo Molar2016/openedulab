@@ -5,6 +5,10 @@ import type { AppConfig } from '../config.js';
 import { addFavorite, listFavorites, removeFavorite } from '../db/favorite-repository.js';
 import { listRecentUse, recordRecentUse } from '../db/recent-repository.js';
 import {
+  getPlacementState,
+  putPlacementState,
+} from '../db/placement-state-repository.js';
+import {
   deleteSavedState,
   getSavedState,
   putSavedState,
@@ -40,6 +44,8 @@ const RULES = {
   // Saving is a deliberate click, not a stream: 30 copies of one snapshot per minute is
   // far above any real use and still bounds an accidental loop.
   savedStateWrite: { limit: 30, windowMs: MINUTE_MS },
+  // Same budget as the tool-level snapshot: a deliberate click, not a stream.
+  placementStateWrite: { limit: 30, windowMs: MINUTE_MS },
 } as const satisfies Record<string, RateLimitRule>;
 
 const PARAMS_SCHEMA: object = {
@@ -48,6 +54,17 @@ const PARAMS_SCHEMA: object = {
   required: ['experimentId'],
   properties: {
     experimentId: { type: 'string', pattern: EXPERIMENT_ID_PATTERN, maxLength: 80 },
+  },
+};
+
+const PLACEMENT_PARAMS_SCHEMA: object = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['placementId'],
+  properties: {
+    // A placement id is content-derived and must stay in the same shape as the index:
+    // rejecting the shape here means a crafted path never reaches a lookup at all.
+    placementId: { type: 'string', pattern: EXPERIMENT_ID_PATTERN, maxLength: 120 },
   },
 };
 
@@ -83,6 +100,18 @@ const SAVED_STATE_BODY_SCHEMA: object = {
   },
 };
 
+/** Placement snapshots carry the placement's own version, not just the schema version. */
+const PLACEMENT_STATE_BODY_SCHEMA: object = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['placementVersion', 'stateSchemaVersion', 'values'],
+  properties: {
+    placementVersion: { type: 'integer', minimum: 1, maximum: 100000 },
+    stateSchemaVersion: { type: 'integer', minimum: 1, maximum: 1000 },
+    values: { type: 'object' },
+  },
+};
+
 const MESSAGES = {
   unknownExperiment: 'No published experiment matches that id.',
   favoriteLimited: 'Too many favorite changes. Wait a minute and try again.',
@@ -91,6 +120,10 @@ const MESSAGES = {
   savedStateLimited: 'Too many save attempts. Wait a minute and try again.',
   noSaving: 'This experiment does not offer saved settings.',
   unreadableSnapshot: 'The saved settings cannot be read by this version. Save again to replace them.',
+  unknownPlacement: 'No published curriculum entry matches that id.',
+  noPlacementState: 'No saved settings for this curriculum entry.',
+  placementMoved:
+    'This curriculum entry has a new version; reload the page to use the current preset.',
 } as const;
 
 /** Why a saved-parameter payload was refused, in terms a user can act on. */
@@ -147,14 +180,17 @@ export function registerMeRoutes(app: FastifyInstance, options: MeRouteOptions):
   ): Promise<FastifyReply | undefined> => {
     const body = request.body;
     if (typeof body !== 'object' || body === null) return undefined;
-    const version = (body as { stateSchemaVersion?: unknown }).stateSchemaVersion;
-    if (version === undefined) return undefined; // AJV reports the missing field itself.
-    if (typeof version === 'number' && Number.isInteger(version)) return undefined;
-    return reply
-      .code(400)
-      .header('cache-control', 'no-store')
-      .type(JSON_TYPE)
-      .send(apiError('validation_failed', 'stateSchemaVersion must be an integer.'));
+    for (const field of ['stateSchemaVersion', 'placementVersion'] as const) {
+      const version = (body as Record<string, unknown>)[field];
+      if (version === undefined) continue; // AJV reports a missing field itself.
+      if (typeof version === 'number' && Number.isInteger(version)) continue;
+      return reply
+        .code(400)
+        .header('cache-control', 'no-store')
+        .type(JSON_TYPE)
+        .send(apiError('validation_failed', `${field} must be an integer.`));
+    }
+    return undefined;
   };
 
   app.get('/api/me/favorites', { onRequest: gate.requireSession }, async (request, reply) => {
@@ -229,6 +265,143 @@ export function registerMeRoutes(app: FastifyInstance, options: MeRouteOptions):
       }
       recordRecentUse(db, accountId, experimentId, now());
       return reply.code(204).header('cache-control', 'no-store').send();
+    },
+  );
+
+  // --- Curriculum placement snapshots (ADR-003) -----------------------------------------
+  //
+  // A chapter entry reuses one tool but owns its own snapshot. Scope is the placement, and
+  // the row is looked up by (session account, placement) only: the tool-level snapshot in
+  // `saved_state` is never read here and never written to. `placementVersion` is part of the
+  // handshake, so a chapter whose preset changed cannot silently apply an old row.
+
+  app.get(
+    '/api/me/placement-state/:placementId',
+    { onRequest: gate.requireSession, schema: { params: PLACEMENT_PARAMS_SCHEMA } },
+    async (request, reply) => {
+      const { accountId } = accountOf(request);
+      const { placementId } = request.params as { placementId: string };
+      const found = contentIndex.findPlacement(placementId);
+      if (found === undefined) {
+        return reply
+          .code(404)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('not_found', MESSAGES.unknownPlacement));
+      }
+      const row = getPlacementState(db, accountId, placementId);
+      if (row === undefined) {
+        return reply
+          .code(404)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('not_found', MESSAGES.noPlacementState));
+      }
+      let values: unknown;
+      try {
+        values = JSON.parse(row.payload) as unknown;
+      } catch {
+        return reply
+          .code(409)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('state_schema_incompatible', MESSAGES.unreadableSnapshot));
+      }
+      return reply.header('cache-control', 'no-store').type(JSON_TYPE).send({
+        placementId: row.placementId,
+        experimentId: row.experimentId,
+        placementVersion: row.placementVersion,
+        contentVersion: row.contentVersion,
+        stateSchemaVersion: row.stateSchemaVersion,
+        values,
+        updatedAt: row.updatedAt,
+      });
+    },
+  );
+
+  app.put(
+    '/api/me/placement-state/:placementId',
+    {
+      onRequest: writeHooks,
+      preValidation: requireNumericSchemaVersion,
+      schema: { params: PLACEMENT_PARAMS_SCHEMA, body: PLACEMENT_STATE_BODY_SCHEMA },
+    },
+    async (request, reply) => {
+      const { accountId } = accountOf(request);
+      const budget = limiter.consume(`placement-state:${accountId}`, RULES.placementStateWrite);
+      if (budget.blocked) return limited(reply, budget, MESSAGES.savedStateLimited);
+
+      const { placementId } = request.params as { placementId: string };
+      const found = contentIndex.findPlacement(placementId);
+      if (found === undefined) {
+        return reply
+          .code(404)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('not_found', MESSAGES.unknownPlacement));
+      }
+      const { placement, experiment } = found;
+      const schema = experiment.stateSchema;
+      if (schema === null) {
+        return reply
+          .code(409)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('state_schema_incompatible', MESSAGES.noSaving));
+      }
+
+      const body = request.body as {
+        placementVersion: number;
+        stateSchemaVersion: number;
+        values: unknown;
+      };
+      if (body.placementVersion !== placement.version) {
+        return reply
+          .code(409)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('state_schema_incompatible', MESSAGES.placementMoved));
+      }
+      if (body.stateSchemaVersion !== schema.version) {
+        return reply
+          .code(409)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(
+            apiError(
+              'state_schema_incompatible',
+              `This experiment stores settings as schema version ${String(schema.version)}; reload the page and try again.`,
+            ),
+          );
+      }
+
+      const validated = validateStateValues(schema, body.values);
+      if (!validated.ok) {
+        return reply
+          .code(400)
+          .header('cache-control', 'no-store')
+          .type(JSON_TYPE)
+          .send(apiError('state_invalid', stateRejectionMessage(validated.reason, validated.fields)));
+      }
+
+      const updatedAt = putPlacementState(db, accountId, placementId, {
+        experimentId: experiment.id,
+        placementVersion: placement.version,
+        contentVersion: experiment.contentVersion,
+        stateSchemaVersion: schema.version,
+        payload: validated.payload,
+        updatedAt: now(),
+      });
+
+      return reply.header('cache-control', 'no-store').type(JSON_TYPE).send({
+        placementId,
+        experimentId: experiment.id,
+        placementVersion: placement.version,
+        contentVersion: experiment.contentVersion,
+        stateSchemaVersion: schema.version,
+        values: validated.values,
+        updatedAt,
+      });
     },
   );
 
@@ -382,4 +555,5 @@ export const ME_ROUTE_PATHS: readonly string[] = Object.freeze([
   '/api/me/favorites/:experimentId',
   '/api/me/recent',
   '/api/me/saved-state/:experimentId',
+  '/api/me/placement-state/:placementId',
 ]);

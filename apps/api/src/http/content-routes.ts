@@ -7,16 +7,17 @@ import {
   type ContentIndex,
   type ContentLocale,
 } from '../domain/content-index.js';
+import type { CurriculumPlacement, PlacementNode } from '../domain/curriculum.js';
 import { accountOf, type SessionGate } from './auth-context.js';
 import { apiError } from './errors.js';
 
 /**
  * Protected content endpoints (design §7.2, R-05/R-07).
  *
- * Both routes are mounted behind `requireSession` as an `onRequest` hook, so the gate is
- * evaluated before query/param validation and no content metadata can be read by an
+ * All three routes are mounted behind `requireSession` as an `onRequest` hook, so the gate
+ * is evaluated before query/param validation and no content metadata can be read by an
  * anonymous caller. Responses carry only indexed fields — never a filesystem path, never
- * a manifest file name.
+ * a manifest or curriculum file name.
  */
 
 const TAG_PATTERN = '^[a-z0-9][a-z0-9-]*$';
@@ -61,6 +62,14 @@ const EXPERIMENT_QUERY_SCHEMA: object = {
   },
 };
 
+const CURRICULUM_QUERY_SCHEMA: object = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    locale: { type: 'string', enum: [...CONTENT_LOCALES] },
+  },
+};
+
 interface CatalogQueryString {
   readonly subject?: string;
   readonly grade?: string;
@@ -90,6 +99,40 @@ function catalogItem(entry: ContentExperiment, locale: ContentLocale): object {
   };
 }
 
+/**
+ * One curriculum directory entry (ADR-003): the tool it reuses, its stable id and version,
+ * where it sits in the edition/book/chapter tree, the localized texts and the preset the
+ * context page opens with. The preset is content that every signed-in account may read —
+ * it is the chapter's promise, not anybody's personal data.
+ */
+function curriculumItem(
+  placement: CurriculumPlacement,
+  experiment: ContentExperiment,
+  locale: ContentLocale,
+): object {
+  const node = (value: PlacementNode): object => ({
+    id: value.id,
+    label: value.labels[locale],
+  });
+  return {
+    placementId: placement.placementId,
+    slug: placement.slug,
+    version: placement.version,
+    status: placement.status,
+    order: placement.order,
+    experimentId: placement.experimentId,
+    experimentSlug: experiment.slug,
+    contentVersion: experiment.contentVersion,
+    stateSchemaVersion: placement.stateSchemaVersion,
+    title: placement.title[locale],
+    summary: placement.summary[locale],
+    edition: node(placement.edition),
+    book: node(placement.book),
+    chapter: node(placement.chapter),
+    preset: { ...placement.preset },
+  };
+}
+
 export function registerContentRoutes(app: FastifyInstance, options: CatalogRouteOptions): void {
   const { contentIndex, gate } = options;
 
@@ -114,6 +157,26 @@ export function registerContentRoutes(app: FastifyInstance, options: CatalogRout
         .header('cache-control', 'no-store')
         .type('application/json; charset=utf-8')
         .send({ items: items.map((entry) => catalogItem(entry, locale)) });
+    },
+  );
+
+  app.get(
+    '/api/curriculum',
+    { onRequest: gate.requireSession, schema: { querystring: CURRICULUM_QUERY_SCHEMA } },
+    async (request, reply) => {
+      accountOf(request);
+      const { locale } = request.query as { locale?: ContentLocale };
+      const active = locale ?? 'zh-CN';
+      const items = contentIndex.placements.flatMap((placement) => {
+        const experiment = contentIndex.find(placement.experimentId);
+        // The index only publishes a placement whose tool is also published; a dangling
+        // reference cannot be served, and startup validation already refuses one.
+        return experiment === undefined ? [] : [curriculumItem(placement, experiment, active)];
+      });
+      return reply
+        .header('cache-control', 'no-store')
+        .type('application/json; charset=utf-8')
+        .send({ items });
     },
   );
 

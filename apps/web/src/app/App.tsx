@@ -5,13 +5,21 @@ import { getExperimentBySlug, type RegistryEntry } from '../experiment/registry'
 import { ExperimentHost } from '../host/ExperimentHost';
 import { createI18n, persistLocale, resolveInitialLocale } from '../i18n';
 import type { AppServices } from '../services';
-import { ApiError, type ExperimentDetail } from '../services/api';
+import {
+  ApiError,
+  type CurriculumItem,
+  type ExperimentDetail,
+  type PlacementStateSnapshot,
+  type SavedStateSnapshot,
+} from '../services/api';
 import { CatalogPage } from './CatalogPage';
+import { CurriculumPage } from './CurriculumPage';
 import { LoginPage } from './LoginPage';
 import { MePage } from './MePage';
 import {
   aboutHref,
   catalogHref,
+  curriculumHref,
   loginHref,
   meHref,
   parseRoute,
@@ -84,12 +92,18 @@ function ExperimentRoute({
   i18n,
   services,
   onBack,
+  placement,
 }: {
   entry: RegistryEntry;
   locale: Locale;
   i18n: ReturnType<typeof createI18n>;
   services: AppServices;
   onBack: () => void;
+  /**
+   * The curriculum entry this page was opened from (ADR-003). Absent = the direct tool URL:
+   * it keeps using the tool-level snapshot and the tool's own defaults.
+   */
+  placement?: CurriculumItem;
 }): JSX.Element {
   const [state, setState] = useState<ExperimentState>({ kind: 'loading' });
   const [reloadToken, setReloadToken] = useState(0);
@@ -99,7 +113,7 @@ function ExperimentRoute({
   const [recentFailed, setRecentFailed] = useState(false);
   const [savedView, setSavedView] = useState<SavedView>({ kind: 'loading' });
   const [savedBusy, setSavedBusy] = useState(false);
-  const [savedError, setSavedError] = useState<'none' | 'save' | 'delete'>('none');
+  const [savedError, setSavedError] = useState<'none' | 'save'>('none');
   const experimentId = entry.manifest.id;
 
   useEffect(() => {
@@ -154,8 +168,12 @@ function ExperimentRoute({
      * whatever the server happens to hold: a snapshot from an older content or schema
      * version must not be applied, and the UI says so instead of guessing (design §7.5).
      */
-    services.api
-      .savedState(experimentId)
+    const loadSnapshot = (): Promise<SavedStateSnapshot | PlacementStateSnapshot | null> =>
+      placement === undefined
+        ? services.api.savedState(experimentId)
+        : services.api.placementState(placement.placementId);
+
+    loadSnapshot()
       .then((snapshot) => {
         if (cancelled) return;
         if (snapshot === null) {
@@ -163,10 +181,14 @@ function ExperimentRoute({
           return;
         }
         const schemaVersion = entry.stateSchema?.version;
+        // Every dimension that can change the meaning of the stored numbers is checked:
+        // schema version, content version, and (for a chapter) the placement version.
         const compatible =
           schemaVersion !== undefined &&
           snapshot.stateSchemaVersion === schemaVersion &&
-          snapshot.contentVersion === readyContentVersion;
+          snapshot.contentVersion === readyContentVersion &&
+          (placement === undefined ||
+            ('placementVersion' in snapshot && snapshot.placementVersion === placement.version));
         setSavedView(
           compatible ? { kind: 'saved', values: snapshot.values } : { kind: 'incompatible' },
         );
@@ -178,7 +200,7 @@ function ExperimentRoute({
     return () => {
       cancelled = true;
     };
-  }, [state.kind, services, experimentId, entry.stateSchema, readyContentVersion]);
+  }, [state.kind, services, experimentId, entry.stateSchema, readyContentVersion, placement]);
 
   const toggleFavorite = useCallback((): void => {
     const adding = favorite.kind !== 'on';
@@ -197,29 +219,33 @@ function ExperimentRoute({
    * overwrites on a successful, validated write).
    */
   const saveSettings = useCallback(
-    (values: Readonly<Record<string, number | string>>): void => {
+    async (values: Readonly<Record<string, number | string>>): Promise<void> => {
       const schema = entry.stateSchema;
       if (schema === null) return;
       setSavedBusy(true);
       setSavedError('none');
-      services.api
-        .saveState(experimentId, { stateSchemaVersion: schema.version, values })
-        .then((snapshot) => setSavedView({ kind: 'saved', values: snapshot.values }))
-        .catch(() => setSavedError('save'))
-        .finally(() => setSavedBusy(false));
+      try {
+        const snapshot =
+          placement === undefined
+            ? await services.api.saveState(experimentId, {
+                stateSchemaVersion: schema.version,
+                values,
+              })
+            : await services.api.savePlacementState(placement.placementId, {
+                placementVersion: placement.version,
+                stateSchemaVersion: schema.version,
+                values,
+              });
+        setSavedView({ kind: 'saved', values: snapshot.values });
+      } catch (error) {
+        setSavedError('save');
+        throw error instanceof Error ? error : new Error('save_failed');
+      } finally {
+        setSavedBusy(false);
+      }
     },
-    [entry.stateSchema, experimentId, services],
+    [entry.stateSchema, experimentId, placement, services],
   );
-
-  const deleteSettings = useCallback((): void => {
-    setSavedBusy(true);
-    setSavedError('none');
-    services.api
-      .deleteState(experimentId)
-      .then(() => setSavedView({ kind: 'none' }))
-      .catch(() => setSavedError('delete'))
-      .finally(() => setSavedBusy(false));
-  }, [experimentId, services]);
 
   if (state.kind === 'loading') {
     return (
@@ -247,6 +273,15 @@ function ExperimentRoute({
 
   return (
     <>
+      {placement === undefined ? null : (
+        <p className="muted small" data-testid="placement-breadcrumb">
+          {i18n.t('placement.breadcrumb', {
+            edition: placement.edition.label,
+            book: placement.book.label,
+            chapter: placement.chapter.label,
+          })}
+        </p>
+      )}
       <ExperimentHost
         entry={entry}
         locale={locale}
@@ -255,6 +290,12 @@ function ExperimentRoute({
         contentVersion={state.detail.contentVersion}
         reviewedStatus={state.detail.reviewedStatus}
         appVersion={services.appVersion}
+        backLabel={placement === undefined ? undefined : i18n.t('placement.back')}
+        context={
+          placement === undefined
+            ? { kind: 'tool' }
+            : { kind: 'placement', values: placement.preset, label: placement.title }
+        }
         onSubmitFeedback={async (payload) => {
           await services.api.submitFeedback({ ...payload, locale });
         }}
@@ -277,7 +318,6 @@ function ExperimentRoute({
                 busy: savedBusy,
                 error: savedError,
                 onSave: saveSettings,
-                onDelete: deleteSettings,
               },
             })}
         onBack={onBack}
@@ -288,6 +328,112 @@ function ExperimentRoute({
         </p>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Curriculum context page (ADR-003): resolves the URL slug against the server's directory,
+ * finds the tool the entry reuses, and renders it with that chapter's preset. An entry that
+ * is not published is reported as missing — the bundle is never asked to invent one.
+ */
+function PlacementPage({
+  slug,
+  locale,
+  i18n,
+  services,
+  navigate,
+}: {
+  slug: string;
+  locale: Locale;
+  i18n: ReturnType<typeof createI18n>;
+  services: AppServices;
+  navigate: (to: string) => void;
+}): JSX.Element {
+  const [state, setState] = useState<
+    | { kind: 'loading' }
+    | { kind: 'missing' }
+    | { kind: 'error' }
+    | { kind: 'ready'; placement: CurriculumItem }
+  >({ kind: 'loading' });
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ kind: 'loading' });
+    services.api
+      .curriculum(locale)
+      .then((items) => {
+        if (cancelled) return;
+        const found = items.find((item) => item.slug === slug);
+        setState(found === undefined ? { kind: 'missing' } : { kind: 'ready', placement: found });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ kind: 'error' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [services, locale, slug, reloadToken]);
+
+  if (state.kind === 'loading') {
+    return (
+      <p className="muted" role="status" data-testid="placement-loading">
+        {i18n.t('placement.loading')}
+      </p>
+    );
+  }
+
+  if (state.kind === 'error') {
+    return (
+      <section className="empty" role="alert" data-testid="placement-error">
+        <h1>{i18n.t('placement.error')}</h1>
+        <button
+          type="button"
+          className="button"
+          onClick={() => setReloadToken((value) => value + 1)}
+        >
+          {i18n.t('placement.retry')}
+        </button>
+      </section>
+    );
+  }
+
+  if (state.kind === 'missing') {
+    return (
+      <section className="empty" data-testid="placement-missing">
+        <h1>{i18n.t('placement.missing')}</h1>
+        <button
+          type="button"
+          className="button"
+          onClick={() => navigate(curriculumHref(locale))}
+        >
+          {i18n.t('placement.back')}
+        </button>
+      </section>
+    );
+  }
+
+  const entry = getExperimentBySlug(state.placement.experimentSlug);
+  if (entry === undefined) {
+    return (
+      <section className="empty" data-testid="placement-missing">
+        <h1>{i18n.t('placement.missing')}</h1>
+        <button type="button" className="button" onClick={() => navigate(curriculumHref(locale))}>
+          {i18n.t('placement.back')}
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <ExperimentRoute
+      entry={entry}
+      locale={locale}
+      i18n={i18n}
+      services={services}
+      placement={state.placement}
+      onBack={() => navigate(curriculumHref(locale))}
+    />
   );
 }
 
@@ -465,6 +611,20 @@ export function App({ services }: Props): JSX.Element {
     if (route.name === 'me') {
       return <MePage api={services.api} locale={locale} i18n={i18n} navigate={navigate} />;
     }
+    if (route.name === 'curriculum') {
+      return <CurriculumPage api={services.api} locale={locale} i18n={i18n} navigate={navigate} />;
+    }
+    if (route.name === 'placement') {
+      return (
+        <PlacementPage
+          slug={route.slug}
+          locale={locale}
+          i18n={i18n}
+          services={services}
+          navigate={navigate}
+        />
+      );
+    }
     if (route.name === 'experiment') {
       return experimentEntry === undefined ? (
         <NotFound i18n={i18n} navigate={navigate} />
@@ -513,6 +673,18 @@ export function App({ services }: Props): JSX.Element {
               }}
             >
               {i18n.t('nav.catalog')}
+            </a>
+          ) : null}
+          {authenticated ? (
+            <a
+              href={curriculumHref(locale)}
+              aria-current={route.name === 'curriculum' || route.name === 'placement' ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                navigate(curriculumHref(locale));
+              }}
+            >
+              {i18n.t('nav.curriculum')}
             </a>
           ) : null}
           {authenticated ? (

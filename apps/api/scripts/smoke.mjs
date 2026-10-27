@@ -146,8 +146,8 @@ async function main() {
     check(
       'healthz reports migration state',
       health.database?.ok === true &&
-        health.database.migrations.applied === 1 &&
-        health.database.migrations.latest === '0001' &&
+        health.database.migrations.applied === 2 &&
+        health.database.migrations.latest === '0002' &&
         health.database.migrations.pending === 0,
       JSON.stringify(health.database),
     );
@@ -258,7 +258,26 @@ async function main() {
 
     process.stdout.write('\n## 5. database on disk\n');
     const rows = countMigrations(databasePath);
-    check('schema_migrations has exactly one row', rows.length === 1, JSON.stringify(rows));
+    check(
+      'schema_migrations has exactly the two shipped migrations',
+      rows.length === 2 && rows[0].version === '0001' && rows[1].version === '0002',
+      JSON.stringify(rows.map((row) => row.version)),
+    );
+    check(
+      'the chapter snapshot table exists (0002)',
+      (() => {
+        const db = new DatabaseSync(databasePath);
+        try {
+          return (
+            db
+              .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'placement_saved_state'")
+              .get()?.name === 'placement_saved_state'
+          );
+        } finally {
+          db.close();
+        }
+      })(),
+    );
     check(
       'the row carries a sha256 checksum',
       typeof rows[0]?.checksum === 'string' && /^[0-9a-f]{64}$/.test(rows[0].checksum),
@@ -813,6 +832,126 @@ async function main() {
     const gone = await authed('/api/me/saved-state/math.functions');
     check('GET after delete -> 404', gone.status === 404, `status=${gone.status}`);
 
+    process.stdout.write('\n## 6b. curriculum placements over a real socket\n');
+    const chapterRows = () => {
+      const db = new DatabaseSync(databasePath);
+      try {
+        return db
+          .prepare('SELECT placement_id, payload FROM placement_saved_state')
+          .all();
+      } finally {
+        db.close();
+      }
+    };
+    const anonymousCurriculum = await fetch(`${baseUrl}/api/curriculum`);
+    check(
+      'anonymous /api/curriculum -> 401',
+      anonymousCurriculum.status === 401,
+      `status=${anonymousCurriculum.status}`,
+    );
+    const listing = await authed('/api/curriculum?locale=en');
+    const listingBody = await listing.json();
+    check(
+      'GET /api/curriculum -> 200 with the two pilot entries of one tool',
+      listing.status === 200 &&
+        Array.isArray(listingBody.items) &&
+        listingBody.items.length === 2 &&
+        listingBody.items.every((item) => item.experimentId === 'math.functions') &&
+        listingBody.items.every((item) => item.status === 'illustrative'),
+      `${listing.status} n=${listingBody.items?.length}`,
+    );
+    check(
+      'the directory response carries no filesystem path or file name',
+      !/curriculum\.json|experiments[\\/]|OEL_/.test(JSON.stringify(listingBody)),
+    );
+    const CHAPTER = 'math.functions.pilot-linear-slope';
+    const OTHER_CHAPTER = 'math.functions.pilot-quadratic-vertex';
+    const chapterBefore = await authed(`/api/me/placement-state/${CHAPTER}`);
+    check(
+      'chapter snapshot before saving -> 404 (the tool snapshot is not inherited)',
+      chapterBefore.status === 404,
+      `status=${chapterBefore.status}`,
+    );
+    const chapterEventsBefore = eventCount();
+    const chapterSaved = await putJson(`/api/me/placement-state/${CHAPTER}`, {
+      placementVersion: 1,
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 6, b: 1, c: 0 },
+    });
+    check(
+      'PUT chapter snapshot -> 200 with the placement version + content version',
+      chapterSaved.status === 200 &&
+        chapterSaved.json.placementVersion === 1 &&
+        chapterSaved.json.contentVersion === '1.0.0',
+      `${chapterSaved.status} v=${chapterSaved.json.placementVersion}`,
+    );
+    check(
+      'the chapter snapshot is stored under its own placement id',
+      chapterRows().length === 1 && chapterRows()[0].placement_id === CHAPTER,
+      JSON.stringify(chapterRows().map((row) => row.placement_id)),
+    );
+    const chapterRead = await authed(`/api/me/placement-state/${CHAPTER}`);
+    check(
+      'GET chapter snapshot -> the same values',
+      chapterRead.status === 200 &&
+        JSON.stringify((await chapterRead.json()).values) === '{"a":6,"b":1,"c":0,"mode":"linear"}',
+      `status=${chapterRead.status}`,
+    );
+    const siblingChapter = await authed(`/api/me/placement-state/${OTHER_CHAPTER}`);
+    check(
+      'the sibling chapter of the same tool sees nothing (404)',
+      siblingChapter.status === 404,
+      `status=${siblingChapter.status}`,
+    );
+    const toolScope = await authed('/api/me/saved-state/math.functions');
+    check(
+      'saving a chapter never creates or copies a tool-level snapshot',
+      toolScope.status === 404,
+      `status=${toolScope.status}`,
+    );
+    check(
+      'saving a chapter wrote no diagnostic event',
+      eventCount() === chapterEventsBefore,
+      `${chapterEventsBefore} -> ${eventCount()}`,
+    );
+    const staleChapter = await putJson(`/api/me/placement-state/${CHAPTER}`, {
+      placementVersion: 2,
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 1, b: 0, c: 0 },
+    });
+    check(
+      'stale placement version -> 409 state_schema_incompatible',
+      staleChapter.status === 409 && staleChapter.json.error?.code === 'state_schema_incompatible',
+      `${staleChapter.status} ${staleChapter.json.error?.code}`,
+    );
+    const unknownChapter = await authed('/api/me/placement-state/math.functions.not-a-chapter');
+    check('unknown placement -> 404', unknownChapter.status === 404, `status=${unknownChapter.status}`);
+    const craftedChapter = await fetch(`${baseUrl}/api/me/placement-state/..%2f..%2faccount`, {
+      headers: { cookie: liveCookie },
+    });
+    check(
+      'a crafted placement id -> 400 (never a lookup)',
+      craftedChapter.status === 400,
+      `status=${craftedChapter.status}`,
+    );
+    const foreignChapter = await fetch(`${baseUrl}/api/me/placement-state/${CHAPTER}`, {
+      headers: { cookie: secondCookie },
+    });
+    check(
+      'another account sees no chapter snapshot (404)',
+      foreignChapter.status === 404,
+      `status=${foreignChapter.status}`,
+    );
+    const noDelete = await fetch(`${baseUrl}/api/me/placement-state/${CHAPTER}`, {
+      method: 'DELETE',
+      headers: { origin, cookie: liveCookie },
+    });
+    check(
+      'there is no chapter delete endpoint (404 by design)',
+      noDelete.status === 404,
+      `status=${noDelete.status}`,
+    );
+
     process.stdout.write('\n## 7. registration rate limit over a real socket\n');
     let limited = null;
     let allowedRegistrations = 0;
@@ -841,11 +980,16 @@ async function main() {
     const healthAfterRestart = await waitForHealth(baseUrl);
     check('healthz is 200 after restart', healthAfterRestart.status === 'ok');
     const rowsAfterRestart = countMigrations(databasePath);
-    check('restart is idempotent (still one row)', rowsAfterRestart.length === 1, JSON.stringify(rowsAfterRestart.map((row) => row.version)));
+    check(
+      'restart is idempotent (still two rows)',
+      rowsAfterRestart.length === 2,
+      JSON.stringify(rowsAfterRestart.map((row) => row.version)),
+    );
     check(
       'restart keeps applied_at unchanged',
-      rowsAfterRestart[0]?.applied_at === rows[0]?.applied_at,
-      `before=${rows[0]?.applied_at} after=${rowsAfterRestart[0]?.applied_at}`,
+      JSON.stringify(rowsAfterRestart.map((row) => row.applied_at)) ===
+        JSON.stringify(rows.map((row) => row.applied_at)),
+      `before=${JSON.stringify(rows.map((row) => row.applied_at))} after=${JSON.stringify(rowsAfterRestart.map((row) => row.applied_at))}`,
     );
     const sessionAfterRestart = await sessionWith(liveCookie);
     check(

@@ -30,6 +30,7 @@ export const PUBLIC_API_ROUTES: readonly RouteEntry[] = Object.freeze([
 /** Requires `requireSession()`; anonymous and forged callers get 401. */
 export const PRIVATE_API_ROUTES: readonly RouteEntry[] = Object.freeze([
   { method: 'GET', url: '/api/catalog' },
+  { method: 'GET', url: '/api/curriculum' },
   { method: 'GET', url: '/api/experiments/:experimentId' },
   { method: 'GET', url: '/api/me/favorites' },
   { method: 'PUT', url: '/api/me/favorites/:experimentId' },
@@ -39,6 +40,8 @@ export const PRIVATE_API_ROUTES: readonly RouteEntry[] = Object.freeze([
   { method: 'GET', url: '/api/me/saved-state/:experimentId' },
   { method: 'PUT', url: '/api/me/saved-state/:experimentId' },
   { method: 'DELETE', url: '/api/me/saved-state/:experimentId' },
+  { method: 'GET', url: '/api/me/placement-state/:placementId' },
+  { method: 'PUT', url: '/api/me/placement-state/:placementId' },
   { method: 'POST', url: '/api/events' },
   { method: 'POST', url: '/api/feedback' },
 ]);

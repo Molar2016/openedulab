@@ -14,6 +14,9 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ID = /^[a-z][a-z0-9-]*(\.[a-z0-9-]+)+$/;
 const SEMVER = /^\d+\.\d+\.\d+$/;
 const SUPPORTED_LOCALES = ['zh-CN', 'en'];
+const PLACEMENT_ID = /^[a-z][a-z0-9-]*(\.[a-z0-9-]+)+$/;
+const PLACEMENT_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const CURICULUM_SCHEMA_VERSION = 1;
 
 const errors = [];
 
@@ -44,7 +47,14 @@ function isNonEmptyStringArray(value) {
   return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === 'string' && item.trim() !== '');
 }
 
-async function validateExperiment(folder, hostMajor, seenIds, seenSlugs) {
+async function validateExperiment(
+  folder,
+  hostMajor,
+  seenIds,
+  seenSlugs,
+  seenPlacementIds,
+  seenPlacementSlugs,
+) {
   const dir = join(EXPERIMENTS_DIR, folder);
   const manifestPath = join(dir, 'manifest.json');
   const manifest = await readJson(manifestPath, `${folder}/manifest.json`);
@@ -106,7 +116,143 @@ async function validateExperiment(folder, hostMajor, seenIds, seenSlugs) {
       }
     }
   }
-  return { id: manifest.id, slug: manifest.slug, localeFiles };
+  let stateSchema = null;
+  try {
+    stateSchema = JSON.parse(await readFile(join(dir, 'state-schema.json'), 'utf8'));
+  } catch {
+    stateSchema = null;
+  }
+  const placements = await validateCurriculum(
+    folder,
+    dir,
+    manifest,
+    stateSchema,
+    seenPlacementIds,
+    seenPlacementSlugs,
+  );
+
+  return { id: manifest.id, slug: manifest.slug, localeFiles, placements };
+}
+
+/**
+ * Curriculum placements (ADR-003). Mirrors the server's startup rules closely enough that a
+ * broken preset or a duplicated URL slug fails CI rather than the first page load: the
+ * preset is checked against the same `state-schema.json` the server validates.
+ */
+async function validateCurriculum(folder, dir, manifest, stateSchema, seenIds, seenSlugs) {
+  let raw;
+  try {
+    raw = JSON.parse(await readFile(join(dir, 'curriculum.json'), 'utf8'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return 0;
+    fail(`${folder}/curriculum.json: cannot read/parse JSON (${error.message})`);
+    return 0;
+  }
+  const prefix = `${folder}/curriculum.json`;
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    fail(`${prefix}: must be a JSON object`);
+    return 0;
+  }
+  for (const key of Object.keys(raw)) {
+    if (!['schemaVersion', 'placements', 'note'].includes(key)) {
+      fail(`${prefix}: unknown top-level key "${key}"`);
+    }
+  }
+  if (raw.schemaVersion !== CURICULUM_SCHEMA_VERSION) {
+    fail(`${prefix}: schemaVersion must be ${CURICULUM_SCHEMA_VERSION}`);
+  }
+  if (!Array.isArray(raw.placements)) {
+    fail(`${prefix}: placements must be an array`);
+    return 0;
+  }
+
+  let indexed = 0;
+  for (const [index, entry] of raw.placements.entries()) {
+    const where = `${prefix} placements[${index}]`;
+    const issues = [];
+    if (entry === null || typeof entry !== 'object') {
+      fail(`${where}: must be an object`);
+      continue;
+    }
+    if (!PLACEMENT_ID.test(entry.placementId ?? '')) {
+      issues.push(`placementId "${entry.placementId}" must look like "${manifest.id}.<chapter>"`);
+    } else if (!entry.placementId.startsWith(`${manifest.id}.`)) {
+      issues.push(`placementId "${entry.placementId}" must start with "${manifest.id}."`);
+    }
+    if (!PLACEMENT_SLUG.test(entry.slug ?? '')) {
+      issues.push(`slug "${entry.slug}" must be kebab-case`);
+    }
+    if (!Number.isInteger(entry.version) || entry.version < 1) {
+      issues.push('version must be an integer >= 1');
+    }
+    if (!Number.isInteger(entry.order) || entry.order < 1) {
+      issues.push('order must be an integer >= 1');
+    }
+    if (!['illustrative', 'verified'].includes(entry.status)) {
+      issues.push('status must be "illustrative" or "verified"');
+    }
+    for (const node of ['edition', 'book', 'chapter']) {
+      const value = entry[node];
+      if (value === null || typeof value !== 'object') {
+        issues.push(`${node} must be an object with id + labels`);
+        continue;
+      }
+      if (!PLACEMENT_SLUG.test(value.id ?? '')) issues.push(`${node}.id must be kebab-case`);
+      for (const locale of SUPPORTED_LOCALES) {
+        if (typeof value.labels?.[locale] !== 'string' || value.labels[locale].trim() === '') {
+          issues.push(`${node}.labels.${locale} must be a non-empty string`);
+        }
+      }
+    }
+    for (const text of ['title', 'summary']) {
+      for (const locale of SUPPORTED_LOCALES) {
+        if (typeof entry[text]?.[locale] !== 'string' || entry[text][locale].trim() === '') {
+          issues.push(`${text}.${locale} must be a non-empty string`);
+        }
+      }
+    }
+    if (stateSchema === null) {
+      issues.push('declares a preset but the experiment has no state-schema.json');
+    } else {
+      const fields = stateSchema.fields ?? {};
+      const preset = entry.preset ?? {};
+      const given = Object.keys(preset);
+      const declared = Object.keys(fields);
+      for (const key of given) {
+        if (!declared.includes(key)) issues.push(`preset has unknown parameter "${key}"`);
+      }
+      for (const key of declared) {
+        if (!given.includes(key)) issues.push(`preset is missing parameter "${key}"`);
+        const field = fields[key];
+        const value = preset[key];
+        if (value === undefined) continue;
+        if (field.kind === 'number') {
+          if (typeof value !== 'number' || !Number.isFinite(value)) {
+            issues.push(`preset.${key} must be a number`);
+          } else if (value < field.min || value > field.max) {
+            issues.push(`preset.${key} is outside [${field.min}, ${field.max}]`);
+          } else if (Math.abs((value - field.min) / field.step - Math.round((value - field.min) / field.step)) > 1e-6) {
+            issues.push(`preset.${key} is not on step ${field.step}`);
+          }
+        } else if (!Array.isArray(field.values) || !field.values.includes(value)) {
+          issues.push(`preset.${key} must be one of ${JSON.stringify(field.values)}`);
+        }
+      }
+    }
+
+    const previousId = seenIds.get(entry.placementId);
+    if (previousId) issues.push(`duplicate placementId "${entry.placementId}" (also in ${previousId})`);
+    const previousSlug = seenSlugs.get(entry.slug);
+    if (previousSlug) issues.push(`duplicate placement slug "${entry.slug}" (also in ${previousSlug})`);
+
+    for (const issue of issues) fail(`${where}: ${issue}`);
+    if (issues.length === 0) {
+      seenIds.set(entry.placementId, folder);
+      seenSlugs.set(entry.slug, folder);
+      indexed += 1;
+    }
+  }
+  return indexed;
 }
 
 async function validateUiLocales() {
@@ -141,9 +287,18 @@ async function main() {
 
   const seenIds = new Map();
   const seenSlugs = new Map();
+  const seenPlacementIds = new Map();
+  const seenPlacementSlugs = new Map();
   const experiments = [];
   for (const folder of folders) {
-    const result = await validateExperiment(folder, hostMajor, seenIds, seenSlugs);
+    const result = await validateExperiment(
+      folder,
+      hostMajor,
+      seenIds,
+      seenSlugs,
+      seenPlacementIds,
+      seenPlacementSlugs,
+    );
     if (result) experiments.push(result);
   }
 
@@ -162,6 +317,9 @@ async function main() {
 
   console.log(`Content validation OK`);
   console.log(` - experiments: ${experiments.map((entry) => `${entry.id} (slug: ${entry.slug}, locales: ${entry.localeFiles.join(', ')})`).join('; ')}`);
+  console.log(
+    ` - curriculum placements: ${experiments.map((entry) => `${entry.id}: ${entry.placements}`).join('; ')}`,
+  );
   console.log(` - UI dictionaries: ${ui.locales.join(', ')} with ${ui.keys} keys each`);
   console.log(` - host SDK: ${hostVersion}`);
 }

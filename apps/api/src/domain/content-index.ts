@@ -1,6 +1,12 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
+import {
+  createPlacementUniqueness,
+  parseCurriculum,
+  type CurriculumPlacement,
+  type PlacementParseResult,
+} from './curriculum.js';
 import { parseStateSchema, type StateSchema } from './state-validator.js';
 
 /**
@@ -52,6 +58,11 @@ export interface ContentExperiment {
   readonly stateSchema: StateSchema | null;
   /** The validated manifest as shipped, for the experiment detail endpoint. */
   readonly manifest: Readonly<Record<string, unknown>>;
+  /**
+   * Curriculum directory entries that reuse this tool (ADR-003). Empty when the tool has
+   * no `curriculum.json`; presets are already validated against `stateSchema`.
+   */
+  readonly placements: readonly CurriculumPlacement[];
 }
 
 export interface CatalogQuery {
@@ -65,7 +76,11 @@ export interface CatalogQuery {
 
 export interface ContentIndex {
   readonly experiments: readonly ContentExperiment[];
+  /** Every placement across every tool, ordered by tool, chapter order, id. */
+  readonly placements: readonly CurriculumPlacement[];
   find(id: string): ContentExperiment | undefined;
+  findPlacement(placementId: string): { placement: CurriculumPlacement; experiment: ContentExperiment } | undefined;
+  placementsFor(experimentId: string): readonly CurriculumPlacement[];
   list(query: CatalogQuery): readonly ContentExperiment[];
 }
 
@@ -211,6 +226,41 @@ function readStateSchema(
 }
 
 /**
+ * Reads `<folder>/curriculum.json` when present. Absence is legitimate: the tool simply is
+ * not placed in the curriculum yet. A present-but-invalid file (or a preset the tool's own
+ * schema rejects) is a startup error — a chapter that promises numbers the experiment
+ * cannot show would be a lie on the first day of class.
+ */
+function readCurriculum(
+  contentDir: string,
+  folder: string,
+  experimentId: string,
+  stateSchema: StateSchema | null,
+  uniqueness: ReturnType<typeof createPlacementUniqueness>,
+  issues: string[],
+): PlacementParseResult {
+  const path = join(contentDir, folder, 'curriculum.json');
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf8');
+  } catch {
+    return { placements: [], issues: [] };
+  }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch (error) {
+    issues.push(`[${folder}] curriculum.json is not valid JSON (${(error as Error).message})`);
+    return { placements: [], issues: [] };
+  }
+  const parsed = parseCurriculum(raw, { experimentId, stateSchema, folder, uniqueness });
+  for (const issue of parsed.issues) {
+    issues.push(issue.startsWith(`[${folder}]`) ? issue : `[${folder}] ${issue}`);
+  }
+  return parsed;
+}
+
+/**
  * Loads and validates every manifest under `contentDir`. Throws ContentIndexError with
  * the full list of problems rather than returning a partial catalog.
  */
@@ -224,6 +274,8 @@ export function loadContentIndex(
   const experiments: ContentExperiment[] = [];
   const seenIds = new Map<string, string>();
   const seenSlugs = new Map<string, string>();
+  const placementUniqueness = createPlacementUniqueness();
+  const allPlacements: CurriculumPlacement[] = [];
 
   for (const file of readManifests(contentDir, issues)) {
     const { folder, raw, updatedAt } = file;
@@ -318,6 +370,12 @@ export function loadContentIndex(
       continue;
     }
 
+    const curriculum = readCurriculum(contentDir, folder, id, stateSchema, placementUniqueness, issues);
+    if (issues.some((issue) => issue.startsWith(`[${folder}]`))) {
+      continue;
+    }
+    for (const placement of curriculum.placements) allPlacements.push(placement);
+
     experiments.push({
       id,
       slug,
@@ -334,6 +392,7 @@ export function loadContentIndex(
       texts,
       stateSchema,
       manifest: Object.freeze({ ...manifest }),
+      placements: Object.freeze([...curriculum.placements]),
     });
   }
 
@@ -343,11 +402,30 @@ export function loadContentIndex(
 
   experiments.sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
   const frozen = Object.freeze(experiments);
+  const frozenPlacements = Object.freeze(
+    [...allPlacements].sort((left, right) => {
+      if (left.experimentId !== right.experimentId) {
+        return left.experimentId < right.experimentId ? -1 : 1;
+      }
+      if (left.order !== right.order) return left.order - right.order;
+      return left.placementId.localeCompare(right.placementId);
+    }),
+  );
 
   return {
     experiments: frozen,
+    placements: frozenPlacements,
     find(id) {
       return frozen.find((entry) => entry.id === id);
+    },
+    findPlacement(placementId) {
+      const placement = frozenPlacements.find((item) => item.placementId === placementId);
+      if (placement === undefined) return undefined;
+      const experiment = frozen.find((entry) => entry.id === placement.experimentId);
+      return experiment === undefined ? undefined : { placement, experiment };
+    },
+    placementsFor(experimentId) {
+      return frozenPlacements.filter((item) => item.experimentId === experimentId);
     },
     list(query) {
       const tokens =

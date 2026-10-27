@@ -26,6 +26,11 @@ export interface ContentFixtureEntry {
   readonly omitLocales?: boolean;
   /** Written verbatim as `state-schema.json`; used to exercise saved-parameter validation. */
   readonly stateSchema?: Record<string, unknown>;
+  /**
+   * Written verbatim as `curriculum.json`; `null` writes nothing (an experiment without
+   * curriculum placements). Used to exercise placement/preset validation.
+   */
+  readonly curriculum?: Record<string, unknown> | null;
 }
 
 const DEFAULTS = {
@@ -72,6 +77,13 @@ export async function writeContentDir(
       await writeFile(
         path.join(folder, 'state-schema.json'),
         JSON.stringify(entry.stateSchema, null, 2),
+        'utf8',
+      );
+    }
+    if (entry.curriculum !== undefined && entry.curriculum !== null) {
+      await writeFile(
+        path.join(folder, 'curriculum.json'),
+        `${JSON.stringify(entry.curriculum, null, 2)}\n`,
         'utf8',
       );
     }

@@ -71,14 +71,27 @@ It records the access, not the content: what an operator read is never copied he
 
 One row per (account, experiment): `content_version`, `state_schema_version`, a canonical
 JSON `payload` of the experiment's own whitelisted parameters (≤4096 bytes), `updated_at`.
-Rows appear **only** after an explicit "save my settings" click — dragging a slider writes
-nothing (asserted in `tests/e2e/saved-state.spec.ts` and `tests/host-saved-state.test.tsx`).
+Rows appear **only** after an explicit "save parameters" click — dragging a slider writes
+nothing (asserted in `tests/e2e/saved-state.spec.ts` and `tests/host-context-state.test.tsx`).
 The parameters never leave the personal-data side: they are not in `event`, not in
-`feedback`, not in any CSV export, and no diagnostic query can reach them. Deleting the
-snapshot is self-service (the "delete saved settings" button on the experiment page), and
-`ON DELETE CASCADE` from `account` already covers it when account deletion exists. There is
-no per-snapshot history and no retention window of its own: a snapshot lives until the user
-deletes it or the account goes away.
+`feedback`, not in any CSV export, and no diagnostic query can reach them. This table is the
+**direct tool entry** scope (`/experiments/<slug>`): it is not read when a curriculum chapter
+is opened, and a chapter snapshot is never copied into it (ADR-003). `ON DELETE CASCADE`
+from `account` covers it when account deletion exists. There is no per-snapshot history and
+no retention window of its own.
+
+### `placement_saved_state` — the curriculum-chapter scope (R7/ADR-003)
+
+One row per (account, placement): `placement_id`, the tool it reuses (`experiment_id`),
+`placement_version`, `content_version`, `state_schema_version`, the same canonical JSON
+`payload` (≤4096 bytes) and `updated_at`. `placement_id` is the **directory entry**, not the
+tool: two chapters of the same experiment are two independent rows, and neither can read the
+other. Rows appear only on an explicit save inside that chapter. The `/api/curriculum`
+directory exposes each entry's *preset* (chapter content, not personal data); the personal
+snapshot is only ever returned to the account that wrote it, from `/api/me/placement-state`.
+As of R7 there is **no delete control and no delete endpoint** for this scope (the product
+decided on two buttons only: save and reset); a row therefore lives until it is overwritten
+or the account goes away via `ON DELETE CASCADE`.
 
 ## 2. Who can read what
 
@@ -111,7 +124,7 @@ granted to a normal user, and when it is unset those routes are not mounted at a
 | `feedback` | 180 days | same |
 | `internal_audit` | 365 days | same |
 | ended `session` rows | 30 days after revoke/expiry | same |
-| `account`, `favorite`, `recent_use`, `saved_state` | no expiry in v1 | the snapshot has its own delete button; the rest persist, because account deletion is out of scope for v1 |
+| `account`, `favorite`, `recent_use`, `saved_state`, `placement_saved_state` | no expiry in v1 | the tool-level snapshot has an API delete (used by cleanup/tests); the chapter snapshot has no delete control (overwrite only); the rest persist, because account deletion is out of scope for v1 |
 
 There is **no self-service account deletion** and no data export for the individual: the
 project owner decided on 2026-10-27 that both are **out of scope for the first release**

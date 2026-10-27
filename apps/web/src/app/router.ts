@@ -2,6 +2,8 @@
 
 export type Route =
   | { name: 'catalog' }
+  | { name: 'curriculum' }
+  | { name: 'placement'; slug: string }
   | { name: 'experiment'; slug: string }
   | { name: 'about' }
   | { name: 'login' }
@@ -18,6 +20,9 @@ export function parseRoute(pathname: string): Route {
   if (clean === '/me') return { name: 'me' };
   const experiment = /^\/experiments\/([a-z0-9-]+)$/.exec(clean);
   if (experiment) return { name: 'experiment', slug: experiment[1] };
+  if (clean === '/curriculum') return { name: 'curriculum' };
+  const placement = /^\/curriculum\/([a-z0-9-]+)$/.exec(clean);
+  if (placement) return { name: 'placement', slug: placement[1] };
   return { name: 'notFound', path: clean };
 }
 
@@ -27,6 +32,15 @@ export function catalogHref(locale: string): string {
 
 export function experimentHref(slug: string, locale: string): string {
   return `/experiments/${slug}?lang=${locale}`;
+}
+
+export function curriculumHref(locale: string): string {
+  return `/curriculum?lang=${locale}`;
+}
+
+/** The URL uses the placement's stable slug (ADR-003); the dotted id stays server-side. */
+export function placementHref(slug: string, locale: string): string {
+  return `/curriculum/${slug}?lang=${locale}`;
 }
 
 export function aboutHref(locale: string): string {

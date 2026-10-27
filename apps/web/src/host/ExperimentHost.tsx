@@ -13,17 +13,41 @@ interface FavoriteControl {
   readonly onToggle: () => void;
 }
 
+type ParameterValues = Readonly<Record<string, number | string>>;
+
 /**
- * Saved-parameter state owned by the app (design §7.5). The host only renders and reports
- * intent: `status` mirrors what the server said, `values` is what a restore would apply.
+ * The entry that was opened (ADR-003).
+ *
+ * The same experiment is reachable two ways, and they deliberately differ: `tool` is the
+ * direct URL (defaults come from the experiment's own schema), `placement` is a curriculum
+ * chapter (defaults come from that chapter's validated preset). The host never derives one
+ * from the other; it is told which context it is rendering.
  */
-export interface SavedStateControl {
-  readonly status: 'none' | 'saved' | 'incompatible' | 'error';
-  readonly values?: Readonly<Record<string, number | string>>;
+export interface ExperimentContext {
+  readonly kind: 'tool' | 'placement';
+  /** Preset values for this entry; absent means "the experiment's declared defaults". */
+  readonly values?: ParameterValues;
+  /** Localized chapter title, used for display only — never for persistence. */
+  readonly label?: string;
+}
+
+/** Where the numbers currently on screen came from. Always shown to the user. */
+export type ParameterOrigin = 'saved' | 'preset' | 'tool-default';
+
+/**
+ * Saved-parameter state owned by the app (ADR-003, replacing R2's restore/delete UX).
+ *
+ * The host only renders and reports intent: `status === 'saved'` means a compatible
+ * snapshot was found and is applied automatically on entry; `none` means this entry has
+ * no snapshot; `incompatible`/`error` mean a snapshot exists but must not be applied.
+ */
+export interface SavedParametersControl {
+  readonly status: 'loading' | 'none' | 'saved' | 'incompatible' | 'error';
+  readonly values?: ParameterValues;
   readonly busy: boolean;
-  readonly error: 'none' | 'save' | 'delete';
-  readonly onSave: (values: Readonly<Record<string, number | string>>) => void;
-  readonly onDelete: () => void;
+  readonly error: 'none' | 'save';
+  /** Resolves when the server stored the snapshot; rejects when it did not. */
+  readonly onSave: (values: ParameterValues) => Promise<void>;
 }
 
 interface Props {
@@ -37,7 +61,9 @@ interface Props {
   /** Optional: supplied by the app when the viewer is signed in. */
   favorite?: FavoriteControl;
   /** Optional: supplied when the experiment declares a `state-schema.json`. */
-  savedState?: SavedStateControl;
+  savedState?: SavedParametersControl;
+  /** Which entry this is. Defaults to the direct tool entry. */
+  context?: ExperimentContext;
   /** Build version reported with diagnostics and feedback. */
   appVersion: string;
   /** Sends a feedback report; resolves when the server stored it. */
@@ -48,12 +74,20 @@ interface Props {
     category: 'content' | 'bug' | 'other';
     message: string;
   }) => Promise<void>;
+  /** Where "back" goes is the caller's decision: catalog for a tool, curriculum for a chapter. */
+  backLabel?: string;
   onBack: () => void;
 }
 
+const ORIGIN_KEYS: Record<ParameterOrigin, string> = {
+  saved: 'state.origin.saved',
+  preset: 'state.origin.preset',
+  'tool-default': 'state.origin.toolDefault',
+};
+
 /**
- * Experiment Host: lifecycle, toolbar (reset/fullscreen/feedback), error isolation and
- * analytics. Experiments receive only locale, resetToken and services.
+ * Experiment Host: lifecycle, toolbar (save/reset/fullscreen/feedback), error isolation and
+ * analytics. Experiments receive only locale, resetToken, initialState and services.
  */
 export function ExperimentHost({
   entry,
@@ -64,8 +98,10 @@ export function ExperimentHost({
   reviewedStatus,
   favorite,
   savedState,
+  context = { kind: 'tool' },
   appVersion,
   onSubmitFeedback,
+  backLabel,
   onBack,
 }: Props): JSX.Element {
   const { manifest } = entry;
@@ -76,19 +112,38 @@ export function ExperimentHost({
   const fullscreenState = useRef(false);
   const trackedOpen = useRef<string | null>(null);
 
-  // Saved parameters (design §7.5): the bridge is a hand-off, not a subscription — the host
+  // Saved parameters (ADR-003): the bridge is a hand-off, not a subscription — the host
   // reads the experiment's current values only inside the save click handler.
   const stateBridge = useRef<ExperimentStateBridge>({});
-  const [appliedState, setAppliedState] = useState<Readonly<Record<string, number | string>> | undefined>(undefined);
-  const [viewKey, setViewKey] = useState(0);
   const [saveRejected, setSaveRejected] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const [resetToContext, setResetToContext] = useState(false);
+  /** Set by reset: the view restarts from this entry's defaults, not from the snapshot. */
+  const [resetView, setResetView] = useState<{ nonce: number } | null>(null);
+  const [savedOrigin, setSavedOrigin] = useState<ParameterOrigin | null>(null);
 
   const stateSchema = entry.stateSchema;
-  const showStateControls = savedState !== undefined && stateSchema !== null;
+  const showSave = stateSchema !== null && savedState !== undefined;
+  /**
+   * While the snapshot is being read the experiment is not mounted at all: no flash of
+   * defaults that would then jump to the stored values.
+   */
+  const pending = savedState !== undefined && savedState.status === 'loading';
+  const baseOrigin: ParameterOrigin = context.kind === 'placement' ? 'preset' : 'tool-default';
+
+  const snapshotOrigin: ParameterOrigin = savedState?.status === 'saved' ? 'saved' : baseOrigin;
+  const origin: ParameterOrigin = savedOrigin ?? (resetView === null ? snapshotOrigin : baseOrigin);
+
+  const initialValues: ParameterValues | undefined =
+    resetView !== null
+      ? context.values
+      : savedState?.status === 'saved'
+        ? savedState.values
+        : context.values;
 
   const t = (key: string): string => i18n.t(key);
 
-  const handleSaveState = (): void => {
+  const handleSaveState = async (): Promise<void> => {
     if (savedState === undefined || stateSchema === null) return;
     const current: unknown = stateBridge.current.read?.();
     const payload = canonicalStatePayload(stateSchema, current);
@@ -99,30 +154,26 @@ export function ExperimentHost({
       return;
     }
     setSaveRejected(false);
-    savedState.onSave(JSON.parse(payload) as Readonly<Record<string, number | string>>);
-  };
-
-  const handleRestoreState = (): void => {
-    if (savedState?.values === undefined) return;
-    // Restoring remounts the experiment with the stored parameters. It is deliberately not
-    // automatic: opening a page must never apply old settings on its own.
-    setAppliedState(savedState.values);
-    setViewKey((key) => key + 1);
-  };
-
-  const handleDeleteState = (): void => {
-    if (savedState === undefined) return;
-    savedState.onDelete();
+    try {
+      await savedState.onSave(JSON.parse(payload) as ParameterValues);
+      setSavedOrigin('saved');
+      setJustSaved(true);
+      setResetToContext(false);
+    } catch {
+      // The failure is reported through `savedState.error`; the view stays exactly as it is.
+    }
   };
 
   const stateNotice = ((): { tone: string; text: string } | null => {
-    if (savedState === undefined) return null;
+    if (!showSave || savedState === undefined || pending) return null;
     if (savedState.error === 'save') return { tone: 'error', text: t('state.notSaved') };
-    if (savedState.error === 'delete') return { tone: 'error', text: t('state.notRemoved') };
     if (saveRejected) return { tone: 'error', text: t('state.rejected') };
-    if (savedState.status === 'incompatible') return { tone: 'warning', text: t('state.incompatible') };
-    if (savedState.status === 'saved') return { tone: 'ok', text: t('state.saved') };
-    if (savedState.status === 'error') return { tone: 'error', text: t('state.unavailable') };
+    if (resetToContext) return { tone: 'ok', text: t('state.resetKept') };
+    if (savedState.status === 'incompatible') {
+      return { tone: 'warning', text: t('state.incompatible') };
+    }
+    if (savedState.status === 'error') return { tone: 'warning', text: t('state.unavailable') };
+    if (justSaved) return { tone: 'ok', text: t('state.saved') };
     return null;
   })();
 
@@ -165,8 +216,21 @@ export function ExperimentHost({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest.id, contentVersion, locale]);
 
+  /**
+   * Reset is scoped to this entry (ADR-003): the view returns to the chapter preset (or to
+   * the tool defaults on the direct entry) and nothing is written or deleted. A stored
+   * snapshot survives; pressing save afterwards is what overwrites it.
+   */
   const handleReset = (): void => {
-    setResetToken((token) => token + 1);
+    if (stateSchema !== null && savedState !== undefined) {
+      setResetView({ nonce: (resetView?.nonce ?? 0) + 1 });
+      setSavedOrigin(null);
+      setJustSaved(false);
+      setResetToContext(true);
+      setSaveRejected(false);
+    } else {
+      setResetToken((token) => token + 1);
+    }
     track({
       type: 'experiment_reset',
       experimentId: manifest.id,
@@ -207,7 +271,7 @@ export function ExperimentHost({
     <div className="experiment-host" ref={containerRef}>
       <div className="experiment-host__toolbar">
         <button type="button" className="button button--ghost" onClick={onBack} data-testid="back-button">
-          ← {t('experiment.back')}
+          ← {backLabel ?? t('experiment.back')}
         </button>
         <div className="experiment-host__actions">
           {favorite !== undefined ? (
@@ -227,43 +291,24 @@ export function ExperimentHost({
               {t('favorite.failed')}
             </span>
           ) : null}
-          {showStateControls ? (
-            <>
-              <button
-                type="button"
-                className="button button--ghost"
-                onClick={handleSaveState}
-                disabled={savedState?.busy === true}
-                data-testid="save-state-button"
-              >
-                {t('state.save')}
-              </button>
-              {savedState?.status === 'saved' ? (
-                <button
-                  type="button"
-                  className="button button--ghost"
-                  onClick={handleRestoreState}
-                  disabled={savedState.busy}
-                  data-testid="restore-state-button"
-                >
-                  {t('state.restore')}
-                </button>
-              ) : null}
-              {savedState?.status === 'saved' || savedState?.status === 'incompatible' ? (
-                <button
-                  type="button"
-                  className="button button--ghost"
-                  onClick={handleDeleteState}
-                  disabled={savedState.busy}
-                  data-testid="delete-state-button"
-                >
-                  {t('state.delete')}
-                </button>
-              ) : null}
-            </>
+          {showSave && !pending ? (
+            <button
+              type="button"
+              className="button button--ghost"
+              onClick={() => void handleSaveState()}
+              disabled={savedState?.busy === true}
+              data-testid="save-state-button"
+            >
+              {t('state.save')}
+            </button>
           ) : null}
-          <button type="button" className="button button--ghost" onClick={handleReset} data-testid="reset-button">
-            {t('experiment.reset')}
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={handleReset}
+            data-testid="reset-button"
+          >
+            {stateSchema === null ? t('experiment.reset') : t('state.reset')}
           </button>
           <button
             type="button"
@@ -294,6 +339,11 @@ export function ExperimentHost({
             ? t('catalog.reviewed.verified')
             : t('catalog.reviewed.draft')}
         </p>
+        {showSave && !pending ? (
+          <p className="small" role="status" data-testid="parameter-origin">
+            {t(ORIGIN_KEYS[origin])}
+          </p>
+        ) : null}
       </header>
 
       {entry.issues.length > 0 || !entry.compatible ? (
@@ -305,6 +355,10 @@ export function ExperimentHost({
             ))}
           </ul>
         </div>
+      ) : pending ? (
+        <p className="muted" role="status" data-testid="parameter-loading">
+          {t('state.loading')}
+        </p>
       ) : (
         <Suspense
           fallback={
@@ -323,11 +377,11 @@ export function ExperimentHost({
             }}
           >
             <View
-              key={`apply-${String(viewKey)}`}
+              key={`apply-${String(resetView?.nonce ?? 0)}`}
               locale={locale}
               resetToken={resetToken}
               services={services}
-              initialState={appliedState}
+              initialState={initialValues}
               stateBridge={stateBridge.current}
             />
           </ExperimentErrorBoundary>

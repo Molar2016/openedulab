@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { loginHref, nextFromSearch, parseRoute, registerHref, safeNext } from '../apps/web/src/app/router';
+import {
+  curriculumHref,
+  loginHref,
+  nextFromSearch,
+  parseRoute,
+  placementHref,
+  registerHref,
+  safeNext,
+} from '../apps/web/src/app/router';
 
 /**
  * Route + `next` handling. `next` is attacker-controllable (it travels in the URL), so it
@@ -27,6 +35,25 @@ describe('parseRoute', () => {
   it('treats unknown and malformed paths as not found', () => {
     expect(parseRoute('/nope').name).toBe('notFound');
     expect(parseRoute('/experiments/Math_Functions').name).toBe('notFound');
+  });
+
+  it('maps the curriculum directory and its chapter entries', () => {
+    expect(parseRoute('/curriculum')).toEqual({ name: 'curriculum' });
+    expect(parseRoute('/curriculum/pilot-linear-slope')).toEqual({
+      name: 'placement',
+      slug: 'pilot-linear-slope',
+    });
+    expect(parseRoute('/curriculum/Pilot_Linear').name).toBe('notFound');
+    expect(parseRoute('/curriculum/a/b').name).toBe('notFound');
+  });
+});
+
+describe('curriculum hrefs', () => {
+  it('keeps the locale and uses the stable slug', () => {
+    expect(curriculumHref('en')).toBe('/curriculum?lang=en');
+    expect(placementHref('pilot-linear-slope', 'zh-CN')).toBe(
+      '/curriculum/pilot-linear-slope?lang=zh-CN',
+    );
   });
 });
 

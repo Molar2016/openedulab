@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "note": "Pilot/illustrative entries. These are NOT verified textbook chapters: no edition, book or chapter number below has been checked against a real textbook. The same tool (math.functions) is reused; only the context preset differs.",
+  "placements": [
+    {
+      "placementId": "math.functions.pilot-linear-slope",
+      "slug": "pilot-linear-slope",
+      "version": 1,
+      "status": "illustrative",
+      "order": 1,
+      "edition": {
+        "id": "pilot-edition",
+        "labels": { "zh-CN": "试点版（非教材）", "en": "Pilot edition (not a textbook)" }
+      },
+      "book": {
+        "id": "pilot-book-a",
+        "labels": { "zh-CN": "示例册 A", "en": "Sample book A" }
+      },
+      "chapter": {
+        "id": "pilot-chapter-a",
+        "labels": { "zh-CN": "示例章 A · 斜率与截距", "en": "Sample chapter A · slope and intercept" }
+      },
+      "title": {
+        "zh-CN": "一次函数的斜率与截距",
+        "en": "Slope and intercept of a linear function"
+      },
+      "summary": {
+        "zh-CN": "以本章预置参数打开同一个函数实验：先看 k 与 b 如何移动直线，可在本章内保存自己的参数。",
+        "en": "Opens the same function experiment with this chapter's preset: watch how k and b move the line, then save your own parameters for this chapter."
+      },
+      "preset": { "mode": "linear", "a": 2, "b": 3, "c": 0 }
+    },
+    {
+      "placementId": "math.functions.pilot-quadratic-vertex",
+      "slug": "pilot-quadratic-vertex",
+      "version": 1,
+      "status": "illustrative",
+      "order": 2,
+      "edition": {
+        "id": "pilot-edition",
+        "labels": { "zh-CN": "试点版（非教材）", "en": "Pilot edition (not a textbook)" }
+      },
+      "book": {
+        "id": "pilot-book-a",
+        "labels": { "zh-CN": "示例册 A", "en": "Sample book A" }
+      },
+      "chapter": {
+        "id": "pilot-chapter-b",
+        "labels": { "zh-CN": "示例章 B · 顶点", "en": "Sample chapter B · vertex" }
+      },
+      "title": {
+        "zh-CN": "二次函数的顶点",
+        "en": "Vertex of a quadratic function"
+      },
+      "summary": {
+        "zh-CN": "以本章预置参数打开同一个函数实验：观察顶点位置与开口方向，本章的个人参数与上一章互不影响。",
+        "en": "Opens the same function experiment with this chapter's preset: study the vertex and the opening direction. Saved parameters in this chapter never leak into the previous one."
+      },
+      "preset": { "mode": "quadratic", "a": 1, "b": -2, "c": 0 }
+    }
+  ]
+}

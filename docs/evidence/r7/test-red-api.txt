@@ -1,0 +1,328 @@
+
+ RUN  v5.0.5 G:/hermes/projects/openedulab/apps/api
+
+(node:24480) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ test/curriculum.test.ts (26 tests | 24 failed) 5416ms
+   ❯ curriculum directory (8)
+     × GET /api/curriculum denies anonymous callers 415ms
+     × GET /api/me/placement-state/math.functions.… denies anonymous callers 80ms
+     × PUT /api/me/placement-state/math.functions.… denies anonymous callers 62ms
+     × lists the two pilot placements of one tool, localized and with directory metadata 369ms
+     × rejects an unknown locale instead of guessing 383ms
+     × rejects malicious or malformed placement ids before any lookup 367ms
+     × answers 404 for a well-formed placement that is not published 372ms
+   ❯ placement-scoped saved parameters (7)
+     × saves one snapshot per account and placement, in canonical form 349ms
+     × keeps two placements of the same tool apart 364ms
+     × never copies between the chapter scope and the tool scope 355ms
+     × is invisible to another account, which cannot overwrite it 634ms
+     × refuses a stale placement version and a stale state-schema version 361ms
+     × rejects values the tool schema does not allow 376ms
+   ❯ curriculum content validation (11)
+     × indexes a valid placement with its canonical preset 16ms
+     × refuses a preset that the tool schema rejects 17ms
+     × refuses a placement for a tool without a state schema 15ms
+     × refuses unknown schema version 14ms
+     × refuses unknown status 17ms
+     × refuses bad placement id 19ms
+     × refuses empty chapter label 15ms
+     × refuses missing summary locale 16ms
+     × refuses non-integer order 16ms
+     × refuses extra top-level key 15ms
+     × refuses duplicate placement slugs across experiments (URLs must be unique) 23ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 24 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/curriculum.test.ts > curriculum directory > GET /api/curriculum denies anonymous callers
+ FAIL  test/curriculum.test.ts > curriculum directory > GET /api/me/placement-state/math.functions.… denies anonymous callers
+ FAIL  test/curriculum.test.ts > curriculum directory > PUT /api/me/placement-state/math.functions.… denies anonymous callers
+AssertionError: expected 404 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 404
+
+ ❯ test/curriculum.test.ts:189:29
+    187|     });
+    188|
+    189|     expect(response.status).toBe(401);
+       |                             ^
+    190|     expect(errorCode(response)).toBe('unauthenticated');
+    191|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum directory > lists the two pilot placements of one tool, localized and with directory metadata
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/curriculum.test.ts:197:27
+    195|
+    196|     const listed = await curriculum(server, cookie, '?locale=en');
+    197|     expect(listed.status).toBe(200);
+       |                           ^
+    198|     expect(listed.headers['cache-control']).toBe('no-store');
+    199|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum directory > rejects an unknown locale instead of guessing
+AssertionError: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ test/curriculum.test.ts:234:27
+    232|     const { server, cookie } = await signedIn();
+    233|     const listed = await curriculum(server, cookie, '?locale=fr');
+    234|     expect(listed.status).toBe(400);
+       |                           ^
+    235|     expect(listed.code).toBe('validation_failed');
+    236|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum directory > rejects malicious or malformed placement ids before any lookup
+AssertionError: expected [ 400, 404 ] to include 403
+ ❯ test/curriculum.test.ts:258:26
+    256|         headers: cookie,
+    257|       });
+    258|       expect([400, 404]).toContain(read.status);
+       |                          ^
+    259|       expect(read.text).not.toContain('linear-slope');
+    260|       expect(read.text).not.toContain('payload');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum directory > answers 404 for a well-formed placement that is not published
+Error: no such table: placement_saved_state
+ ❯ placementRows test/curriculum.test.ts:137:8
+    135|   try {
+    136|     return db
+    137|       .prepare('SELECT placement_id, experiment_id, payload, placement…
+       |        ^
+    138|       .all() as unknown as {
+    139|       placement_id: string;
+ ❯ test/curriculum.test.ts:286:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > saves one snapshot per account and placement, in canonical form
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/curriculum.test.ts:303:26
+    301|       values: { mode: 'linear', a: 4, b: -2, c: 0.5 },
+    302|     });
+    303|     expect(saved.status).toBe(200);
+       |                          ^
+    304|     expect(saved.body.placementId).toBe(PLACEMENT_A);
+    305|     expect(saved.body.experimentId).toBe(TOOL);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > keeps two placements of the same tool apart
+AssertionError: expected undefined to deeply equal { mode: 'linear', a: 5, b: 1, c: +0 }
+
+- Expected:
+{
+  "a": 5,
+  "b": 1,
+  "c": 0,
+  "mode": "linear",
+}
+
++ Received:
+undefined
+
+ ❯ test/curriculum.test.ts:344:31
+    342|     const first = await getPlacement(server, cookie, PLACEMENT_A);
+    343|     const second = await getPlacement(server, cookie, PLACEMENT_B);
+    344|     expect(first.body.values).toEqual({ mode: 'linear', a: 5, b: 1, c:…
+       |                               ^
+    345|     expect(second.body.values).toEqual({ mode: 'quadratic', a: -3, b: …
+    346|     expect(placementRows(server.databasePath)).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > never copies between the chapter scope and the tool scope
+TypeError: toolRead.json is not a function
+ ❯ test/curriculum.test.ts:378:21
+    376|     });
+    377|     expect(toolRead.status).toBe(200);
+    378|     expect(toolRead.json().values).toEqual(TOOL_VALUES);
+       |                     ^
+    379|     expect(toolRows(server.databasePath)).toHaveLength(1);
+    380|     expect(placementRows(server.databasePath)).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > is invisible to another account, which cannot overwrite it
+AssertionError: expected '{"error":{"code":"not_found","message…' not to contain 'linear'
+
+Expected: "linear"
+Received: "{"error":{"code":"not_found","message":"No API route matches GET /api/me/placement-state/math.functions.pilot-linear-slope"}}"
+
+ ❯ test/curriculum.test.ts:400:32
+    398|     const otherRead = await getPlacement(harness, otherCookie);
+    399|     expect(otherRead.status).toBe(404);
+    400|     expect(otherRead.text).not.toContain('linear');
+       |                                ^
+    401|
+    402|     const otherWrite = await putPlacement(harness, otherCookie, {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > refuses a stale placement version and a stale state-schema version
+AssertionError: expected 404 to be 409 // Object.is equality
+
+- Expected
++ Received
+
+- 409
++ 404
+
+ ❯ test/curriculum.test.ts:423:35
+    421|       values,
+    422|     });
+    423|     expect(stalePlacement.status).toBe(409);
+       |                                   ^
+    424|     expect(stalePlacement.code).toBe('state_schema_incompatible');
+    425|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/24]⎯
+
+ FAIL  test/curriculum.test.ts > placement-scoped saved parameters > rejects values the tool schema does not allow
+AssertionError: missing_key: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ test/curriculum.test.ts:462:48
+    460|         values: testCase.values,
+    461|       });
+    462|       expect(response.status, testCase.reason).toBe(400);
+       |                                                ^
+    463|       expect(response.code).toBe('state_invalid');
+    464|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum content validation > indexes a valid placement with its canonical preset
+AssertionError: Target cannot be null or undefined.
+ ❯ test/curriculum.test.ts:541:24
+    539|     if (!result.ok) return;
+    540|     const placements = result.index.placements;
+    541|     expect(placements).toHaveLength(1);
+       |                        ^
+    542|     expect(placements[0]?.placementId).toBe('math.functions.chapter-on…
+    543|     expect(placements[0]?.experimentId).toBe('math.functions');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses a preset that the tool schema rejects
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/curriculum.test.ts:559:23
+    557|     ]);
+    558|
+    559|     expect(result.ok).toBe(false);
+       |                       ^
+    560|     if (result.ok) return;
+    561|     expect(result.error.issues.join('\n')).toMatch(/preset/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses a placement for a tool without a state schema
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/curriculum.test.ts:573:23
+    571|     ]);
+    572|
+    573|     expect(result.ok).toBe(false);
+       |                       ^
+    574|     if (result.ok) return;
+    575|     expect(result.error.issues.join('\n')).toMatch(/state-schema\.json…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses unknown schema version
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses unknown status
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses bad placement id
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses empty chapter label
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses missing summary locale
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses non-integer order
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses extra top-level key
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/curriculum.test.ts:588:23
+    586|   ])('refuses $label', async ({ curriculum }) => {
+    587|     const result = await loadWith([{ ...base, curriculum }]);
+    588|     expect(result.ok).toBe(false);
+       |                       ^
+    589|     if (result.ok) return;
+    590|     expect(result.error.issues.length).toBeGreaterThan(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/24]⎯
+
+ FAIL  test/curriculum.test.ts > curriculum content validation > refuses duplicate placement slugs across experiments (URLs must be unique)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/curriculum.test.ts:609:23
+    607|     ]);
+    608|
+    609|     expect(result.ok).toBe(false);
+       |                       ^
+    610|     if (result.ok) return;
+    611|     expect(result.error.issues.join('\n')).toMatch(/duplicate.*slug/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/24]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  24 failed | 2 passed (26)
+   Start at  09:37:23
+   Duration  5.91s (tests 95%, import 4%, transform 1%)
