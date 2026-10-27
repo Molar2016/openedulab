@@ -1,0 +1,72 @@
+== date ==
+2026-10-27T08:14:35+08:00
+
+== unit ==
+active
+enabled
+589554 2 32395264
+
+== unit hardening (effective) ==
+  IPAddressAllow=::1/128 127.0.0.0/8
+  IPAddressDeny=0.0.0.0/0 ::/0
+  UMask=0077
+  ReadWritePaths=/opt/openedulab-test/data
+  PrivateTmp=yes
+  ProtectSystem=strict
+  NoNewPrivileges=yes
+  RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+== listeners (3221 must be loopback only) ==
+LISTEN 0      5                                     0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=3893758,fd=3))                                                    
+LISTEN 0      256                                   0.0.0.0:8804       0.0.0.0:*    users:(("python3",pid=4005870,fd=3))                                                    
+LISTEN 0      5                                     0.0.0.0:8803       0.0.0.0:*    users:(("python3",pid=4005870,fd=5))                                                    
+LISTEN 0      511                                 127.0.0.1:3221       0.0.0.0:*    users:(("node",pid=589554,fd=24))                                                       
+LISTEN 0      511                                   0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=1922082,fd=5),("nginx",pid=1922081,fd=5),("nginx",pid=1625875,fd=5))
+
+== healthz (loopback) ==
+{"status":"ok","appVersion":"0.1.0-m1","uptimeSeconds":64,"timestamp":"2026-10-27T00:14:36.024Z","database":{"ok":true,"migrations":{"applied":1,"latest":"0001","pending":0}}}
+
+== anonymous surface ==
+  /api/catalog                               401
+  /api/me/favorites                          401
+  /api/me/recent                             401
+  /api/me/saved-state/math.functions         401
+  /api/internal/overview                     404
+  /api/events                                404
+  / (Accept: text/html, anonymous)           302
+  /login (Accept: text/html)                 200
+
+== pre-existing services (regression) ==
+  nginx            active
+  snake-game       active
+  classroom-game   active
+  snake /entry     200 11978B
+  plane 8080       200 11201B
+  nginx :80 /      200 11978B
+
+== nginx config unchanged ==
+eb7a7e5f560a8e44e013609802d230f459f3f5aba6288ff7996db7c0c2c0ec79  /etc/nginx/sites-enabled/snake
+== 443 still has no listener ==
+  none (unchanged)
+
+== deployed tree ==
+total 24
+drwxr-xr-x 6 root     root     4096 Oct 27 08:04 .
+drwxr-xr-x 7 root     root     4096 Oct 27 08:04 ..
+drwxr-xr-x 6 root     root     4096 Oct 27 08:14 app
+drwx------ 2 oel-test oel-test 4096 Oct 27 08:04 data
+drwxr-xr-x 2 root     root     4096 Oct 27 08:04 env
+drwxr-xr-x 6 root     root     4096 Oct 27 08:04 node
+total 4
+-rw------- 1 root root 803 Oct 27 08:04 openedulab-test.env
+drwxr-xr-x root:root /opt/openedulab-test/app
+-rw-r--r-- root:root /opt/openedulab-test/app/dist/index.html
+drwx------ oel-test:oel-test /opt/openedulab-test/data
+-rw------- oel-test:oel-test /opt/openedulab-test/data/app.sqlite
+  app files: 3828, size: 36M
+  node: v22.23.0
+
+== resources ==
+               total        used        free      shared  buff/cache   available
+Mem:            1613         536          94           2        1175        1077
+/dev/vda3        40G  4.0G   34G  11% /
