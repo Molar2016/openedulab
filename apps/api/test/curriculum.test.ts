@@ -26,6 +26,13 @@ import { ContentIndexError, loadContentIndex } from '../src/domain/content-index
 
 const PLACEMENT_A = 'math.functions.pilot-linear-slope';
 const PLACEMENT_B = 'math.functions.pilot-quadratic-vertex';
+/** The same two conceptual chapters, declared in a second catalog with the opposite order. */
+const PLACEMENT_C = 'math.functions.pilot-vertex-first';
+const PLACEMENT_D = 'math.functions.pilot-slope-after';
+const SLUG_C = 'pilot-vertex-first';
+const SLUG_D = 'pilot-slope-after';
+const CATALOG_A = 'pilot-edition';
+const CATALOG_B = 'pilot-edition-b';
 const TOOL = 'math.functions';
 
 const TOOL_VALUES = { mode: 'quadratic', a: 4, b: 0, c: 0 } as const;
@@ -47,11 +54,41 @@ interface CurriculumItem {
   experimentSlug?: string;
   contentVersion?: string;
   stateSchemaVersion?: number;
+  subject?: string;
+  catalogId?: string;
+  bookId?: string;
+  chapterId?: string;
   title?: string;
   summary?: string;
   edition?: { id?: string; label?: string };
   book?: { id?: string; label?: string };
   chapter?: { id?: string; label?: string };
+}
+
+interface CatalogChapter {
+  chapterId?: string;
+  order?: number;
+  label?: string;
+  placementIds?: string[];
+}
+
+interface CatalogBook {
+  bookId?: string;
+  order?: number;
+  label?: string;
+  chapters?: CatalogChapter[];
+}
+
+interface Catalog {
+  catalogId?: string;
+  subject?: string;
+  version?: number;
+  status?: string;
+  order?: number;
+  label?: string;
+  publisher?: string;
+  revision?: string;
+  books?: CatalogBook[];
 }
 
 interface PlacementStateBody {
@@ -68,6 +105,7 @@ interface Shaped {
   status: number;
   body: {
     items?: CurriculumItem[];
+    catalogs?: Catalog[];
     values?: Record<string, string | number>;
     error?: { code?: string };
   } & PlacementStateBody;
@@ -190,35 +228,119 @@ describe('curriculum directory', () => {
     expect(errorCode(response)).toBe('unauthenticated');
   });
 
-  it('lists the two pilot placements of one tool, localized and with directory metadata', async () => {
+  it('groups one tool into two illustrative catalogs, each with its own book and chapter order', async () => {
     const { server, cookie } = await signedIn();
 
     const listed = await curriculum(server, cookie, '?locale=en');
     expect(listed.status).toBe(200);
     expect(listed.headers['cache-control']).toBe('no-store');
 
-    const items = listed.body.items ?? [];
-    expect(items.map((item) => item.placementId)).toEqual([PLACEMENT_A, PLACEMENT_B]);
+    // The shipped directory leads with the two PEP catalogs (R9 G3); this case is about the two
+    // illustrative catalogs, so it reads only their entries. Their ids, order and texts must be
+    // exactly what R8 published, and they must still come after the real books.
+    const allItems = listed.body.items ?? [];
+    expect(allItems.slice(0, 2).map((item) => item.catalogId)).toEqual([
+      'pep-math-2022',
+      'pep-math-2022',
+    ]);
+    const items = allItems.filter((item) => item.status === 'illustrative');
+    // Catalog order first, then book order, then chapter order, then the tool order inside the
+    // chapter. None of it is derived from the tool id, the grade or the file order.
+    expect(items.map((item) => item.placementId)).toEqual([
+      PLACEMENT_A,
+      PLACEMENT_B,
+      PLACEMENT_C,
+      PLACEMENT_D,
+    ]);
+    expect(items.map((item) => item.catalogId)).toEqual([
+      CATALOG_A,
+      CATALOG_A,
+      CATALOG_B,
+      CATALOG_B,
+    ]);
+    expect(items.map((item) => item.bookId)).toEqual([
+      'pilot-book-a',
+      'pilot-book-a',
+      'pilot-book-b1',
+      'pilot-book-b2',
+    ]);
 
-    // Same tool, one implementation — two directory positions.
+    // Same tool, one implementation — four directory positions.
     for (const item of items) {
       expect(item.experimentId).toBe(TOOL);
       expect(item.experimentSlug).toBe('math-functions');
       expect(item.contentVersion).toBe('1.0.0');
       expect(item.stateSchemaVersion).toBe(1);
       expect(item.status).toBe('illustrative');
-      expect(item.edition?.label).toBe('Pilot edition (not a textbook)');
-      expect(item.book?.label).toBe('Sample book A');
+      expect(item.subject).toBe('math');
+      // The tool order inside one chapter is 1 for each entry here: the ordering that matters
+      // is the catalog's, not this number.
+      expect(item.order).toBe(1);
     }
+    expect(items[0]?.edition?.label).toBe('Sample textbook A (not a textbook)');
+    expect(items[0]?.book?.label).toBe('Sample book A');
+    expect(items[0]?.chapter?.label).toBe('Sample chapter A · slope and intercept');
     expect(items[0]?.title).toBe('Slope and intercept of a linear function');
     expect(items[1]?.title).toBe('Vertex of a quadratic function');
-    expect(items[0]?.chapter?.label).toBe('Sample chapter A · slope and intercept');
-    expect(items[0]?.order).toBe(1);
-    expect(items[1]?.order).toBe(2);
+    expect(items[2]?.edition?.label).toMatch(/not a textbook/i);
+    expect(items[2]?.book?.label).toBe('Sample book B1');
+    expect(items[3]?.book?.label).toBe('Sample book B2');
+
+    const catalogs = (listed.body.catalogs ?? []).filter(
+      (entry) => entry.status === 'illustrative',
+    );
+    expect(catalogs.map((entry) => entry.catalogId)).toEqual([CATALOG_A, CATALOG_B]);
+    // Orders 3 and 4: the real textbooks own 1 and 2, examples follow them.
+    expect(catalogs.map((entry) => entry.order)).toEqual([3, 4]);
+    for (const catalog of catalogs) {
+      expect(catalog.subject).toBe('math');
+      expect(catalog.status).toBe('illustrative');
+      expect(catalog.publisher).toBeUndefined();
+      expect(catalog.revision).toBeUndefined();
+    }
+    expect(catalogs[0]?.books?.map((book) => book.bookId)).toEqual(['pilot-book-a']);
+    expect(catalogs[0]?.books?.[0]?.chapters?.map((chapter) => chapter.order)).toEqual([1, 2]);
+    expect(catalogs[0]?.books?.[0]?.chapters?.[0]?.placementIds).toEqual([PLACEMENT_A]);
+    expect(catalogs[0]?.books?.[0]?.chapters?.[1]?.placementIds).toEqual([PLACEMENT_B]);
+    expect(catalogs[1]?.books?.map((book) => book.bookId)).toEqual([
+      'pilot-book-b1',
+      'pilot-book-b2',
+    ]);
+    expect(catalogs[1]?.books?.map((book) => book.order)).toEqual([1, 2]);
+    expect(catalogs[1]?.books?.[0]?.chapters?.[0]?.placementIds).toEqual([PLACEMENT_C]);
+    expect(catalogs[1]?.books?.[1]?.chapters?.[0]?.placementIds).toEqual([PLACEMENT_D]);
 
     const zh = await curriculum(server, cookie, '?locale=zh-CN');
-    expect(zh.body.items?.[0]?.title).toBe('一次函数的斜率与截距');
-    expect(zh.body.items?.[0]?.chapter?.label).toBe('示例章 A · 斜率与截距');
+    const zhItems = (zh.body.items ?? []).filter((item) => item.status === 'illustrative');
+    const zhCatalogs = (zh.body.catalogs ?? []).filter(
+      (entry) => entry.status === 'illustrative',
+    );
+    expect(zhItems[0]?.title).toBe('一次函数的斜率与截距');
+    expect(zhItems[0]?.chapter?.label).toBe('示例章 A · 斜率与截距');
+    expect(zhCatalogs[0]?.label).toBe('示例教材甲（非教材）');
+  });
+
+  it('lets the two catalogs order the same conceptual chapters differently', async () => {
+    const { server, cookie } = await signedIn();
+    const listed = await curriculum(server, cookie, '?locale=en');
+    const items = (listed.body.items ?? []).filter((item) => item.status === 'illustrative');
+    const position = (placementId: string): number =>
+      items.findIndex((item) => item.placementId === placementId);
+
+    // Catalog A teaches slope before the vertex; catalog B teaches the vertex before slope.
+    expect(position(PLACEMENT_A)).toBeLessThan(position(PLACEMENT_B));
+    expect(position(PLACEMENT_C)).toBeLessThan(position(PLACEMENT_D));
+    expect(position(PLACEMENT_A)).toBeLessThan(position(PLACEMENT_C));
+    expect(position(PLACEMENT_D)).toBeGreaterThan(position(PLACEMENT_C));
+
+    // Same conceptual tool, so the flat entry count is four while the tool count is one.
+    expect(new Set(items.map((item) => item.experimentId))).toEqual(new Set([TOOL]));
+    expect(items.map((item) => item.slug)).toEqual([
+      'pilot-linear-slope',
+      'pilot-quadratic-vertex',
+      SLUG_C,
+      SLUG_D,
+    ]);
   });
 
   it('does not leak filesystem paths or fixture file names', async () => {
@@ -343,6 +465,29 @@ describe('placement-scoped saved parameters', () => {
     const second = await getPlacement(server, cookie, PLACEMENT_B);
     expect(first.body.values).toEqual({ mode: 'linear', a: 5, b: 1, c: 0 });
     expect(second.body.values).toEqual({ mode: 'quadratic', a: -3, b: 0, c: 1 });
+    expect(placementRows(server.databasePath)).toHaveLength(2);
+  });
+
+  it('never copies a snapshot between two catalogs that place the same tool', async () => {
+    const { server, cookie } = await signedIn();
+
+    await putPlacement(server, cookie, {
+      placementVersion: 1,
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: 5, b: 1, c: 0 },
+    });
+    await putPlacement(
+      server,
+      cookie,
+      { placementVersion: 1, stateSchemaVersion: 1, values: { mode: 'linear', a: -4, b: 2, c: 0 } },
+      PLACEMENT_D,
+    );
+
+    const first = await getPlacement(server, cookie, PLACEMENT_A);
+    const reordered = await getPlacement(server, cookie, PLACEMENT_D);
+    expect(first.body.values).toEqual({ mode: 'linear', a: 5, b: 1, c: 0 });
+    expect(reordered.body.values).toEqual({ mode: 'linear', a: -4, b: 2, c: 0 });
+    expect((await getPlacement(server, cookie, PLACEMENT_C)).status).toBe(404);
     expect(placementRows(server.databasePath)).toHaveLength(2);
   });
 
@@ -480,7 +625,7 @@ describe('placement-scoped saved parameters', () => {
   });
 });
 
-describe('curriculum content validation', () => {
+describe('curriculum catalog content validation', () => {
   const stateSchema = {
     schemaVersion: 1,
     fields: {
@@ -491,15 +636,47 @@ describe('curriculum content validation', () => {
     },
   };
 
+  function chapterNode(chapterId: string, order: number): Record<string, unknown> {
+    return {
+      chapterId,
+      order,
+      label: { 'zh-CN': `示例章 ${chapterId}`, en: `Sample chapter ${chapterId}` },
+    };
+  }
+
+  function bookNode(
+    bookId: string,
+    order: number,
+    chapters: readonly Record<string, unknown>[],
+  ): Record<string, unknown> {
+    return {
+      bookId,
+      order,
+      label: { 'zh-CN': `示例册 ${bookId}`, en: `Sample book ${bookId}` },
+      chapters: [...chapters],
+    };
+  }
+
+  const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+    catalogId: 'pilot-edition',
+    subject: 'math',
+    version: 1,
+    status: 'illustrative',
+    order: 1,
+    label: { 'zh-CN': '示例教材', en: 'Sample textbook' },
+    books: [bookNode('book-a', 1, [chapterNode('chapter-a', 1)])],
+    ...overrides,
+  });
+
   const placement = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
     placementId: 'math.functions.chapter-one',
     slug: 'chapter-one',
     version: 1,
     status: 'illustrative',
+    catalogId: 'pilot-edition',
+    bookId: 'book-a',
+    chapterId: 'chapter-a',
     order: 1,
-    edition: { id: 'pilot-edition', labels: { 'zh-CN': '试点版', en: 'Pilot edition' } },
-    book: { id: 'book-a', labels: { 'zh-CN': '示例册', en: 'Sample book' } },
-    chapter: { id: 'chapter-a', labels: { 'zh-CN': '示例章', en: 'Sample chapter' } },
     title: { 'zh-CN': '示例标题', en: 'Sample title' },
     summary: { 'zh-CN': '示例说明', en: 'Sample summary' },
     preset: { mode: 'linear', a: 2, b: 3, c: 0 },
@@ -508,7 +685,9 @@ describe('curriculum content validation', () => {
 
   async function loadWith(
     entries: readonly ContentFixtureEntry[],
-  ): Promise<{ ok: true; index: ReturnType<typeof loadContentIndex> } | { ok: false; error: ContentIndexError }> {
+  ): Promise<
+    { ok: true; index: ReturnType<typeof loadContentIndex> } | { ok: false; error: ContentIndexError }
+  > {
     const root = await mkdtemp(path.join(tmpdir(), 'oel-curriculum-'));
     try {
       const contentDir = await writeContentDir(root, entries);
@@ -530,19 +709,377 @@ describe('curriculum content validation', () => {
     stateSchema,
   };
 
-  it('indexes a valid placement with its canonical preset', async () => {
+  it('orders placements by catalog, book and chapter order, not by tool or file order', async () => {
     const result = await loadWith([
-      { ...base, curriculum: { schemaVersion: 1, placements: [placement()] } },
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [
+            catalog({
+              books: [
+                bookNode('book-a', 1, [chapterNode('chapter-a', 1), chapterNode('chapter-b', 2)]),
+              ],
+            }),
+            catalog({
+              catalogId: 'pilot-edition-b',
+              order: 2,
+              books: [
+                bookNode('book-b1', 1, [chapterNode('chapter-x', 1)]),
+                bookNode('book-b2', 2, [chapterNode('chapter-y', 1)]),
+              ],
+            }),
+          ],
+          placements: [
+            placement({
+              placementId: 'math.functions.one',
+              slug: 'one',
+              bookId: 'book-a',
+              chapterId: 'chapter-a',
+            }),
+            placement({
+              placementId: 'math.functions.two',
+              slug: 'two',
+              bookId: 'book-a',
+              chapterId: 'chapter-b',
+            }),
+            placement({
+              placementId: 'math.functions.three',
+              slug: 'three',
+              catalogId: 'pilot-edition-b',
+              bookId: 'book-b1',
+              chapterId: 'chapter-x',
+            }),
+            placement({
+              placementId: 'math.functions.four',
+              slug: 'four',
+              catalogId: 'pilot-edition-b',
+              bookId: 'book-b2',
+              chapterId: 'chapter-y',
+            }),
+          ],
+        },
+      },
     ]);
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const placements = result.index.placements;
-    expect(placements).toHaveLength(1);
-    expect(placements[0]?.placementId).toBe('math.functions.chapter-one');
-    expect(placements[0]?.experimentId).toBe('math.functions');
-    expect(placements[0]?.preset).toEqual({ a: 2, b: 3, c: 0, mode: 'linear' });
-    expect(result.index.findPlacement('math.functions.chapter-one')?.placement.slug).toBe('chapter-one');
+    expect(result.index.catalogs.map((entry) => entry.catalogId)).toEqual([
+      'pilot-edition',
+      'pilot-edition-b',
+    ]);
+    expect(result.index.placements.map((entry) => entry.placementId)).toEqual([
+      'math.functions.one',
+      'math.functions.two',
+      'math.functions.three',
+      'math.functions.four',
+    ]);
+    expect(result.index.placements[2]?.catalogId).toBe('pilot-edition-b');
+    expect(result.index.placements[2]?.catalog.labels.en).toBe('Sample textbook');
+    expect(result.index.placements[2]?.book.labels.en).toBe('Sample book book-b1');
+  });
+
+  it('refuses a duplicate catalog id inside one file', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [catalog(), catalog({ order: 2 })],
+          placements: [placement()],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/duplicate catalogId/i);
+  });
+
+  it('refuses the same catalog id declared by another tool folder', async () => {
+    const result = await loadWith([
+      { ...base, curriculum: { schemaVersion: 2, catalogs: [catalog()], placements: [] } },
+      {
+        id: 'physics.freefall',
+        slug: 'physics-freefall',
+        titleEn: 'Free fall',
+        titleZh: '自由落体',
+        subjects: ['physics'],
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [
+            catalog({
+              subject: 'physics',
+              books: [bookNode('book-a', 1, [chapterNode('chapter-a', 1)])],
+            }),
+          ],
+          placements: [],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/duplicate catalogId/i);
+  });
+
+  it('resolves a placement against a catalog declared in another tool folder (ADR-005)', async () => {
+    // The tree is subject-level content now, so a second math tool may point into the same
+    // catalog. This used to be a hard error under ADR-004 ("declare it in your own file");
+    // that rule is exactly what forced every tool to duplicate the textbook tree.
+    const result = await loadWith([
+      { ...base, curriculum: { schemaVersion: 2, catalogs: [catalog()], placements: [] } },
+      {
+        id: 'math.geometry',
+        slug: 'math-geometry',
+        titleEn: 'Circle and chord',
+        titleZh: '圆与弦',
+        subjects: ['math'],
+        stateSchema,
+        curriculum: {
+          schemaVersion: 3,
+          placements: [
+            placement({
+              placementId: 'math.geometry.one',
+              slug: 'geometry-one',
+              order: 2,
+            }),
+          ],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.index.placements.map((entry) => entry.placementId)).toEqual([
+      'math.geometry.one',
+    ]);
+    expect(result.index.placements[0]?.catalog.labels.en).toBe('Sample textbook');
+  });
+
+  it('refuses a placement whose catalog no catalog file declares', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 3,
+          placements: [placement({ catalogId: 'pilot-edition' })],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/unknown catalog "pilot-edition"/i);
+  });
+
+  it('refuses a chapter that lives under another book instead of matching it by name', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [
+            catalog({
+              books: [
+                bookNode('book-a', 1, [chapterNode('chapter-a', 1)]),
+                bookNode('book-b', 2, [chapterNode('chapter-b', 1)]),
+              ],
+            }),
+          ],
+          placements: [placement({ bookId: 'book-a', chapterId: 'chapter-b' })],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(
+      /chapter "chapter-b" belongs to book "book-b", not "book-a"/i,
+    );
+  });
+
+  it.each([
+    {
+      label: 'duplicate chapter ids across books',
+      catalogs: [
+        catalog({
+          books: [
+            bookNode('book-a', 1, [chapterNode('chapter-a', 1)]),
+            bookNode('book-b', 2, [chapterNode('chapter-a', 1)]),
+          ],
+        }),
+      ],
+      placements: [],
+      pattern: /duplicate chapterId/i,
+    },
+    {
+      label: 'duplicate book ids',
+      catalogs: [
+        catalog({
+          books: [
+            bookNode('book-a', 1, [chapterNode('chapter-a', 1)]),
+            bookNode('book-a', 2, [chapterNode('chapter-b', 1)]),
+          ],
+        }),
+      ],
+      placements: [],
+      pattern: /duplicate bookId/i,
+    },
+    {
+      label: 'duplicate book order',
+      catalogs: [
+        catalog({
+          books: [
+            bookNode('book-a', 1, [chapterNode('chapter-a', 1)]),
+            bookNode('book-b', 1, [chapterNode('chapter-b', 1)]),
+          ],
+        }),
+      ],
+      placements: [],
+      pattern: /book order 1 is already used/i,
+    },
+    {
+      label: 'duplicate chapter order inside one book',
+      catalogs: [
+        catalog({
+          books: [
+            bookNode('book-a', 1, [chapterNode('chapter-a', 1), chapterNode('chapter-b', 1)]),
+          ],
+        }),
+      ],
+      placements: [],
+      pattern: /chapter order 1 is already used/i,
+    },
+    {
+      label: 'non-integer book order',
+      catalogs: [catalog({ books: [bookNode('book-a', 1.5, [chapterNode('chapter-a', 1)])] })],
+      placements: [],
+      pattern: /book order must be an integer/i,
+    },
+    {
+      label: 'zero chapter order',
+      catalogs: [catalog({ books: [bookNode('book-a', 1, [chapterNode('chapter-a', 0)])] })],
+      placements: [],
+      pattern: /chapter order must be an integer/i,
+    },
+    {
+      label: 'duplicate catalog order',
+      catalogs: [catalog(), catalog({ catalogId: 'second', order: 1 })],
+      placements: [],
+      pattern: /catalog order 1 is already used/i,
+    },
+  ])('refuses $label', async ({ catalogs, placements, pattern }) => {
+    const result = await loadWith([
+      { ...base, curriculum: { schemaVersion: 2, catalogs, placements } },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(pattern);
+  });
+
+  it('refuses two placements at the same position inside one chapter', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [catalog()],
+          placements: [
+            placement(),
+            placement({ placementId: 'math.functions.chapter-two', slug: 'chapter-two', order: 1 }),
+          ],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/tool order 1 is already used/i);
+  });
+
+  it('refuses a placement whose status disagrees with its catalog', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [catalog()],
+          placements: [placement({ status: 'verified' })],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/status.*catalog/i);
+  });
+
+  it('refuses a verified catalog without publisher and edition, and an illustrative one with them', async () => {
+    const verifiedWithout = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [catalog({ status: 'verified' })],
+          placements: [placement({ status: 'verified' })],
+        },
+      },
+    ]);
+    expect(verifiedWithout.ok).toBe(false);
+    if (verifiedWithout.ok) return;
+    expect(verifiedWithout.error.issues.join('\n')).toMatch(/publisher/i);
+    expect(verifiedWithout.error.issues.join('\n')).toMatch(/revision/i);
+
+    const illustrativeWith = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [
+            catalog({
+              publisher: { 'zh-CN': '某出版社', en: 'Some publisher' },
+              revision: { 'zh-CN': '第一版', en: 'First edition' },
+            }),
+          ],
+          placements: [placement()],
+        },
+      },
+    ]);
+    expect(illustrativeWith.ok).toBe(false);
+    if (illustrativeWith.ok) return;
+    expect(illustrativeWith.error.issues.join('\n')).toMatch(/illustrative/i);
+  });
+
+  it('refuses a catalog whose subject is not one of the tool subjects', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 2,
+          catalogs: [catalog({ subject: 'physics' })],
+          placements: [placement()],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/subject "physics"/i);
+  });
+
+  it('refuses the old flat schema version', async () => {
+    const result = await loadWith([
+      {
+        ...base,
+        curriculum: {
+          schemaVersion: 1,
+          placements: [
+            {
+              ...placement(),
+              edition: { id: 'pilot-edition', labels: { 'zh-CN': '试点版', en: 'Pilot edition' } },
+              book: { id: 'book-a', labels: { 'zh-CN': '示例册', en: 'Sample book' } },
+              chapter: { id: 'chapter-a', labels: { 'zh-CN': '示例章', en: 'Sample chapter' } },
+            },
+          ],
+        },
+      },
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.issues.join('\n')).toMatch(/schemaVersion must be 3/i);
   });
 
   it('refuses a preset that the tool schema rejects', async () => {
@@ -550,7 +1087,8 @@ describe('curriculum content validation', () => {
       {
         ...base,
         curriculum: {
-          schemaVersion: 1,
+          schemaVersion: 2,
+          catalogs: [catalog()],
           placements: [placement({ preset: { mode: 'cubic', a: 1, b: 0, c: 0 } })],
         },
       },
@@ -566,7 +1104,7 @@ describe('curriculum content validation', () => {
       {
         ...base,
         stateSchema: undefined,
-        curriculum: { schemaVersion: 1, placements: [placement()] },
+        curriculum: { schemaVersion: 2, catalogs: [catalog()], placements: [placement()] },
       },
     ]);
 
@@ -576,13 +1114,68 @@ describe('curriculum content validation', () => {
   });
 
   it.each([
-    { label: 'unknown schema version', curriculum: { schemaVersion: 2, placements: [] } },
-    { label: 'unknown status', curriculum: { schemaVersion: 1, placements: [placement({ status: 'official' })] } },
-    { label: 'bad placement id', curriculum: { schemaVersion: 1, placements: [placement({ placementId: 'Chapter One' })] } },
-    { label: 'empty chapter label', curriculum: { schemaVersion: 1, placements: [placement({ chapter: { id: 'c', labels: { 'zh-CN': '', en: 'x' } } })] } },
-    { label: 'missing summary locale', curriculum: { schemaVersion: 1, placements: [placement({ summary: { en: 'only english' } })] } },
-    { label: 'non-integer order', curriculum: { schemaVersion: 1, placements: [placement({ order: 1.5 })] } },
-    { label: 'extra top-level key', curriculum: { schemaVersion: 1, placements: [], textbook: 'x' } },
+    { label: 'unknown schema version', curriculum: { schemaVersion: 4, placements: [] } },
+    {
+      label: 'unknown status',
+      curriculum: {
+        schemaVersion: 2,
+        catalogs: [catalog({ status: 'official' })],
+        placements: [],
+      },
+    },
+    {
+      label: 'bad placement id',
+      curriculum: {
+        schemaVersion: 2,
+        catalogs: [catalog()],
+        placements: [placement({ placementId: 'Chapter One' })],
+      },
+    },
+    {
+      label: 'empty chapter label',
+      curriculum: {
+        schemaVersion: 2,
+        catalogs: [
+          catalog({
+            books: [
+              {
+                bookId: 'book-a',
+                order: 1,
+                label: { 'zh-CN': '示例册', en: 'Sample book' },
+                chapters: [
+                  {
+                    chapterId: 'chapter-a',
+                    order: 1,
+                    label: { 'zh-CN': '', en: 'x' },
+                  },
+                ],
+              },
+            ],
+          }),
+        ],
+        placements: [],
+      },
+    },
+    {
+      label: 'missing summary locale',
+      curriculum: {
+        schemaVersion: 2,
+        catalogs: [catalog()],
+        placements: [placement({ summary: { en: 'only english' } })],
+      },
+    },
+    {
+      label: 'non-integer tool order',
+      curriculum: {
+        schemaVersion: 2,
+        catalogs: [catalog()],
+        placements: [placement({ order: 1.5 })],
+      },
+    },
+    {
+      label: 'extra top-level key',
+      curriculum: { schemaVersion: 2, catalogs: [], placements: [], textbook: 'x' },
+    },
   ])('refuses $label', async ({ curriculum }) => {
     const result = await loadWith([{ ...base, curriculum }]);
     expect(result.ok).toBe(false);
@@ -592,16 +1185,28 @@ describe('curriculum content validation', () => {
 
   it('refuses duplicate placement slugs across experiments (URLs must be unique)', async () => {
     const result = await loadWith([
-      { ...base, curriculum: { schemaVersion: 1, placements: [placement()] } },
+      {
+        ...base,
+        curriculum: { schemaVersion: 2, catalogs: [catalog()], placements: [placement()] },
+      },
       {
         id: 'physics.freefall',
         slug: 'physics-freefall',
         titleEn: 'Free fall',
         titleZh: '自由落体',
+        subjects: ['physics'],
         stateSchema,
         curriculum: {
-          schemaVersion: 1,
-          placements: [placement({ placementId: 'physics.freefall.chapter-one' })],
+          schemaVersion: 2,
+          catalogs: [
+            catalog({ catalogId: 'physics-edition', subject: 'physics' }),
+          ],
+          placements: [
+            placement({
+              placementId: 'physics.freefall.chapter-one',
+              catalogId: 'physics-edition',
+            }),
+          ],
         },
       },
     ]);

@@ -27,6 +27,8 @@
 | B7 | 显式参数快照（**已完成**） | 一资源一份、版本不兼容回退；不记录逐次拖动 |
 | B8 | CI、备份恢复、运维手册、状态锚收口 | 自动检查、恢复演练、回滚步骤、版本与证据 |
 | R7 | 课程上下文预置 + 按上下文保存（**已完成，待负责人复核**） | 同一工具两个章节入口；两个按钮（保存/重置）；自动载入与来源标注；直接入口与工具级快照向后兼容；API/UI/E2E 与 `npm run check` 实测（`docs/architecture/ADR-003-curriculum-context.md`） |
+| R8 | 教材目录层级与目录内顺序（**已完成，待负责人复核**） | 学科→教材→册→章→工具入口；两本示例教材对同一工具给出相反顺序；旧 placement/URL/快照不变；`npm run check`、`smoke:api`、`playwright test` 实测与本机 3320 体验版（`docs/architecture/ADR-004-curriculum-catalogs.md`） |
+| R9 | 六册教材目录接入与工具复用（**G1+G2 已完成；G3 待做**） | G1：六册人教版 PDF 独立核对 6/6 与完整目录（`docs/research/pep-math-six-volumes.md`，34 章/98 节）。G2：教材树升为学科级文件 `curricula/<subject>/*.json`，工具 `curriculum.json` 只放 placement（`schemaVersion: 3`），空章可见、多工具共章、跨版隔离、启动与离线校验同规则；R8 示例 ID 与 `/api/curriculum` 契约不变（`docs/architecture/ADR-005-shared-curriculum-catalogs.md`）。G3（六册真实目录 + 8 下 23.2 / 9 上 26.2 两个适配入口 + 真浏览器验收）**未开始** |
 | D/E | 隔离测试部署→公开发布 | 先只读侦察环境并获得审批；HTTPS/数据告知/备份/回滚/上线前审查，实际 URL 回证 |
 
 **不走“框架全部搭完才想实验”的横向路线。**已有函数实验原型只是候选素材；B2/B3 建立真实登录与门禁后，B4 就将这**一个真实实验**接入完整路径并验证公式、画面、收藏与历史。第二个异科实验在首条闭环与权限/数据链路可信后再做，用它证明扩展契约而非提前预造空包。

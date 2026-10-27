@@ -1,0 +1,1291 @@
+{
+  "schemaVersion": 1,
+  "subject": "math",
+  "note": "PEP (People's Education Press) middle-school mathematics, the five volumes of the 2022 curriculum revision: grade 7 volume 1 (from autumn 2024), 7-2 (spring 2025), 8-1 (autumn 2025), 8-2 (spring 2026) and 9-1 (autumn 2026); chapter numbers 1-30 run on without a gap across the five books. Chapter and section short titles, their order and the printed page numbers are transcribed from each volume's own table-of-contents page and re-checked against the body pages (docs/research/pep-math-six-volumes.md). The publisher's online reader was behind a captcha and was not accessed, so this is a double-checked transcription of local mirror PDFs rather than a comparison with an official online copy. No textbook body text, exercise or image is stored in this repository, and nothing here serves a PDF. Grade 9 volume 2 is deliberately absent: the only grade-9-lower volume verified so far is the current legacy edition, which lives in its own catalog (pep-math-9b-legacy) because its chapter numbers 26-29 collide with this edition's 26-29.",
+  "catalogs": [
+    {
+      "catalogId": "pep-math-2022",
+      "subject": "math",
+      "version": 1,
+      "status": "verified",
+      "order": 1,
+      "editionStatus": "current-2022",
+      "label": {
+        "zh-CN": "人教版初中数学（2022 年课标修订版）",
+        "en": "PEP middle-school mathematics (2022 curriculum revision)"
+      },
+      "publisher": {
+        "zh-CN": "人民教育出版社",
+        "en": "People's Education Press"
+      },
+      "revision": {
+        "zh-CN": "2022 年课标修订版（2024—2026 年陆续启用；版别依据册别与章号结构判定，版权页未印版次）",
+        "en": "2022 curriculum revision (phased in 2024-2026; the edition line is inferred from the volume set and chapter numbering, because the copyright page prints no edition number)"
+      },
+      "books": [
+        {
+          "bookId": "pep-math-7a-2024",
+          "order": 1,
+          "label": {
+            "zh-CN": "七年级上册",
+            "en": "Grade 7, volume 1"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-7a-2024-ch01",
+              "order": 1,
+              "label": {
+                "zh-CN": "第一章 有理数",
+                "en": "Chapter 1 Rational numbers"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch01-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "1.1 正数和负数",
+                    "en": "1.1 Positive and negative numbers"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch01-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "1.2 有理数及其大小比较",
+                    "en": "1.2 Rational numbers and comparing them"
+                  },
+                  "printedPage": 7
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7a-2024-ch02",
+              "order": 2,
+              "label": {
+                "zh-CN": "第二章 有理数的运算",
+                "en": "Chapter 2 Operations on rational numbers"
+              },
+              "printedPage": 24,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch02-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "2.1 有理数的加法与减法",
+                    "en": "2.1 Adding and subtracting rational numbers"
+                  },
+                  "printedPage": 25
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch02-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "2.2 有理数的乘法与除法",
+                    "en": "2.2 Multiplying and dividing rational numbers"
+                  },
+                  "printedPage": 38
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch02-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "2.3 有理数的乘方",
+                    "en": "2.3 Powers of rational numbers"
+                  },
+                  "printedPage": 51
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch02-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 进位制的认识与探究",
+                    "en": "Integrated practice: Numeral systems: an exploration"
+                  },
+                  "printedPage": 63
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7a-2024-ch03",
+              "order": 3,
+              "label": {
+                "zh-CN": "第三章 代数式",
+                "en": "Chapter 3 Algebraic expressions"
+              },
+              "printedPage": 68,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch03-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "3.1 列代数式表示数量关系",
+                    "en": "3.1 Using algebraic expressions for quantitative relationships"
+                  },
+                  "printedPage": 69
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch03-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "3.2 代数式的值",
+                    "en": "3.2 Values of algebraic expressions"
+                  },
+                  "printedPage": 79
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7a-2024-ch04",
+              "order": 4,
+              "label": {
+                "zh-CN": "第四章 整式的加减",
+                "en": "Chapter 4 Adding and subtracting polynomials"
+              },
+              "printedPage": 88,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch04-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "4.1 整式",
+                    "en": "4.1 Polynomials"
+                  },
+                  "printedPage": 89
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch04-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "4.2 整式的加法与减法",
+                    "en": "4.2 Adding and subtracting polynomials"
+                  },
+                  "printedPage": 95
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7a-2024-ch05",
+              "order": 5,
+              "label": {
+                "zh-CN": "第五章 一元一次方程",
+                "en": "Chapter 5 Linear equations in one variable"
+              },
+              "printedPage": 110,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch05-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "5.1 方程",
+                    "en": "5.1 Equations"
+                  },
+                  "printedPage": 111
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch05-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "5.2 解一元一次方程",
+                    "en": "5.2 Solving linear equations in one variable"
+                  },
+                  "printedPage": 120
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch05-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "5.3 实际问题与一元一次方程",
+                    "en": "5.3 Real-world problems and linear equations in one variable"
+                  },
+                  "printedPage": 133
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7a-2024-ch06",
+              "order": 6,
+              "label": {
+                "zh-CN": "第六章 几何图形初步",
+                "en": "Chapter 6 Introduction to geometric figures"
+              },
+              "printedPage": 149,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7a-2024-ch06-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "6.1 几何图形",
+                    "en": "6.1 Geometric figures"
+                  },
+                  "printedPage": 150
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch06-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "6.2 直线、射线、线段",
+                    "en": "6.2 Lines, rays and line segments"
+                  },
+                  "printedPage": 162
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch06-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "6.3 角",
+                    "en": "6.3 Angles"
+                  },
+                  "printedPage": 170
+                },
+                {
+                  "sectionId": "pep-math-7a-2024-ch06-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 设计学校田径运动会比赛场地",
+                    "en": "Integrated practice: Designing the venue for a school athletics meet"
+                  },
+                  "printedPage": 189
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bookId": "pep-math-7b-2025",
+          "order": 2,
+          "label": {
+            "zh-CN": "七年级下册",
+            "en": "Grade 7, volume 2"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-7b-2025-ch07",
+              "order": 7,
+              "label": {
+                "zh-CN": "第七章 相交线与平行线",
+                "en": "Chapter 7 Intersecting lines and parallel lines"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch07-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "7.1 相交线",
+                    "en": "7.1 Intersecting lines"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch07-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "7.2 平行线",
+                    "en": "7.2 Parallel lines"
+                  },
+                  "printedPage": 11
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch07-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "7.3 定义、命题、定理",
+                    "en": "7.3 Definitions, propositions and theorems"
+                  },
+                  "printedPage": 22
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch07-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "7.4 平移",
+                    "en": "7.4 Translations"
+                  },
+                  "printedPage": 26
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7b-2025-ch08",
+              "order": 8,
+              "label": {
+                "zh-CN": "第八章 实数",
+                "en": "Chapter 8 Real numbers"
+              },
+              "printedPage": 39,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch08-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "8.1 平方根",
+                    "en": "8.1 Square roots"
+                  },
+                  "printedPage": 40
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch08-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "8.2 立方根",
+                    "en": "8.2 Cube roots"
+                  },
+                  "printedPage": 48
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch08-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "8.3 实数及其简单运算",
+                    "en": "8.3 Real numbers and simple operations on them"
+                  },
+                  "printedPage": 52
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7b-2025-ch09",
+              "order": 9,
+              "label": {
+                "zh-CN": "第九章 平面直角坐标系",
+                "en": "Chapter 9 The rectangular coordinate plane"
+              },
+              "printedPage": 63,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch09-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "9.1 用坐标描述平面内点的位置",
+                    "en": "9.1 Describing the position of a point with coordinates"
+                  },
+                  "printedPage": 64
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch09-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "9.2 坐标方法的简单应用",
+                    "en": "9.2 Simple applications of the coordinate method"
+                  },
+                  "printedPage": 72
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7b-2025-ch10",
+              "order": 10,
+              "label": {
+                "zh-CN": "第十章 二元一次方程组",
+                "en": "Chapter 10 Systems of linear equations in two variables"
+              },
+              "printedPage": 87,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch10-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "10.1 二元一次方程组的概念",
+                    "en": "10.1 The concept of a system of linear equations in two variables"
+                  },
+                  "printedPage": 88
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch10-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "10.2 消元——解二元一次方程组",
+                    "en": "10.2 Elimination: solving a system of linear equations in two variables"
+                  },
+                  "printedPage": 91
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch10-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "10.3 实际问题与二元一次方程组",
+                    "en": "10.3 Real-world problems and systems of linear equations in two variables"
+                  },
+                  "printedPage": 101
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch10-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "10.4 三元一次方程组的解法",
+                    "en": "10.4 Solving systems of linear equations in three variables"
+                  },
+                  "printedPage": 107
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7b-2025-ch11",
+              "order": 11,
+              "label": {
+                "zh-CN": "第十一章 不等式与不等式组",
+                "en": "Chapter 11 Inequalities and systems of inequalities"
+              },
+              "printedPage": 120,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch11-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "11.1 不等式",
+                    "en": "11.1 Inequalities"
+                  },
+                  "printedPage": 121
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch11-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "11.2 一元一次不等式",
+                    "en": "11.2 Linear inequalities in one variable"
+                  },
+                  "printedPage": 131
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch11-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "11.3 一元一次不等式组",
+                    "en": "11.3 Systems of linear inequalities in one variable"
+                  },
+                  "printedPage": 138
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch11-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 低碳生活",
+                    "en": "Integrated practice: Low-carbon living"
+                  },
+                  "printedPage": 146
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-7b-2025-ch12",
+              "order": 12,
+              "label": {
+                "zh-CN": "第十二章 数据的收集、整理与描述",
+                "en": "Chapter 12 Collecting, organising and describing data"
+              },
+              "printedPage": 150,
+              "sections": [
+                {
+                  "sectionId": "pep-math-7b-2025-ch12-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "12.1 统计调查",
+                    "en": "12.1 Statistical surveys"
+                  },
+                  "printedPage": 151
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch12-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "12.2 用统计图描述数据",
+                    "en": "12.2 Describing data with statistical charts"
+                  },
+                  "printedPage": 160
+                },
+                {
+                  "sectionId": "pep-math-7b-2025-ch12-project",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "综合与实践 白昼时长规律的探究",
+                    "en": "Integrated practice: Investigating how daylight hours change"
+                  },
+                  "printedPage": 188
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bookId": "pep-math-8a-2025",
+          "order": 3,
+          "label": {
+            "zh-CN": "八年级上册",
+            "en": "Grade 8, volume 1"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-8a-2025-ch13",
+              "order": 13,
+              "label": {
+                "zh-CN": "第十三章 三角形",
+                "en": "Chapter 13 Triangles"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch13-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "13.1 三角形的概念",
+                    "en": "13.1 The concept of a triangle"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch13-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "13.2 与三角形有关的线段",
+                    "en": "13.2 Segments associated with a triangle"
+                  },
+                  "printedPage": 5
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch13-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "13.3 三角形的内角与外角",
+                    "en": "13.3 Interior and exterior angles of a triangle"
+                  },
+                  "printedPage": 11
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch13-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 确定匀质薄板的重心位置",
+                    "en": "Integrated practice: Locating the centre of gravity of a uniform thin plate"
+                  },
+                  "printedPage": 23
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8a-2025-ch14",
+              "order": 14,
+              "label": {
+                "zh-CN": "第十四章 全等三角形",
+                "en": "Chapter 14 Congruent triangles"
+              },
+              "printedPage": 28,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch14-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "14.1 全等三角形及其性质",
+                    "en": "14.1 Congruent triangles and their properties"
+                  },
+                  "printedPage": 29
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch14-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "14.2 三角形全等的判定",
+                    "en": "14.2 Criteria for triangle congruence"
+                  },
+                  "printedPage": 32
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch14-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "14.3 角的平分线",
+                    "en": "14.3 Angle bisectors"
+                  },
+                  "printedPage": 48
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8a-2025-ch15",
+              "order": 15,
+              "label": {
+                "zh-CN": "第十五章 轴对称",
+                "en": "Chapter 15 Axial symmetry"
+              },
+              "printedPage": 61,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch15-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "15.1 图形的轴对称",
+                    "en": "15.1 Axial symmetry of figures"
+                  },
+                  "printedPage": 62
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch15-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "15.2 画轴对称的图形",
+                    "en": "15.2 Drawing axially symmetric figures"
+                  },
+                  "printedPage": 72
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch15-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "15.3 等腰三角形",
+                    "en": "15.3 Isosceles triangles"
+                  },
+                  "printedPage": 78
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch15-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 最短路径问题",
+                    "en": "Integrated practice: The shortest path problem"
+                  },
+                  "printedPage": 94
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8a-2025-ch16",
+              "order": 16,
+              "label": {
+                "zh-CN": "第十六章 整式的乘法",
+                "en": "Chapter 16 Multiplying polynomials"
+              },
+              "printedPage": 97,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch16-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "16.1 幂的运算",
+                    "en": "16.1 Operations on powers"
+                  },
+                  "printedPage": 98
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch16-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "16.2 整式的乘法",
+                    "en": "16.2 Multiplying polynomials"
+                  },
+                  "printedPage": 103
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch16-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "16.3 乘法公式",
+                    "en": "16.3 Multiplication formulas"
+                  },
+                  "printedPage": 112
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8a-2025-ch17",
+              "order": 17,
+              "label": {
+                "zh-CN": "第十七章 因式分解",
+                "en": "Chapter 17 Factorisation"
+              },
+              "printedPage": 123,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch17-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "17.1 用提公因式法分解因式",
+                    "en": "17.1 Factorising by the common-factor method"
+                  },
+                  "printedPage": 124
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch17-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "17.2 用公式法分解因式",
+                    "en": "17.2 Factorising with formulas"
+                  },
+                  "printedPage": 128
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8a-2025-ch18",
+              "order": 18,
+              "label": {
+                "zh-CN": "第十八章 分式",
+                "en": "Chapter 18 Algebraic fractions"
+              },
+              "printedPage": 137,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8a-2025-ch18-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "18.1 分式及其基本性质",
+                    "en": "18.1 Algebraic fractions and their basic properties"
+                  },
+                  "printedPage": 138
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch18-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "18.2 分式的乘法与除法",
+                    "en": "18.2 Multiplying and dividing algebraic fractions"
+                  },
+                  "printedPage": 146
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch18-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "18.3 分式的加法与减法",
+                    "en": "18.3 Adding and subtracting algebraic fractions"
+                  },
+                  "printedPage": 152
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch18-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "18.4 整数指数幂",
+                    "en": "18.4 Integer exponents"
+                  },
+                  "printedPage": 158
+                },
+                {
+                  "sectionId": "pep-math-8a-2025-ch18-s5",
+                  "order": 5,
+                  "label": {
+                    "zh-CN": "18.5 分式方程",
+                    "en": "18.5 Equations with algebraic fractions"
+                  },
+                  "printedPage": 164
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bookId": "pep-math-8b-2026",
+          "order": 4,
+          "label": {
+            "zh-CN": "八年级下册",
+            "en": "Grade 8, volume 2"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-8b-2026-ch19",
+              "order": 19,
+              "label": {
+                "zh-CN": "第十九章 二次根式",
+                "en": "Chapter 19 Quadratic radicals"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch19-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "19.1 二次根式及其性质",
+                    "en": "19.1 Quadratic radicals and their properties"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch19-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "19.2 二次根式的乘法与除法",
+                    "en": "19.2 Multiplying and dividing quadratic radicals"
+                  },
+                  "printedPage": 6
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch19-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "19.3 二次根式的加法与减法",
+                    "en": "19.3 Adding and subtracting quadratic radicals"
+                  },
+                  "printedPage": 13
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8b-2026-ch20",
+              "order": 20,
+              "label": {
+                "zh-CN": "第二十章 勾股定理",
+                "en": "Chapter 20 The Pythagorean theorem"
+              },
+              "printedPage": 22,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch20-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "20.1 勾股定理及其应用",
+                    "en": "20.1 The Pythagorean theorem and its applications"
+                  },
+                  "printedPage": 23
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch20-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "20.2 勾股定理的逆定理及其应用",
+                    "en": "20.2 The converse of the Pythagorean theorem and its applications"
+                  },
+                  "printedPage": 34
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8b-2026-ch21",
+              "order": 21,
+              "label": {
+                "zh-CN": "第二十一章 四边形",
+                "en": "Chapter 21 Quadrilaterals"
+              },
+              "printedPage": 45,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch21-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "21.1 四边形及多边形",
+                    "en": "21.1 Quadrilaterals and polygons"
+                  },
+                  "printedPage": 46
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch21-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "21.2 平行四边形",
+                    "en": "21.2 Parallelograms"
+                  },
+                  "printedPage": 55
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch21-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "21.3 特殊的平行四边形",
+                    "en": "21.3 Special parallelograms"
+                  },
+                  "printedPage": 68
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8b-2026-ch22",
+              "order": 22,
+              "label": {
+                "zh-CN": "第二十二章 函数",
+                "en": "Chapter 22 Functions"
+              },
+              "printedPage": 89,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch22-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "22.1 函数的概念",
+                    "en": "22.1 The concept of a function"
+                  },
+                  "printedPage": 90
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch22-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "22.2 函数的表示",
+                    "en": "22.2 Representing functions"
+                  },
+                  "printedPage": 100
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8b-2026-ch23",
+              "order": 23,
+              "label": {
+                "zh-CN": "第二十三章 一次函数",
+                "en": "Chapter 23 Linear functions"
+              },
+              "printedPage": 113,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch23-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "23.1 一次函数的概念",
+                    "en": "23.1 The concept of a linear function"
+                  },
+                  "printedPage": 114
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch23-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "23.2 一次函数的图象和性质",
+                    "en": "23.2 Graphs and properties of linear functions"
+                  },
+                  "printedPage": 117
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch23-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "23.3 一次函数与方程（组）、不等式",
+                    "en": "23.3 Linear functions, equations (and systems) and inequalities"
+                  },
+                  "printedPage": 127
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch23-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "23.4 实际问题与一次函数",
+                    "en": "23.4 Real-world problems and linear functions"
+                  },
+                  "printedPage": 131
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch23-project",
+                  "order": 5,
+                  "label": {
+                    "zh-CN": "综合与实践 音乐与数学",
+                    "en": "Integrated practice: Music and mathematics"
+                  },
+                  "printedPage": 143
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-8b-2026-ch24",
+              "order": 24,
+              "label": {
+                "zh-CN": "第二十四章 数据的分析",
+                "en": "Chapter 24 Analysing data"
+              },
+              "printedPage": 148,
+              "sections": [
+                {
+                  "sectionId": "pep-math-8b-2026-ch24-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "24.1 数据的集中趋势",
+                    "en": "24.1 Central tendency of data"
+                  },
+                  "printedPage": 149
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch24-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "24.2 数据的离散程度",
+                    "en": "24.2 Dispersion of data"
+                  },
+                  "printedPage": 168
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch24-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "24.3 数据的四分位数",
+                    "en": "24.3 Quartiles of data"
+                  },
+                  "printedPage": 176
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch24-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "24.4 数据的分组",
+                    "en": "24.4 Grouping data"
+                  },
+                  "printedPage": 182
+                },
+                {
+                  "sectionId": "pep-math-8b-2026-ch24-project",
+                  "order": 5,
+                  "label": {
+                    "zh-CN": "综合与实践 学生体质健康调查与分析",
+                    "en": "Integrated practice: Surveying and analysing students' physical fitness"
+                  },
+                  "printedPage": 193
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bookId": "pep-math-9a-2026",
+          "order": 5,
+          "label": {
+            "zh-CN": "九年级上册",
+            "en": "Grade 9, volume 1"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-9a-2026-ch25",
+              "order": 25,
+              "label": {
+                "zh-CN": "第二十五章 一元二次方程",
+                "en": "Chapter 25 Quadratic equations in one variable"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch25-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "25.1 一元二次方程的概念",
+                    "en": "25.1 The concept of a quadratic equation in one variable"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch25-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "25.2 降次——解一元二次方程",
+                    "en": "25.2 Degree reduction: solving quadratic equations in one variable"
+                  },
+                  "printedPage": 5
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch25-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "25.3 实际问题与一元二次方程",
+                    "en": "25.3 Real-world problems and quadratic equations in one variable"
+                  },
+                  "printedPage": 20
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9a-2026-ch26",
+              "order": 26,
+              "label": {
+                "zh-CN": "第二十六章 二次函数",
+                "en": "Chapter 26 Quadratic functions"
+              },
+              "printedPage": 29,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch26-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "26.1 二次函数的概念",
+                    "en": "26.1 The concept of a quadratic function"
+                  },
+                  "printedPage": 30
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch26-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "26.2 二次函数的图象和性质",
+                    "en": "26.2 Graphs and properties of quadratic functions"
+                  },
+                  "printedPage": 33
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch26-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "26.3 二次函数与一元二次方程",
+                    "en": "26.3 Quadratic functions and quadratic equations in one variable"
+                  },
+                  "printedPage": 46
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch26-s4",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "26.4 实际问题与二次函数",
+                    "en": "26.4 Real-world problems and quadratic functions"
+                  },
+                  "printedPage": 51
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9a-2026-ch27",
+              "order": 27,
+              "label": {
+                "zh-CN": "第二十七章 反比例函数",
+                "en": "Chapter 27 Inverse proportional functions"
+              },
+              "printedPage": 63,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch27-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "27.1 反比例函数的概念",
+                    "en": "27.1 The concept of an inverse proportional function"
+                  },
+                  "printedPage": 64
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch27-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "27.2 反比例函数的图象和性质",
+                    "en": "27.2 Graphs and properties of inverse proportional functions"
+                  },
+                  "printedPage": 67
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch27-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "27.3 实际问题与反比例函数",
+                    "en": "27.3 Real-world problems and inverse proportional functions"
+                  },
+                  "printedPage": 74
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch27-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 高铁列车运行中的数量关系",
+                    "en": "Integrated practice: Quantitative relationships in high-speed rail operations"
+                  },
+                  "printedPage": 87
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9a-2026-ch28",
+              "order": 28,
+              "label": {
+                "zh-CN": "第二十八章 旋转",
+                "en": "Chapter 28 Rotation"
+              },
+              "printedPage": 91,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch28-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "28.1 图形的旋转",
+                    "en": "28.1 Rotating figures"
+                  },
+                  "printedPage": 92
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch28-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "28.2 中心对称",
+                    "en": "28.2 Central symmetry"
+                  },
+                  "printedPage": 99
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9a-2026-ch29",
+              "order": 29,
+              "label": {
+                "zh-CN": "第二十九章 圆",
+                "en": "Chapter 29 Circles"
+              },
+              "printedPage": 113,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch29-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "29.1 圆的有关概念",
+                    "en": "29.1 Concepts related to circles"
+                  },
+                  "printedPage": 114
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch29-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "29.2 圆的有关性质",
+                    "en": "29.2 Properties of circles"
+                  },
+                  "printedPage": 123
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch29-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "29.3 弧长和扇形面积",
+                    "en": "29.3 Arc length and sector area"
+                  },
+                  "printedPage": 134
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9a-2026-ch30",
+              "order": 30,
+              "label": {
+                "zh-CN": "第三十章 直线与圆的位置关系",
+                "en": "Chapter 30 Positional relationships between lines and circles"
+              },
+              "printedPage": 147,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9a-2026-ch30-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "30.1 直线与圆",
+                    "en": "30.1 Lines and circles"
+                  },
+                  "printedPage": 148
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch30-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "30.2 三角形的内切圆",
+                    "en": "30.2 Incircles of triangles"
+                  },
+                  "printedPage": 158
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch30-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "30.3 正多边形与圆",
+                    "en": "30.3 Regular polygons and circles"
+                  },
+                  "printedPage": 161
+                },
+                {
+                  "sectionId": "pep-math-9a-2026-ch30-project",
+                  "order": 4,
+                  "label": {
+                    "zh-CN": "综合与实践 生活中的优化问题",
+                    "en": "Integrated practice: Optimisation problems in everyday life"
+                  },
+                  "printedPage": 173
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

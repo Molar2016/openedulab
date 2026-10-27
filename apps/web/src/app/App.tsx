@@ -274,13 +274,30 @@ function ExperimentRoute({
   return (
     <>
       {placement === undefined ? null : (
-        <p className="muted small" data-testid="placement-breadcrumb">
-          {i18n.t('placement.breadcrumb', {
-            edition: placement.edition.label,
-            book: placement.book.label,
-            chapter: placement.chapter.label,
-          })}
-        </p>
+        <>
+          <p className="muted small" data-testid="placement-breadcrumb">
+            {i18n.t(
+              placement.section === undefined
+                ? 'placement.breadcrumb'
+                : 'placement.breadcrumbSection',
+              {
+                edition: placement.edition.label,
+                book: placement.book.label,
+                chapter: placement.chapter.label,
+                section: placement.section?.label ?? '',
+              },
+            )}
+          </p>
+          {placement.status === 'illustrative' ? (
+            <p className="muted small" data-testid="placement-source">
+              {i18n.t('placement.illustrative')}
+            </p>
+          ) : (
+            <p className="muted small" data-testid="placement-source">
+              {i18n.t('placement.verified')}
+            </p>
+          )}
+        </>
       )}
       <ExperimentHost
         entry={entry}
@@ -362,7 +379,7 @@ function PlacementPage({
     setState({ kind: 'loading' });
     services.api
       .curriculum(locale)
-      .then((items) => {
+      .then(({ items }) => {
         if (cancelled) return;
         const found = items.find((item) => item.slug === slug);
         setState(found === undefined ? { kind: 'missing' } : { kind: 'ready', placement: found });

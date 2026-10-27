@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "subject": "math",
+  "note": "Illustrative catalogs only (R8 pilot, kept as-is by ADR-005): neither is a real textbook and neither carries a publisher, revision or edition line, because no book or chapter below was checked against a published table of contents. They now follow the real volumes by order (3 and 4): the two PEP catalogs in pep-math-2022.json and pep-math-9b-legacy.json take 1 and 2, so the directory opens on actual textbooks and the examples sit after them. The tree lives here, at subject level, so a tool's curriculum.json only places a tool into a chapter and several tools may share one chapter. Catalog B deliberately orders the same two conceptual chapters the other way round to prove that order belongs to the catalog, not to the tool.",
+  "catalogs": [
+    {
+      "catalogId": "pilot-edition",
+      "subject": "math",
+      "version": 1,
+      "status": "illustrative",
+      "order": 3,
+      "label": {
+        "zh-CN": "示例教材甲（非教材）",
+        "en": "Sample textbook A (not a textbook)"
+      },
+      "books": [
+        {
+          "bookId": "pilot-book-a",
+          "order": 1,
+          "label": {
+            "zh-CN": "示例册 A",
+            "en": "Sample book A"
+          },
+          "chapters": [
+            {
+              "chapterId": "pilot-chapter-a",
+              "order": 1,
+              "label": {
+                "zh-CN": "示例章 A · 斜率与截距",
+                "en": "Sample chapter A · slope and intercept"
+              }
+            },
+            {
+              "chapterId": "pilot-chapter-b",
+              "order": 2,
+              "label": {
+                "zh-CN": "示例章 B · 顶点",
+                "en": "Sample chapter B · vertex"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "catalogId": "pilot-edition-b",
+      "subject": "math",
+      "version": 1,
+      "status": "illustrative",
+      "order": 4,
+      "label": {
+        "zh-CN": "示例教材乙（非教材，册序与章序另行编排）",
+        "en": "Sample textbook B (not a textbook; different book and chapter order)"
+      },
+      "books": [
+        {
+          "bookId": "pilot-book-b1",
+          "order": 1,
+          "label": {
+            "zh-CN": "示例册 B1",
+            "en": "Sample book B1"
+          },
+          "chapters": [
+            {
+              "chapterId": "pilot-chapter-b1-vertex",
+              "order": 1,
+              "label": {
+                "zh-CN": "示例章 B1-1 · 顶点",
+                "en": "Sample chapter B1-1 · vertex"
+              }
+            }
+          ]
+        },
+        {
+          "bookId": "pilot-book-b2",
+          "order": 2,
+          "label": {
+            "zh-CN": "示例册 B2",
+            "en": "Sample book B2"
+          },
+          "chapters": [
+            {
+              "chapterId": "pilot-chapter-b2-slope",
+              "order": 1,
+              "label": {
+                "zh-CN": "示例章 B2-1 · 斜率与截距",
+                "en": "Sample chapter B2-1 · slope and intercept"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

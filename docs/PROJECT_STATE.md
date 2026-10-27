@@ -1,6 +1,6 @@
 # PROJECT_STATE
 
-最后更新：2026-10-27（R7 课程上下文预置与按上下文保存参数的纵向切片；R6 服务器内部测试部署 + IP HTTPS 评估；R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」至「R7」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉；R6 在负责人自有 VPS 上搭了一份**只绑 127.0.0.1 的独立测试实例**并逐项实测通过，同时评估了"把页面发布到 IP 的 HTTPS"（结论：未执行，见 `docs/ops/ip-https-assessment.md`）。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：没有域名、没有证书、没有对外入口；测试实例只能经加密 SSH 端口转发访问。
+最后更新：2026-10-27（R9 G3 六册人教版数学真实目录 + 两个适配入口，代码与测试完成、浏览器验收留给 G4；R8 教材目录层级与目录内顺序 + 工作机 3320 本机体验版；R7 课程上下文预置与按上下文保存参数的纵向切片；R6 服务器内部测试部署 + IP HTTPS 评估；R5 依赖安全与决策同步；R4 交付前验证 + R3 只读侦察）。**当前声明以「R1」至「R7」各节为准**：源码已推送到公开仓库 `Molar2016/openedulab`（PUBLIC，`main`），GitHub Actions 上的 CI **已在真实运行并通过**（run 链路见 `docs/evidence/r1/remote-ci.txt`），参数快照 B7 已实现并验收；R5 同步了负责人的产品决策（首版不做账号删除/个人数据导出、不设未成年人年龄门槛）、修正了 GitHub Pages 的可用性说法并把 6 条开发依赖公告修掉；R6 在负责人自有 VPS 上搭了一份**只绑 127.0.0.1 的独立测试实例**并逐项实测通过，同时评估了"把页面发布到 IP 的 HTTPS"（结论：未执行，见 `docs/ops/ip-https-assessment.md`）。buildVersion：`0.1.0-m1`。**仍无公网应用 URL**：没有域名、没有证书、没有对外入口；测试实例只能经加密 SSH 端口转发访问。
 
 ## 当前状态
 需求基线 `docs/requirements-v2.1.md` 已定：强制登录、自注册不分师生、本人收藏与按工具去重的最近使用、内部按账号诊断事件；参数仅显式保存，直接工具与教材章节入口分别拥有独立快照（R7/ADR-003）。宏观架构见 `docs/architecture/ADR-002-authenticated-platform.md`；原型审计见 `docs/architecture/A-stage-audit.md`；A 阶段设计见 `docs/architecture/A-stage-design.md`（权限矩阵、数据/事件字典、认证/会话/滥用控制、API 契约、数据库选型论证、23 条需求可测试追溯、B0–B8 顺序、未决问题与风险）。
@@ -392,6 +392,62 @@
 
 **已知风险**：章级快照只能覆盖不能清除（产品只保留两个控件）；placement 版本升级会让旧快照退回预置值并提示（不做自动迁移）；示例条目一旦被误当成教材映射会误导教师——因此界面徽标、ADR 与需求都写明“非教材章节”。
 
+## R8（教材目录层级与目录内顺序，本轮）
+
+**结论先说**：目录现在是 **学科（仅导航分组）→ 教材版本 → 册 → 章 → 工具入口**。同一个工具（`math.functions`，仍是一份代码）被放进**两本明确标注为非教材**的示例目录：教材甲按“斜率 → 顶点”，教材乙按“顶点 → 斜率”（两册，先 B1 后 B2），顺序完全由各自的 `curriculum.json` 声明，不由工具 ID、学段或文件顺序推导。R7 的两条 placement 的 ID、slug、`version: 1` 与个人快照**原样保留**；**没有新迁移**（`0001_init.sql` 校验和仍 `289c27d3…`，`schema_migrations` 仍 2 行）。工作机上另起了一份**只绑 `127.0.0.1:3320`、独立数据库**的体验版并逐项实测；**没有动 VPS/nginx/DNS/防火墙，没有提交或推送**。
+
+- **先文档后代码**：`docs/requirements-v2.1.md` §3A 增“教材目录层级”与“出处必须可核验”两条，§4 增第 8 条验收情境（选数学→教材甲→章 A/B；教材乙相反顺序；参数只按 placement 分离；最近使用仍按工具），§6 增决策 9（**教材目录是学科导航，不是班级/选课/名册**）；新增 `docs/architecture/ADR-004-curriculum-catalogs.md`（取代 ADR-003 §D2 的**数据布局**，保留其标识/快照/保存语义）；`docs/roadmap.md` 增 R8 关口。
+- **目录是内容（schemaVersion 2）**：`experiments/math-functions/curriculum.json` 拆成 `catalogs[]`（`catalogId/subject/version/status/order/label` + `books[].chapters[]`，各有显式 `order`）与 `placements[]`（`catalogId/bookId/chapterId` 定位章节，`order` 重定义为**章内工具序**）。教材甲 = R7 的 `pilot-edition`（册 `pilot-book-a`：章 `pilot-chapter-a` 斜率、章 `pilot-chapter-b` 顶点）；教材乙 = 新 `pilot-edition-b`（册 `pilot-book-b1` 顶点 → 册 `pilot-book-b2` 斜率），新增两条 placement `math.functions.pilot-vertex-first`（slug `pilot-vertex-first`）与 `math.functions.pilot-slope-after`（slug `pilot-slope-after`），预置参数各自独立。
+- **启动校验（服务端）与 `scripts/validate-content.mjs` 规则等价**：`catalog.order` 每文件唯一、`book.order` 每教材唯一、`chapter.order` 每册唯一、`chapterId` 每教材唯一（跨册不得重名）、placement 的章内 `order` 唯一；placement 必须**精确**命中 教材/册/章，若章存在于另一册则报错写明所属册而**不按名字回退**；引用别处声明的教材（跨工具/跨文件）拒绝；`placement.status` 必须等于教材 `status`；`illustrative` 教材**不得**有 `publisher/revision`（有则拒绝启动），`verified` 教材两者必填；教材 `subject` 必须是工具 manifest `subjects` 之一；旧 `schemaVersion: 1` 拒绝。
+- **API**：`GET /api/curriculum` 的 `items` 字段向后兼容（`placementId/slug/version/status/order/experimentId/experimentSlug/contentVersion/stateSchemaVersion/title/summary/edition/book/chapter/preset` 全在），新增 `subject/catalogId/bookId/chapterId`；同时新增 `catalogs`（含 `books[].chapters[].placementIds`，章只带 ID，条目定义仍只有 `items` 一处）。排序为 学科 → 教材 order → 册 order → 章 order → 章内工具 order → placementId。**没有新路由**，`/api/me/placement-state/:id`、`/api/me/saved-state/:id`、收藏/最近使用/事件全部未改。
+- **界面**：`/curriculum` 以“数学课程”为标题，按 教材 → 册 → 章 → 入口 分组（有序列表），教材与条目都有“试点条目（非教材章节）”徽标，并写明“学科只是导航分组，不包含班级、学期、名册或学生记录”；章节页保留 教材 · 册 · 章 面包屑并新增“示例目录条目（非已核实教材章节）”来源提示；URL 仍是 `/curriculum/<slug>?lang=`。分组/排序逻辑抽成纯函数 `apps/web/src/app/curriculum-tree.ts`（单独单测），页面只负责渲染。
+- **RED（先写测试，证据 `docs/evidence/r8/`）**：`test-red-api.txt` = 21 失败 / 23 通过（`catalogs` 不存在、旧 schema 拒收、新顺序断言全红）；`test-red-web.txt` = 6 失败 / 1 通过（无 `curriculum-tree`、无分组 DOM）。
+
+**实测（非推断）**：
+- `npm run check` **退出码 0**（`docs/evidence/r8/check-r8.txt`）：web **12 文件 / 141 测试**（新增 `curriculum-tree.test.ts`）+ API **24 文件 / 374 测试**（`curriculum.test.ts` 44 条）；lint/typecheck 无输出；`validate-content` OK（`curriculum catalogs: math.functions: 2`、`placements: 4`、UI 字典两语各 165 键）；两个构建成功。
+- `npm run smoke:api` → **127/127 checks passed**（`smoke.txt`；新增 3 条：四条目/两教材、相反顺序、illustrative 无出版社，且新增“第二个教材的同工具快照互不覆盖”实测）。
+- `npx playwright test` → **83 passed / 67 skipped / 0 failed**（`e2e-full.txt`，4 个 project）。新增 `catalog-b-saved` 用例：目录两本教材、目录内相反顺序、教材乙条目预置 `y = −x + 2`、保存后刷新自动载入、教材甲同主题条目快照逐字节不变；截图在 `docs/evidence/r8/`。
+- **本机体验版（工作机 loopback，独立数据库）**：`node apps/api/dist/index.js` 只绑 `127.0.0.1:3320`，数据库 `G:/hermes/tmp/openedulab-r8-local/app.sqlite`（仓库外新文件），`/api/healthz` = `ok`（`applied=2`）。真实浏览器（本机 Chrome）实测：匿名 `/curriculum` → 302 到登录页并保留 `next`；注册虚构账号 `r8-demo@example.invalid` 后，目录显示“数学课程 → 示例教材甲（册 A：章 A 斜率 → 章 B 顶点）/ 示例教材乙（册 B1 顶点 → 册 B2 斜率）”；点进教材乙“后看斜率”→ 面包屑正确、预置 `y = −x + 2`、拖到 `a = -4` 保存后刷新自动载入“你保存的参数”；回到教材甲“斜率”→ 仍是本章预置 `y = 2x + 3`（未串）；`/me` 最近使用仍只有一行工具级“一次函数与二次函数”。库内回读（`db-readback.txt`）：`placement_saved_state` 仅 1 行 `pilot-slope-after`、`saved_state` 0 行、`recent_use` 1 行、event 7 行不含参数值。完整记录与截图：`docs/evidence/r8/live-3320.txt`、`local-3320-*.png`。
+- **进程句柄与停止**：用 `G:/hermes/tmp/openedulab-r8-local/start-server.ps1` 以 `Start-Process` 分离启动，node 自身 PID 写入 `server.pid`；实测按该 PID `Stop-Process -Id <PID> -Force` 后端口不再 LISTENING，再次启动（同一数据库）后旧会话与章节快照仍在。**当前交付的常驻进程 PID = 20352**（`netstat -ano | grep ':3320 '` 可核）。
+
+**本轮没做（刻意）**：没有 `verified` 教材（没有可核验的出版社/版次/章名，绝不编造）；教材目录仍声明在工具自己的 `curriculum.json` 里（**该限制已于 R9 G2 由 ADR-005 解除，见下节**）；不做节（section）层级、页码、教材导入/编辑器、章级收藏/最近使用/事件；不更新 VPS，不提交/推送。
+
+**已知风险**：示例教材可能被误当成真实书目——界面徽标、章节页来源提示、ADR-004 与需求都写明非教材，且 `illustrative` 下写出版社/版次会被启动校验拒绝；章 ID 是长期标识，改章结构必须同时评审引用与 URL。
+
+## R9 G2（学科级教材目录与工具解耦，本轮）
+
+**结论先说**：教材树现在**不属于任何工具**。目录是学科级内容文件 `curricula/<subject>/<file>.json`（`schemaVersion: 1`，`subject` 与所在目录名一致），工具的 `curriculum.json` 升为 `schemaVersion: 3`，**只放 placement**。因此：没有工具的章照样存在并可展示；多个工具可共用同一章而不复制册/章；同一学科内 `catalog.order` 与 `catalogId` 跨文件唯一；同一章内同一位置只能有一个工具。R8 的两本示例目录与四条 placement（ID/slug/version/order/preset/status）**逐字保留**，`/api/curriculum` 的 `items` 与 `catalogs` 结构未变。**本轮只做 G2 基础设施**：六册人教版目录（34 章 / 98 节，见 `docs/research/pep-math-six-volumes.md`）**未导入**，**未新增任何 placement**，`apps/web` 未改动，**没有新迁移**，不提交/不推送、不碰 PDF。
+
+- **先测试后实现（RED 证据 `docs/evidence/r9/g2/red-api.txt`）**：新增 `apps/api/test/curriculum-catalogs.test.ts`（16 条：独立学科目录、无工具章可见、两工具共章不重复、跨版本同章号隔离、跨版本引用被拒、R8 ID 保持、重复目录顺序/重复 catalogId/学科目录不一致/未知目录/章属别册/同章同位/退役 schemaVersion 全部拒绝）与 `apps/api/test/validate-content.test.ts`（5 条：离线校验接受正确布局，拒绝重复目录顺序、悬空章引用、同章同位、学科目录不一致）。实现前 **19 失败 / 2 通过**（仅 R8 ID 保留断言与一条旧结构下也会失败的未知目录用例为绿），退出码 1。
+- **实现**：`apps/api/src/domain/curriculum.ts` 新增 `parseCatalogFile()`（一文件一学科、catalog 必须重复该学科、出版/版次规则不变），`parseCurriculum()` 改为只解析 placement 并接收全局 catalog map；`apps/api/src/domain/content-index.ts` 先读 `curricula/`（默认与 `experiments/` 同级，可用 `curriculaDir` 覆盖），再逐工具解析 placement，跨文件检查 `catalogId` 全局唯一、`catalog.order` 每学科唯一，章内位置跨工具唯一；`scripts/validate-content.mjs` 用同一套规则（新增 `OEL_VALIDATE_ROOT` 供测试指向临时仓库夹具）。领域层仍不读文件系统：索引与离线校验共用同一批规则函数。
+- **内容搬迁（不加不减）**：两本示例目录原样移到 `curricula/math/pilot-illustrative.json`；`experiments/math-functions/curriculum.json` 只剩四条 placement。`0001_init.sql`/`0002_placement_state.sql` 未动，快照键未变。
+- **淘汰是显式的**：工具文件里若还写 `catalogs`，报错直接说明「教材树已迁到 `curricula/<subject>/<file>.json`（ADR-005）」，而不是一句未知字段；`schemaVersion: 2` 同样被拒。
+- **实测（非推断）**：
+  - `npm run check` **退出码 0**（`docs/evidence/r9/g2/check.txt`）：typecheck/typecheck:api/lint 无输出；web **12 文件 / 141 测试**；API **26 文件 / 396 测试**（R8 为 374，本轮新增 22 条）；`validate:content` OK（`curriculum catalogs: 2 (curricula/math/pilot-illustrative.json (2))`、`curriculum placements: math.functions: 4`、UI 字典两语各 165 键）；两个构建成功。
+  - `npm run smoke:api` → **127/127 checks passed**（`docs/evidence/r9/g2/smoke-api.txt`）；第 6b 节仍断言四条目/两目录/相反章序/illustrative 无出版社，说明搬迁没有改变对外的 `items` 契约。
+  - 新增测试单独跑：`docs/evidence/r9/g2/green-new-tests.txt` = **21/21 通过**。
+- **本轮没做（刻意）**：没有导入六册真实目录，没有新增 8 下 23.2 / 9 上 26.2 等适配入口（属 G3），没有改前端（`catalogs` 形状未变，`buildCurriculumTree()` 本就保留空章），没有跑 Playwright（G2 未改前端与路由；留待 G3 与真浏览器验收），没有更新 VPS、没有提交或推送。旧调查文档 `docs/research/pep-middle-math-curriculum-pilot.md` 的旧版章号仍只作对比，R9 以六册核对为准。
+
+## R9 G3（六册真实目录 + 两个适配入口，当时的历史记录）
+
+> **以下 G3 小节保留当时测试与设计的历史记录，不代表当前界面。** 用户已明确否定“新版／旧版”分区、特殊徽标；批准范围内的纠正与重新验收结果见下方“R9 批准范围收束”。不得把本小节中“旧版徽标／单列”等文字当成现行产品约定。
+
+**结论先说**：学科目录里现在有**六册人教版初中数学**的真实章/节目录：新版五册（七上 2024、七下 2025春、八上 2025秋、八下 2026春、九上 2026秋，章号 1—30 连续）合成一个 catalog `pep-math-2022`；**九下现行旧版**（章号 26—29，非 2027 新版）单列 catalog `pep-math-9b-legacy`，界面用 `editionStatus` 徽标写「旧版（2011 课标，现行使用）」，不与新版连排。树的层级由 `catalog → book → chapter → section` 组成（ADR-006 扩展 ADR-005），工具 placement 可以指向**某一节**。目录里 **34 章 / 98 个编号节 / 10 个综合与实践**（共 108 个节节点），其中只有 2 个节放了工具：八下 23.2 一次函数的图象和性质（linear，a=2/b=1/c=0）与九上 26.2 二次函数的图象和性质（quadratic，a=1/b=-4/c=3），其余全部以「本节暂无对应工具」如实显示。R8 的四条示例 placement 的 ID/slug/version/preset 一字未改，只是两个示例 catalog 的 `order` 从 1/2 变为 3/4，让真实教材排在前面。
+
+- **先测试后实现**：RED 见 `docs/evidence/r9/g3/red-api.txt`（API 20 失败 / 20 通过）与 `red-web.txt`（web 7 失败 / 14 通过）。新增 `apps/api/test/curriculum-six-volumes.test.ts`（8 条对**真实内容**的断言：五册顺序与 1—30 章号、旧版 26—29 与同名不同题、34 章/98 节/10 综合与实践计数、两个入口的 id/slug/section/预置、其余 106 节为空、HTTP 形状与旧版徽标、无路径泄漏），并在 `curriculum-catalogs.test.ts` 增「curriculum sections」9 条（节顺序与空节、placement 指向节、跨章节被拒、节内重复 id/order、章槽与节槽不同位、跨版别隔离、未知 editionStatus）、`validate-content.test.ts` 增 4 条离线同规则。
+- **实现**：`apps/api/src/domain/curriculum.ts` 增加 `CurriculumSection`、`printedPage`、`editionStatus`、placement 的 `sectionId`（可选，精确匹配，不按编号回退）与节级位置键；`content-index.ts` 排序链补 section；`content-routes.ts` 输出 `sections[]`/`sectionId`/`section`/`editionStatus`（章的 `placementIds` 仍是章内全部入口，老客户端不丢条目）；`scripts/validate-content.mjs` 同规则并输出 `curriculum tree: N chapters, M sections`；前端 `api.ts`/`curriculum-tree.ts`/`CurriculumPage.tsx`/`App.tsx` 渲染节层级、印刷页码、空节文案、旧版徽标与节级面包屑，中英各补 7 个键。
+- **实测（非推断）**：`npm run check` **退出码 0**（`docs/evidence/r9/g3/check.txt`）——web **12 文件 / 149 测试**、API **27 文件 / 415 测试**、`validate:content` OK（4 catalogs、`38 chapters, 108 sections`、`math.functions: 6`、UI 两语各 172 键）；`npm run smoke:api` → **130/130**（`smoke-api.txt`，第 6b 节改写为「六条目 / 四目录 / 两节入口 / 108 节 / 旧版徽标」）；`npx playwright test` → **88 通过 / 0 失败 / 82 条件跳过**（`e2e.txt`，含六册顺序、旧版分组、23.2 与 26.2 各自预置与各自快照、R8 旧链接回归、手机端无横向滚动；截图在 `docs/evidence/r9/g3/*.png`）。
+- **口径与限制**：两个 catalog 标 `verified`，出版社「人民教育出版社」由版权页文本层读到；**版次无法从 PDF 内部证明**（版权页无版次/印次），因此 `revision` 写明判断依据（2022 课标修订版 / 2011 课标旧版）并注明「版权页未印版次」；章节标题与顺序来自「目录页 + 正文页」双重复核（98/98 命中，九上第二十五章图版章首页为例外），**未**与出版社在线阅读器比对（滑块验证，不破解）。不得把本轮说成「已与官方目录核对」。
+- **本轮没做（刻意）**：没有真浏览器人工验收（只跑了自动化 E2E），没有重启或更新工作机 3320 / VPS 实例（留给 G4 用隔离 3320 复核），没有提交/推送，没有新迁移，没有动 `AGENTS.md`，没有把 PDF、教材正文或插图放进仓库；22.1 函数的概念、23.3 一次函数与方程（组）、不等式、26.3 二次函数与一元二次方程等**故意不映射**，其余学科尚无真实目录。
+
+## R9 批准范围收束（2026-10-27，当前代码与本机验收）
+
+- 用户批准的计划：`.hermes/plans/2026-10-27_162406-curriculum-scope-reset.md`。仅做盘点、取消新旧特殊界面语义、回归和工作机隔离实例验收；未改登录、工具代码、数据库结构，也未部署 VPS。
+- 六册实际数据在两个**同层**教材目录里：2022 课标修订版五册（30 章、88 个编号节、10 个综合与实践）；2011 课标版九下（4 章、10 个编号节）。合计 34 章、98 个编号节、10 个综合与实践。另有两个标明非教材的示例目录，不能混充真实教材。保留 `editionStatus` 作为受校验的数据属性，但页面没有新旧专区、专用徽标或特殊路由；年份与版次在普通教材详情里展示。两个新增入口为八下 23.2 与九上 26.2，复用 `math.functions`；原四个示例入口 ID/slug/version/preset 保持不变。其余节不强挂工具。
+- 工序 1—3 的完整测试输出保存在工作机本地 `docs/evidence/r9/approved-scope/`（未随本次源码提交发布，避免把原始执行日志混入公开仓库）：`npm run check` 退出码 0（web 149、API 416）、`npm run smoke:api` 130/130、`npx playwright test` 88 通过/82 条件跳过、`git diff --check` 无误。自动化测试是本地运行，不能等同公网发布。
+- 工作机隔离实例 `127.0.0.1:3320` 已重启为当前构建；本机浏览器登录态下实际看到两个教材同层、六册目录、23.2/26.2 的入口以及无工具节。使用该实例的测试账号，在 23.2 保存 a=3/b=1/c=0、刷新回读成功；26.2 初次载入独立预置 a=1/b=-4/c=3，另保存 a=1/b=-3/c=3、刷新回读成功。此处仅是**工作机本地验收**，不是 VPS 或公网更新。
+- 六册资料由本地 PDF 目录页/正文页核对，未声称这些镜像 PDF 直接来自出版社官网，也未将 PDF/正文/插图入库。独立审查如发现阻断项，另行修复、回归并提交。
+
 ## 下一步（严格按序）
 
 1. ~~**B0**：修 typecheck 根因（唯一共享 `debug-hook` 类型，两侧引用，不删测试）→ `npm run check` 退出码 0；`git init` + 首次提交。~~ **已完成（本轮）**。
@@ -404,13 +460,16 @@
 8. ~~**B7（参数快照）**：`saved_state`（一资源一份、`content_version`/`state_schema_version` 不匹配时回退默认并提示）。~~ **已完成（R2）**：三条路由受门禁/CSRF/限速约束，schema 由实验目录 `state-schema.json` 声明并在启动时校验，保存是唯一写入路径，需求 §4.5 因此满足。
 9. ~~**B8（收口）**：CI（typecheck/lint/unit/api/e2e/build/迁移/备份演练）、`scripts/retention-purge.mjs`、运维手册、状态锚更新。~~ **已完成（本轮）**：CI 文件已写、本机等效全流程通过（`npm run ci:local`）；留存清理 CLI 有 6 条测试与一次真实 apply 演练；恢复演练 PASS；README/runbook/rollback/隐私数据地图/第三方清单齐备。（B8 当时仍不可称 CI 绿色，因无远端仓库；R1 已完成远端落地并实测 CI 通过。）、B8 当时不可部署。
 10. ~~**R7（课程上下文预置 + 按上下文保存）**：一个工具两个课程目录条目、章级/工具级快照分开、两个控件、自动载入与来源标注。~~ **实现与本机复核完成**：ADR-003、迁移 `0002`、`/api/curriculum` 与 `/api/me/placement-state`、`/curriculum` 与 `/curriculum/<slug>` 页面；`npm run check` 退出码 0、smoke 124/124、E2E 82 通过/0 失败。仓库/远端状态以 Git 为准；VPS 尚未更新。
-11. **下一关（需用户选择，二者都需要新的授权）**：
+11. ~~**R8（教材目录层级与目录内顺序）**：两本示例教材对同一工具给出独立册序/章序；旧 placement/URL/快照不变；启动与 CI 校验同规则；本机 3320 体验版实测。~~ **实现与本机复核完成**（ADR-004、`curriculum.json` schemaVersion 2、`/api/curriculum` 增加 `catalogs`、`/curriculum` 分组页面；`npm run check` 退出码 0、smoke 127/127、E2E 83 通过/0 失败）。仓库/远端状态以 Git 为准；VPS 未更新。
+12. **下一关（需用户选择，二者都需要新的授权）**：
     - ~~**B7（参数快照）**~~ **已完成（R2）**：`GET/PUT/DELETE /api/me/saved-state/:experimentId` + 路由清单登记 + 实验目录 `state-schema.json` + R-17/R-18 用例（含"拖动不落库"与"不兼容回默认"）。
     - **D/E**：服务器只读侦察与部署审批。前置条件（不满足则不开始）：服务器参数/域名/HTTPS（Q1/Q2）、留存与服务地域（Q3；未成年人政策已决定不设年龄门槛）、远端仓库与 CI 真实运行、异机备份复制方案，以及负责人**单独**的上线授权。**Q4（账号删除/数据导出）已移出首版范围（2026-10-27）**。**R3 的只读侦察与 R6 的服务器内部测试部署已完成**：目标主机与访问方式已由负责人提供，`127.0.0.1:3221` 上的独立实例已按需求逐项实测（见「R6」）；**仍未公网发布**——把页面放到裸 IP 的 HTTPS 方案已评估（`docs/ops/ip-https-assessment.md`），但修主机 DNS、加 nginx 站点与公开暴露三项都需要负责人授权。
 
 ## 停止点与恢复命令（本次任务到此为止）
 
-**停止点（2026-10-27，R6 之后）**：B0→B8 + R1（远端落地与真实 CI）+ R2（B7 参数快照）+ R3（只读侦察）+ R4（交付前验证）+ R5（决策同步、依赖安全、依赖告警）+ R6（服务器内部测试部署、IP HTTPS 评估）全部完成并有真实运行证据。**源码已推送到公开仓库**；**部署状态要分开说**：负责人的 VPS 上有一份 `127.0.0.1:3221` 的**内部测试实例**（systemd 单元 `openedulab-test.service`，已 enable，重启后自启），但它只绑 loopback，只能经 SSH 端口转发访问——**没有公网 URL、没有域名、没有证书**；生产/DNS/防火墙/安全组/收费/扩大采集等动作一律未做；**GitHub Pages 未启用**（不能承载登录/API/SQLite）。R5 之后 `npm audit` 与 `npm audit --omit=dev` 均为 0，Dependabot 告警已开启且 0 open（15 条已 fixed）；**许可证仍未选择**（MIT / Apache-2.0 待负责人决定），仓库无 `LICENSE`。
+**停止点（2026-10-27，R8 之后）**：R8 只改仓库内容与服务端/页面代码，并在**工作机**上另起一份 `127.0.0.1:3320` 的独立数据库体验版（PID 20352，见 `docs/evidence/r8/live-3320.txt`；非 systemd、非公网）；VPS 上的 `127.0.0.1:3221` 实例**本轮未更新**，仍是 R7 之前交付的构建。以下为 R6 起的原停止点记录（服务器侧事实在 R8 未改变）。
+
+**（R6 时）停止点**：B0→B8 + R1（远端落地与真实 CI）+ R2（B7 参数快照）+ R3（只读侦察）+ R4（交付前验证）+ R5（决策同步、依赖安全、依赖告警）+ R6（服务器内部测试部署、IP HTTPS 评估）全部完成并有真实运行证据。**源码已推送到公开仓库**；**部署状态要分开说**：负责人的 VPS 上有一份 `127.0.0.1:3221` 的**内部测试实例**（systemd 单元 `openedulab-test.service`，已 enable，重启后自启），但它只绑 loopback，只能经 SSH 端口转发访问——**没有公网 URL、没有域名、没有证书**；生产/DNS/防火墙/安全组/收费/扩大采集等动作一律未做；**GitHub Pages 未启用**（不能承载登录/API/SQLite）。R5 之后 `npm audit` 与 `npm audit --omit=dev` 均为 0，Dependabot 告警已开启且 0 open（15 条已 fixed）；**许可证仍未选择**（MIT / Apache-2.0 待负责人决定），仓库无 `LICENSE`。
 
 **服务器上的残留资源（停工时如实列出，不是"已停"）**：该实例是**有意保留的常驻服务**，本轮没有停在半路。在场资源：OS 用户 `oel-test`；`/opt/openedulab-test/`（app 36M + node 204M + data + env）；`/etc/systemd/system/openedulab-test.service`（enabled + active）；`/opt/openedulab-test/data/app.sqlite`（含两个虚构测试账号的数据，仅本地测试用途）；`/tmp/` 下的中转文件（`oel-app.tgz`、`node-v22.23.0-linux-x64.tar.xz`、`SHASUMS256.txt`、`openedulab-test.{env,service}`、`db-readback.mjs`）。**没有**动过 nginx / 防火墙 / 安全组 / DNS / 任何旧服务 / 任何旧文件。一条可重复的验证命令（在任何能 SSH 到主机的机器上）：
 

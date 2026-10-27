@@ -1,25 +1,16 @@
 {
-  "schemaVersion": 1,
-  "note": "Pilot/illustrative entries. These are NOT verified textbook chapters: no edition, book or chapter number below has been checked against a real textbook. The same tool (math.functions) is reused; only the context preset differs.",
+  "schemaVersion": 3,
+  "note": "Placements only (ADR-005): the textbook tree is subject-level content in curricula/math/. The four illustrative entries point into pilot-illustrative.json and are kept byte-identical so their URLs and saved snapshots keep working. The two PEP entries (R9 G3) point at the printed sections of the 2022-revision volumes in pep-math-2022.json: 8b 23.2 (graphs and properties of linear functions) and 9a 26.2 (graphs and properties of quadratic functions). Only those two sections suit this tool today - a linear graph and a parabola with sliders on k/b (or a/b/c) - and nothing else in the six volumes is mapped just to fill the directory. The same tool, one implementation: each entry differs in position, preset and text only.",
   "placements": [
     {
       "placementId": "math.functions.pilot-linear-slope",
       "slug": "pilot-linear-slope",
       "version": 1,
       "status": "illustrative",
+      "catalogId": "pilot-edition",
+      "bookId": "pilot-book-a",
+      "chapterId": "pilot-chapter-a",
       "order": 1,
-      "edition": {
-        "id": "pilot-edition",
-        "labels": { "zh-CN": "试点版（非教材）", "en": "Pilot edition (not a textbook)" }
-      },
-      "book": {
-        "id": "pilot-book-a",
-        "labels": { "zh-CN": "示例册 A", "en": "Sample book A" }
-      },
-      "chapter": {
-        "id": "pilot-chapter-a",
-        "labels": { "zh-CN": "示例章 A · 斜率与截距", "en": "Sample chapter A · slope and intercept" }
-      },
       "title": {
         "zh-CN": "一次函数的斜率与截距",
         "en": "Slope and intercept of a linear function"
@@ -28,26 +19,22 @@
         "zh-CN": "以本章预置参数打开同一个函数实验：先看 k 与 b 如何移动直线，可在本章内保存自己的参数。",
         "en": "Opens the same function experiment with this chapter's preset: watch how k and b move the line, then save your own parameters for this chapter."
       },
-      "preset": { "mode": "linear", "a": 2, "b": 3, "c": 0 }
+      "preset": {
+        "mode": "linear",
+        "a": 2,
+        "b": 3,
+        "c": 0
+      }
     },
     {
       "placementId": "math.functions.pilot-quadratic-vertex",
       "slug": "pilot-quadratic-vertex",
       "version": 1,
       "status": "illustrative",
-      "order": 2,
-      "edition": {
-        "id": "pilot-edition",
-        "labels": { "zh-CN": "试点版（非教材）", "en": "Pilot edition (not a textbook)" }
-      },
-      "book": {
-        "id": "pilot-book-a",
-        "labels": { "zh-CN": "示例册 A", "en": "Sample book A" }
-      },
-      "chapter": {
-        "id": "pilot-chapter-b",
-        "labels": { "zh-CN": "示例章 B · 顶点", "en": "Sample chapter B · vertex" }
-      },
+      "catalogId": "pilot-edition",
+      "bookId": "pilot-book-a",
+      "chapterId": "pilot-chapter-b",
+      "order": 1,
       "title": {
         "zh-CN": "二次函数的顶点",
         "en": "Vertex of a quadratic function"
@@ -56,7 +43,110 @@
         "zh-CN": "以本章预置参数打开同一个函数实验：观察顶点位置与开口方向，本章的个人参数与上一章互不影响。",
         "en": "Opens the same function experiment with this chapter's preset: study the vertex and the opening direction. Saved parameters in this chapter never leak into the previous one."
       },
-      "preset": { "mode": "quadratic", "a": 1, "b": -2, "c": 0 }
+      "preset": {
+        "mode": "quadratic",
+        "a": 1,
+        "b": -2,
+        "c": 0
+      }
+    },
+    {
+      "placementId": "math.functions.pilot-vertex-first",
+      "slug": "pilot-vertex-first",
+      "version": 1,
+      "status": "illustrative",
+      "catalogId": "pilot-edition-b",
+      "bookId": "pilot-book-b1",
+      "chapterId": "pilot-chapter-b1-vertex",
+      "order": 1,
+      "title": {
+        "zh-CN": "先看顶点（示例乙的章序）",
+        "en": "Vertex first (catalog B order)"
+      },
+      "summary": {
+        "zh-CN": "同一份实验，在示例教材乙里出现在前面的册与章；预置值与个人保存都只属于这个条目。",
+        "en": "The same experiment, placed in the earlier book and chapter of sample catalog B. Both the preset and any saved parameters belong to this entry only."
+      },
+      "preset": {
+        "mode": "quadratic",
+        "a": 2,
+        "b": -3,
+        "c": 0
+      }
+    },
+    {
+      "placementId": "math.functions.pilot-slope-after",
+      "slug": "pilot-slope-after",
+      "version": 1,
+      "status": "illustrative",
+      "catalogId": "pilot-edition-b",
+      "bookId": "pilot-book-b2",
+      "chapterId": "pilot-chapter-b2-slope",
+      "order": 1,
+      "title": {
+        "zh-CN": "后看斜率（示例乙的章序）",
+        "en": "Slope later (catalog B order)"
+      },
+      "summary": {
+        "zh-CN": "同一份实验，在示例教材乙的后一册与后一章；与示例甲的同名主题互不共享参数。",
+        "en": "The same experiment, in the later book and chapter of sample catalog B. It shares no parameters with the same topic in sample catalog A."
+      },
+      "preset": {
+        "mode": "linear",
+        "a": -1,
+        "b": 2,
+        "c": 0
+      }
+    },
+    {
+      "placementId": "math.functions.pep-8b-ch23-s2-linear-graph",
+      "slug": "pep-8b-23-2-linear-graph",
+      "version": 1,
+      "status": "verified",
+      "catalogId": "pep-math-2022",
+      "bookId": "pep-math-8b-2026",
+      "chapterId": "pep-math-8b-2026-ch23",
+      "sectionId": "pep-math-8b-2026-ch23-s2",
+      "order": 1,
+      "title": {
+        "zh-CN": "一次函数的图象和性质",
+        "en": "Graphs and properties of linear functions"
+      },
+      "summary": {
+        "zh-CN": "以 23.2 节的预置参数打开同一个函数实验：拖动 k 与 b，观察直线如何升降、在 y 轴上从哪里穿过，再把看到的现象与课本第 117 页的性质逐条对照。这是本项目的独立实现，不含教材插图、例题或习题。",
+        "en": "Opens the same function experiment with section 23.2's preset: drag k and b to see how the line tilts and where it crosses the y-axis, then check each property you noticed against printed page 117. This is the project's own implementation; it embeds no textbook figure, worked example or exercise."
+      },
+      "preset": {
+        "mode": "linear",
+        "a": 2,
+        "b": 1,
+        "c": 0
+      }
+    },
+    {
+      "placementId": "math.functions.pep-9a-ch26-s2-quadratic-graph",
+      "slug": "pep-9a-26-2-quadratic-graph",
+      "version": 1,
+      "status": "verified",
+      "catalogId": "pep-math-2022",
+      "bookId": "pep-math-9a-2026",
+      "chapterId": "pep-math-9a-2026-ch26",
+      "sectionId": "pep-math-9a-2026-ch26-s2",
+      "order": 1,
+      "title": {
+        "zh-CN": "二次函数的图象和性质",
+        "en": "Graphs and properties of quadratic functions"
+      },
+      "summary": {
+        "zh-CN": "以 26.2 节的预置参数打开同一个函数实验：改变 a、b、c，观察开口方向、对称轴与顶点如何变化，与课本第 33 页所讲的性质逐条对照。本节只是同一工具的另一个入口，参数与本节的个人保存都与 23.2 互不影响。",
+        "en": "Opens the same function experiment with section 26.2's preset: change a, b and c to watch the opening direction, axis of symmetry and vertex, and compare them with the properties on printed page 33. This is another entry into the same tool; its preset and its own saved values are independent of 23.2."
+      },
+      "preset": {
+        "mode": "quadratic",
+        "a": 1,
+        "b": -4,
+        "c": 3
+      }
     }
   ]
 }

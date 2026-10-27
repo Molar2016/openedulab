@@ -107,23 +107,105 @@ export interface CurriculumNode {
   readonly label: string;
 }
 
+/** One printed section (节) of a chapter (ADR-006). */
+export interface CurriculumSection {
+  readonly sectionId: string;
+  /** Explicit order inside the chapter (1..n). */
+  readonly order: number;
+  readonly label: string;
+  /** The page printed in the book, when the volume numbers it. */
+  readonly printedPage?: number;
+  /** Placement ids in tool order; join against `items` to render them. */
+  readonly placementIds: readonly string[];
+}
+
+/** One chapter of a catalog: ordered, and holding references to the entries placed in it. */
+export interface CurriculumChapter {
+  readonly chapterId: string;
+  /** Explicit order inside the book (1..n). */
+  readonly order: number;
+  readonly label: string;
+  /** The page printed in the book for the chapter opening. */
+  readonly printedPage?: number;
+  /**
+   * Placement ids in tool order, including the ones that sit in a section below — a
+   * chapter-only client must not lose an entry. Join against `items` and split on
+   * `item.sectionId` to render each entry once.
+   */
+  readonly placementIds: readonly string[];
+  /** Printed sections in book order; empty or absent when the catalog models chapters only. */
+  readonly sections?: readonly CurriculumSection[];
+}
+
+/** One book (册) of a catalog. */
+export interface CurriculumBook {
+  readonly bookId: string;
+  /** Explicit order inside the catalog (1..n). */
+  readonly order: number;
+  readonly label: string;
+  readonly chapters: readonly CurriculumChapter[];
+}
+
+/**
+ * One textbook catalog (教材版本). `illustrative` catalogs are examples and carry no
+ * publisher/revision; a real textbook would have to be verified before it is marked
+ * `verified`, and only then does the wire shape include the bibliographic fields.
+ */
+export interface CurriculumCatalog {
+  readonly catalogId: string;
+  readonly subject: string;
+  readonly version: number;
+  readonly status: 'illustrative' | 'verified';
+  /** Explicit order inside the subject (1..n). */
+  readonly order: number;
+  readonly label: string;
+  readonly publisher?: string;
+  readonly revision?: string;
+  /**
+   * Edition metadata (ADR-006): `current-2022` for the 2022 curriculum revision, `legacy-2011`
+   * for the grade-9 volume printed under the 2011 curriculum. It is a catalog attribute the
+   * directory reports inside the catalog's own details — every catalog is a peer entry, so
+   * nothing in the interface badges one edition against the other. Absent on illustrative
+   * catalogs.
+   */
+  readonly editionStatus?: 'current-2022' | 'legacy-2011';
+  readonly books: readonly CurriculumBook[];
+}
+
 export interface CurriculumItem {
   readonly placementId: string;
   readonly slug: string;
   readonly version: number;
   readonly status: 'illustrative' | 'verified';
+  /** Tool order inside its chapter — not the directory order. */
   readonly order: number;
   readonly experimentId: string;
   readonly experimentSlug: string;
   readonly contentVersion: string;
   readonly stateSchemaVersion: number;
+  /** Navigation group: this is a subject tag, never a class or a cohort. */
+  readonly subject: string;
+  readonly catalogId: string;
+  readonly bookId: string;
+  readonly chapterId: string;
+  /** The printed section this entry sits in (ADR-006); absent for a chapter-level entry. */
+  readonly sectionId?: string;
   readonly title: string;
   readonly summary: string;
+  /** Compatibility fields: the catalog/book/chapter labels this entry sits in. */
   readonly edition: CurriculumNode;
   readonly book: CurriculumNode;
   readonly chapter: CurriculumNode;
+  /** The section label, present exactly when `sectionId` is. */
+  readonly section?: CurriculumNode;
   /** The preset this entry opens with (validated server-side against the tool schema). */
   readonly preset: Readonly<Record<string, number | string>>;
+}
+
+/** `GET /api/curriculum`: flat entries (old shape) plus the catalog tree they belong to. */
+export interface CurriculumResponse {
+  readonly items: readonly CurriculumItem[];
+  readonly catalogs: readonly CurriculumCatalog[];
 }
 
 /** A personal snapshot scoped to (account, placement) — never to the tool. */
@@ -177,8 +259,8 @@ export interface ApiClient {
     input: { readonly stateSchemaVersion: number; readonly values: Readonly<Record<string, number | string>> },
   ): Promise<SavedStateSnapshot>;
   deleteState(experimentId: string): Promise<void>;
-  /** Curriculum directory. Protected content, like the catalog. */
-  curriculum(locale?: string): Promise<readonly CurriculumItem[]>;
+  /** Curriculum directory: flat entries plus the subject → catalog → book → chapter tree. */
+  curriculum(locale?: string): Promise<CurriculumResponse>;
   /** `null` means this account has nothing saved for this placement. */
   placementState(placementId: string): Promise<PlacementStateSnapshot | null>;
   savePlacementState(
@@ -378,8 +460,7 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
 
     async curriculum(locale) {
       const suffix = locale === undefined ? '' : `?locale=${encodeURIComponent(locale)}`;
-      const body = await request<{ items: CurriculumItem[] }>(`/api/curriculum${suffix}`);
-      return body.items;
+      return request<CurriculumResponse>(`/api/curriculum${suffix}`);
     },
 
     async placementState(placementId) {

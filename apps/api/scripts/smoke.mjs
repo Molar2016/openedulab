@@ -852,17 +852,90 @@ async function main() {
     const listing = await authed('/api/curriculum?locale=en');
     const listingBody = await listing.json();
     check(
-      'GET /api/curriculum -> 200 with the two pilot entries of one tool',
+      'GET /api/curriculum -> 200 with six entries of one tool across four catalogs',
       listing.status === 200 &&
         Array.isArray(listingBody.items) &&
-        listingBody.items.length === 2 &&
+        listingBody.items.length === 6 &&
         listingBody.items.every((item) => item.experimentId === 'math.functions') &&
-        listingBody.items.every((item) => item.status === 'illustrative'),
+        listingBody.items.filter((item) => item.status === 'verified').length === 2 &&
+        listingBody.items.filter((item) => item.status === 'illustrative').length === 4,
       `${listing.status} n=${listingBody.items?.length}`,
     );
     check(
+      'the two PEP catalogs lead the directory as peer editions, each with its own books',
+      Array.isArray(listingBody.catalogs) &&
+        listingBody.catalogs.length === 4 &&
+        listingBody.catalogs.map((catalog) => catalog.catalogId).join(',') ===
+          'pep-math-2022,pep-math-9b-legacy,pilot-edition,pilot-edition-b' &&
+        listingBody.catalogs[0].books.map((book) => book.bookId).join(',') ===
+          'pep-math-7a-2024,pep-math-7b-2025,pep-math-8a-2025,pep-math-8b-2026,pep-math-9a-2026' &&
+        listingBody.catalogs[1].editionStatus === 'legacy-2011' &&
+        listingBody.catalogs[0].editionStatus === 'current-2022',
+      JSON.stringify((listingBody.catalogs ?? []).map((catalog) => catalog.catalogId)),
+    );
+    const sixVolumeSections = (listingBody.catalogs ?? [])
+      .filter((catalog) => catalog.catalogId.startsWith('pep-math-'))
+      .flatMap((catalog) =>
+        catalog.books.flatMap((book) => book.chapters.flatMap((chapter) => chapter.sections ?? [])),
+      );
+    const ch23 = (listingBody.catalogs ?? [])
+      .flatMap((catalog) => catalog.books.flatMap((book) => book.chapters))
+      .find((chapter) => chapter.chapterId === 'pep-math-8b-2026-ch23');
+    check(
+      'the six volumes publish 108 sections, and an empty section keeps its place',
+      sixVolumeSections.length === 108 &&
+        ch23 !== undefined &&
+        ch23.sections.length === 5 &&
+        ch23.sections.filter((section) => section.placementIds.length > 0).length === 1 &&
+        ch23.sections[1].placementIds[0] === 'math.functions.pep-8b-ch23-s2-linear-graph' &&
+        ch23.printedPage === 113,
+      `sections=${sixVolumeSections.length} ch23=${ch23?.sections?.length}`,
+    );
+    check(
+      'the two section entries carry their section; the illustrative ones do not',
+      listingBody.items[0]?.sectionId === 'pep-math-8b-2026-ch23-s2' &&
+        listingBody.items[1]?.sectionId === 'pep-math-9a-2026-ch26-s2' &&
+        listingBody.items[0]?.chapter?.label === 'Chapter 23 Linear functions' &&
+        JSON.stringify(listingBody.items[0]?.preset) === '{"a":2,"b":1,"c":0,"mode":"linear"}' &&
+        JSON.stringify(listingBody.items[1]?.preset) === '{"a":1,"b":-4,"c":3,"mode":"quadratic"}' &&
+        listingBody.items.slice(2).every((item) => item.sectionId === undefined),
+      JSON.stringify(listingBody.items.map((item) => item.sectionId ?? null)),
+    );
+    const itemsOf = (catalogId) =>
+      (listingBody.items ?? []).filter((item) => item.catalogId === catalogId);
+    const pilotA = itemsOf('pilot-edition');
+    const pilotB = itemsOf('pilot-edition-b');
+    check(
+      'the two illustrative catalogs still order the same conceptual chapters independently',
+      pilotA.length === 2 &&
+        pilotB.length === 2 &&
+        pilotA[0].chapterId === 'pilot-chapter-a' &&
+        pilotA[1].chapterId === 'pilot-chapter-b' &&
+        pilotB[0].bookId === 'pilot-book-b1' &&
+        pilotB[1].bookId === 'pilot-book-b2',
+      JSON.stringify([pilotA.map((item) => item.chapterId), pilotB.map((item) => item.bookId)]),
+    );
+    check(
+      'an illustrative catalog carries no publisher or edition (nothing fabricated)',
+      Array.isArray(listingBody.catalogs) &&
+        listingBody.catalogs
+          .filter((catalog) => catalog.status === 'illustrative')
+          .every(
+            (catalog) =>
+              catalog.publisher === undefined &&
+              catalog.revision === undefined &&
+              catalog.editionStatus === undefined,
+          ),
+      JSON.stringify(listingBody.catalogs?.map((catalog) => catalog.publisher)),
+    );
+    const listingText = JSON.stringify(listingBody);
+    check(
       'the directory response carries no filesystem path or file name',
-      !/curriculum\.json|experiments[\\/]|OEL_/.test(JSON.stringify(listingBody)),
+      !listingText.includes('curriculum.json') &&
+        !listingText.includes('curricula/') &&
+        !listingText.includes('experiments') &&
+        !listingText.includes('OEL_') &&
+        !listingText.includes('.pdf'),
     );
     const CHAPTER = 'math.functions.pilot-linear-slope';
     const OTHER_CHAPTER = 'math.functions.pilot-quadratic-vertex';
@@ -902,6 +975,24 @@ async function main() {
       'the sibling chapter of the same tool sees nothing (404)',
       siblingChapter.status === 404,
       `status=${siblingChapter.status}`,
+    );
+    const reorderedChapter = 'math.functions.pilot-slope-after';
+    const reorderedSaved = await putJson(`/api/me/placement-state/${reorderedChapter}`, {
+      placementVersion: 1,
+      stateSchemaVersion: 1,
+      values: { mode: 'linear', a: -3, b: 2, c: 0 },
+    });
+    const chapterAfterReordered = await authed(`/api/me/placement-state/${CHAPTER}`);
+    const reorderedRead = await authed(`/api/me/placement-state/${reorderedChapter}`);
+    check(
+      'a second catalog keeps its own snapshot of the same tool',
+      reorderedSaved.status === 200 &&
+        reorderedRead.status === 200 &&
+        JSON.stringify((await reorderedRead.json()).values) ===
+          '{"a":-3,"b":2,"c":0,"mode":"linear"}' &&
+        JSON.stringify((await chapterAfterReordered.json()).values) ===
+          '{"a":6,"b":1,"c":0,"mode":"linear"}',
+      `saved=${reorderedSaved.status} reordered=${reorderedRead.status}`,
     );
     const toolScope = await authed('/api/me/saved-state/math.functions');
     check(

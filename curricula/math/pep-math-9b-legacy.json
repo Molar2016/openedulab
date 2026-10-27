@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "subject": "math",
+  "note": "PEP (People's Education Press) middle-school mathematics, grade 9 volume 2 — the volume in current classroom use (2011 curriculum edition), NOT the 2027 edition, which has not been published. It is a separate catalog on purpose: its chapters restart at 26 and collide with the new edition's 26-29 while covering different topics (inverse proportional functions here, quadratic functions there), so it may never be shown as the sixth volume of one continuous series. Titles, order and printed pages are transcribed from the volume's table of contents and re-checked on body pages; its chapter opening pages print no page number, so those four numbers are derived from the first section page and marked (derived) in docs/research/pep-math-six-volumes.md. No body text, exercise or image is stored here.",
+  "catalogs": [
+    {
+      "catalogId": "pep-math-9b-legacy",
+      "subject": "math",
+      "version": 1,
+      "status": "verified",
+      "order": 2,
+      "editionStatus": "legacy-2011",
+      "label": {
+        "zh-CN": "人教版初中数学 九年级下册（2011 年课标版）",
+        "en": "PEP middle-school mathematics, grade 9 volume 2 (2011 curriculum edition)"
+      },
+      "publisher": {
+        "zh-CN": "人民教育出版社",
+        "en": "People's Education Press"
+      },
+      "revision": {
+        "zh-CN": "2011 年课标版（2027 年新版尚未出版；章号自第二十六章起重新编号）",
+        "en": "2011 curriculum edition (the 2027 edition is not published yet; chapter numbering restarts at 26)"
+      },
+      "books": [
+        {
+          "bookId": "pep-math-9b-legacy",
+          "order": 6,
+          "label": {
+            "zh-CN": "九年级下册",
+            "en": "Grade 9, volume 2"
+          },
+          "chapters": [
+            {
+              "chapterId": "pep-math-9b-legacy-ch26",
+              "order": 26,
+              "label": {
+                "zh-CN": "第二十六章 反比例函数",
+                "en": "Chapter 26 Inverse proportional functions"
+              },
+              "printedPage": 1,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9b-legacy-ch26-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "26.1 反比例函数",
+                    "en": "26.1 Inverse proportional functions"
+                  },
+                  "printedPage": 2
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch26-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "26.2 实际问题与反比例函数",
+                    "en": "26.2 Real-world problems and inverse proportional functions"
+                  },
+                  "printedPage": 12
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9b-legacy-ch27",
+              "order": 27,
+              "label": {
+                "zh-CN": "第二十七章 相似",
+                "en": "Chapter 27 Similarity"
+              },
+              "printedPage": 23,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9b-legacy-ch27-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "27.1 图形的相似",
+                    "en": "27.1 Similar figures"
+                  },
+                  "printedPage": 24
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch27-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "27.2 相似三角形",
+                    "en": "27.2 Similar triangles"
+                  },
+                  "printedPage": 29
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch27-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "27.3 位似",
+                    "en": "27.3 Homothety"
+                  },
+                  "printedPage": 47
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9b-legacy-ch28",
+              "order": 28,
+              "label": {
+                "zh-CN": "第二十八章 锐角三角函数",
+                "en": "Chapter 28 Trigonometric ratios of acute angles"
+              },
+              "printedPage": 60,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9b-legacy-ch28-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "28.1 锐角三角函数",
+                    "en": "28.1 Trigonometric ratios of acute angles"
+                  },
+                  "printedPage": 61
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch28-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "28.2 解直角三角形及其应用",
+                    "en": "28.2 Solving right triangles and its applications"
+                  },
+                  "printedPage": 72
+                }
+              ]
+            },
+            {
+              "chapterId": "pep-math-9b-legacy-ch29",
+              "order": 29,
+              "label": {
+                "zh-CN": "第二十九章 投影与视图",
+                "en": "Chapter 29 Projection and views"
+              },
+              "printedPage": 86,
+              "sections": [
+                {
+                  "sectionId": "pep-math-9b-legacy-ch29-s1",
+                  "order": 1,
+                  "label": {
+                    "zh-CN": "29.1 投影",
+                    "en": "29.1 Projection"
+                  },
+                  "printedPage": 87
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch29-s2",
+                  "order": 2,
+                  "label": {
+                    "zh-CN": "29.2 三视图",
+                    "en": "29.2 Three-view drawings"
+                  },
+                  "printedPage": 94
+                },
+                {
+                  "sectionId": "pep-math-9b-legacy-ch29-s3",
+                  "order": 3,
+                  "label": {
+                    "zh-CN": "29.3 课题学习 制作立体模型",
+                    "en": "29.3 Project work: making a solid model"
+                  },
+                  "printedPage": 105
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

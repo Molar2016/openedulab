@@ -29,8 +29,71 @@ export interface ContentFixtureEntry {
   /**
    * Written verbatim as `curriculum.json`; `null` writes nothing (an experiment without
    * curriculum placements). Used to exercise placement/preset validation.
+   *
+   * A `catalogs` array inside this object is a **fixture shorthand only**: the shipped
+   * layout keeps catalogs in `curricula/<subject>/<file>.json` (ADR-005), so the helper
+   * files them there and writes `curriculum.json` with the placements alone. New cases
+   * that are about catalog files should declare `catalogs` on the entry instead.
    */
   readonly curriculum?: Record<string, unknown> | null;
+  /**
+   * Writes `curriculum` exactly as given, without the catalog-splitting shorthand above.
+   * Needed to prove that a file which still carries `catalogs` is refused rather than
+   * silently migrated.
+   */
+  readonly rawCurriculum?: boolean;
+  /**
+   * Shared subject-level catalogs (ADR-005). Written to
+   * `<root>/curricula/<subject>/<slug>.json`; the tool's own `curriculum.json` then only
+   * carries placements that reference them.
+   */
+  readonly catalogs?: readonly Record<string, unknown>[];
+}
+
+/** One `curricula/<subject>/<file>.json` document, as shipped. */
+export interface CurriculumCatalogFile {
+  /** Directory name under `curricula/`; also the file's declared subject. */
+  readonly subject: string;
+  /** File name without `.json`. */
+  readonly file: string;
+  readonly catalogs: readonly Record<string, unknown>[];
+  readonly note?: string;
+  /** Defaults to 1; used to exercise unknown schema versions. */
+  readonly schemaVersion?: number;
+  /**
+   * Written as the file's `subject` instead of `subject` above, to exercise a file whose
+   * declared subject disagrees with its directory.
+   */
+  readonly declaredSubject?: string;
+}
+
+/**
+ * Writes shared catalog documents under `<root>/curricula/<subject>/<file>.json`.
+ * `loadContentIndex()` looks for that directory next to the content directory, so a
+ * fixture root carries both `experiments/` and `curricula/`.
+ */
+export async function writeCurriculaDir(
+  root: string,
+  files: readonly CurriculumCatalogFile[],
+): Promise<string> {
+  const curriculaDir = path.join(root, 'curricula');
+  await mkdir(curriculaDir, { recursive: true });
+  for (const file of files) {
+    const subjectDir = path.join(curriculaDir, file.subject);
+    await mkdir(subjectDir, { recursive: true });
+    const document = {
+      schemaVersion: file.schemaVersion ?? 1,
+      subject: file.declaredSubject ?? file.subject,
+      ...(file.note === undefined ? {} : { note: file.note }),
+      catalogs: [...file.catalogs],
+    };
+    await writeFile(
+      path.join(subjectDir, `${file.file}.json`),
+      `${JSON.stringify(document, null, 2)}\n`,
+      'utf8',
+    );
+  }
+  return curriculaDir;
 }
 
 const DEFAULTS = {
@@ -48,6 +111,8 @@ export async function writeContentDir(
 ): Promise<string> {
   const contentDir = path.join(root, 'experiments');
   await mkdir(contentDir, { recursive: true });
+
+  const sharedCatalogs: CurriculumCatalogFile[] = [];
 
   for (const entry of entries) {
     const folder = path.join(contentDir, entry.slug);
@@ -80,12 +145,43 @@ export async function writeContentDir(
         'utf8',
       );
     }
+    if (entry.catalogs !== undefined) {
+      sharedCatalogs.push({
+        subject: entry.subjects?.[0] ?? 'math',
+        file: entry.slug,
+        catalogs: entry.catalogs,
+      });
+    }
     if (entry.curriculum !== undefined && entry.curriculum !== null) {
-      await writeFile(
-        path.join(folder, 'curriculum.json'),
-        `${JSON.stringify(entry.curriculum, null, 2)}\n`,
-        'utf8',
-      );
+      const raw = entry.curriculum;
+      const inline = entry.rawCurriculum === true ? null : Array.isArray(raw.catalogs) ? raw.catalogs : null;
+      if (inline !== null) {
+        // Fixture shorthand (see ContentFixtureEntry.curriculum): file the catalogs where
+        // the shipped layout keeps them and leave `curriculum.json` with placements only.
+        const first = inline.find(
+          (candidate): candidate is Record<string, unknown> =>
+            typeof candidate === 'object' &&
+            candidate !== null &&
+            typeof (candidate as Record<string, unknown>).subject === 'string',
+        );
+        sharedCatalogs.push({
+          subject: typeof first?.subject === 'string' ? first.subject : 'math',
+          file: entry.slug,
+          catalogs: inline,
+        });
+        const { catalogs: _catalogs, ...withoutCatalogs } = raw;
+        await writeFile(
+          path.join(folder, 'curriculum.json'),
+          `${JSON.stringify({ ...withoutCatalogs, schemaVersion: 3 }, null, 2)}\n`,
+          'utf8',
+        );
+      } else {
+        await writeFile(
+          path.join(folder, 'curriculum.json'),
+          `${JSON.stringify(raw, null, 2)}\n`,
+          'utf8',
+        );
+      }
     }
     if (entry.omitLocales === true) {
       continue;
@@ -115,6 +211,10 @@ export async function writeContentDir(
       )}\n`,
       'utf8',
     );
+  }
+
+  if (sharedCatalogs.length > 0) {
+    await writeCurriculaDir(root, sharedCatalogs);
   }
 
   return contentDir;

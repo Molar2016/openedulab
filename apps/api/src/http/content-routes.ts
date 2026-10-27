@@ -7,7 +7,11 @@ import {
   type ContentIndex,
   type ContentLocale,
 } from '../domain/content-index.js';
-import type { CurriculumPlacement, PlacementNode } from '../domain/curriculum.js';
+import type {
+  CurriculumCatalog,
+  CurriculumPlacement,
+  PlacementNode,
+} from '../domain/curriculum.js';
 import { accountOf, type SessionGate } from './auth-context.js';
 import { apiError } from './errors.js';
 
@@ -101,9 +105,12 @@ function catalogItem(entry: ContentExperiment, locale: ContentLocale): object {
 
 /**
  * One curriculum directory entry (ADR-003): the tool it reuses, its stable id and version,
- * where it sits in the edition/book/chapter tree, the localized texts and the preset the
- * context page opens with. The preset is content that every signed-in account may read —
+ * where it sits in the edition/book/chapter/section tree, the localized texts and the preset
+ * the context page opens with. The preset is content that every signed-in account may read —
  * it is the chapter's promise, not anybody's personal data.
+ *
+ * `section` is present only for an entry that sits in a printed section (ADR-006); the
+ * chapter-level fields never disappear, so a client that predates sections keeps working.
  */
 function curriculumItem(
   placement: CurriculumPlacement,
@@ -124,12 +131,78 @@ function curriculumItem(
     experimentSlug: experiment.slug,
     contentVersion: experiment.contentVersion,
     stateSchemaVersion: placement.stateSchemaVersion,
+    subject: placement.subject,
+    catalogId: placement.catalogId,
+    bookId: placement.bookId,
+    chapterId: placement.chapterId,
+    ...(placement.sectionId === null
+      ? {}
+      : { sectionId: placement.sectionId, section: node(placement.section as PlacementNode) }),
     title: placement.title[locale],
     summary: placement.summary[locale],
-    edition: node(placement.edition),
+    edition: node(placement.catalog),
     book: node(placement.book),
     chapter: node(placement.chapter),
     preset: { ...placement.preset },
+  };
+}
+
+/**
+ * One catalog with its own book/chapter/section tree (ADR-004; the tree itself became
+ * subject-level content in ADR-005, sections arrived in ADR-006). Placements are referenced by
+ * id only: the flat `items` array stays the single definition of each entry, so a client joins
+ * the two and no entry can be described two different ways.
+ *
+ * A chapter lists every tool inside it — including the ones that sit in a section — so a
+ * client that only knows chapters never loses an entry; each section lists its own, and the
+ * page splits on the entry's `sectionId` to render each one once. A chapter or section with no
+ * tool keeps its place with `placementIds: []`: "no tool published here yet" is a real state of
+ * the directory, not a row to hide.
+ */
+function catalogTreeItem(
+  catalog: CurriculumCatalog,
+  placements: readonly CurriculumPlacement[],
+  locale: ContentLocale,
+): object {
+  return {
+    catalogId: catalog.catalogId,
+    subject: catalog.subject,
+    version: catalog.version,
+    status: catalog.status,
+    order: catalog.order,
+    ...(catalog.editionStatus === null ? {} : { editionStatus: catalog.editionStatus }),
+    label: catalog.labels[locale],
+    ...(catalog.publisher === null ? {} : { publisher: catalog.publisher[locale] }),
+    ...(catalog.revision === null ? {} : { revision: catalog.revision[locale] }),
+    books: catalog.books.map((book) => ({
+      bookId: book.bookId,
+      order: book.order,
+      label: book.labels[locale],
+      chapters: book.chapters.map((chapter) => {
+        const inChapter = placements.filter(
+          (placement) =>
+            placement.catalogId === catalog.catalogId &&
+            placement.bookId === book.bookId &&
+            placement.chapterId === chapter.chapterId,
+        );
+        return {
+          chapterId: chapter.chapterId,
+          order: chapter.order,
+          label: chapter.labels[locale],
+          ...(chapter.printedPage === null ? {} : { printedPage: chapter.printedPage }),
+          placementIds: inChapter.map((placement) => placement.placementId),
+          sections: chapter.sections.map((section) => ({
+            sectionId: section.sectionId,
+            order: section.order,
+            label: section.labels[locale],
+            ...(section.printedPage === null ? {} : { printedPage: section.printedPage }),
+            placementIds: inChapter
+              .filter((placement) => placement.sectionId === section.sectionId)
+              .map((placement) => placement.placementId),
+          })),
+        };
+      }),
+    })),
   };
 }
 
@@ -176,7 +249,12 @@ export function registerContentRoutes(app: FastifyInstance, options: CatalogRout
       return reply
         .header('cache-control', 'no-store')
         .type('application/json; charset=utf-8')
-        .send({ items });
+        .send({
+          items,
+          catalogs: contentIndex.catalogs.map((catalog) =>
+            catalogTreeItem(catalog, contentIndex.placements, active),
+          ),
+        });
     },
   );
 
